@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFA · Expediente de Incorporación</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=DM+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1814;
+  --ink-soft: #4a4540;
+  --ink-muted: #8a8278;
+  --paper: #f5f0e8;
+  --paper-dark: #ede8da;
+  --paper-darker: #e0d9c8;
+  --red: #8b1a1a;
+  --red-light: #c0392b;
+  --teal: #1a4a3a;
+  --teal-light: #2d7a5f;
+  --gold: #8b6914;
+  --border: #c8bfa8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--paper); }
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* Grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.4;
+}
+
+.wrap {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+/* Header */
+.letterhead {
+  text-align: center;
+  padding: 2rem 0 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+.org-name {
+  font-family: 'IM Fell English', serif;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.org-sub {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 12px;
+}
+.ref-line {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-muted);
+  border-top: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border);
+  padding: 6px 0;
+  margin-top: 12px;
+}
+
+/* Stamp */
+.stamp {
+  display: inline-block;
+  border: 1.5px solid var(--red);
+  color: var(--red);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 2px;
+  opacity: 0.85;
+}
+.stamp.green { border-color: var(--teal); color: var(--teal); }
+
+/* Pages */
+.page { display: none; animation: fadeUp 0.35s ease; }
+.page.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Progress */
+.progress-wrap { margin-bottom: 2rem; }
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+.progress-track {
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 1px;
+  transition: width 0.4s ease;
+}
+
+/* Sections */
+.section-title {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 1rem;
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid var(--border);
+}
+.headline {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 20px;
+  line-height: 1.35;
+  color: var(--ink);
+  margin-bottom: 0.75rem;
+}
+.body-text {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--ink-soft);
+}
+
+/* Paper card */
+.doc-card {
+  background: var(--paper-dark);
+  border: 0.5px solid var(--border);
+  border-radius: 2px;
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  position: relative;
+}
+.doc-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--ink);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Observation scene */
+.scene-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 1rem 0;
+}
+.scene-item {
+  background: var(--paper);
+  border: 0.5px solid var(--border);
+  border-radius: 2px;
+  padding: 10px;
+  font-size: 11px;
+}
+.scene-item .item-name { font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.scene-item .item-det { color: var(--ink-muted); font-size: 10px; }
+
+/* Answer options */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 1rem 0;
+}
+.opt-btn {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.opt-btn:hover { background: var(--paper-darker); border-color: var(--ink-soft); }
+.opt-btn.correct { background: #e8f4ee; border-color: var(--teal-light); color: var(--teal); }
+.opt-btn.wrong { background: #f4e8e8; border-color: var(--red-light); color: var(--red); }
+.opt-btn.disabled { pointer-events: none; opacity: 0.5; }
+
+/* Feedback */
+.feedback {
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: 2px;
+  margin: 0.5rem 0;
+  display: none;
+  line-height: 1.5;
+}
+.feedback.correct { background: #e8f4ee; color: var(--teal); border-left: 2px solid var(--teal); }
+.feedback.wrong { background: #f4e8e8; color: var(--red); border-left: 2px solid var(--red); }
+.feedback.show { display: block; }
+
+/* Scale questions */
+.q-block { margin-bottom: 1.25rem; }
+.q-text { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 8px; }
+.scale-row {
+  display: flex;
+  gap: 6px;
+}
+.scale-btn {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 48px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 0;
+}
+.scale-btn:hover { background: var(--paper-darker); color: var(--ink); }
+.scale-btn.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* Name input */
+.input-field {
+  width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input-field:focus { border-color: var(--ink); }
+.input-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* Profile result */
+.profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.role-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Libre Baskerville', serif;
+  font-size: 20px;
+  font-style: italic;
+  flex-shrink: 0;
+}
+.role-name {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 18px;
+  margin-bottom: 3px;
+}
+.role-sub { font-size: 10px; letter-spacing: 0.1em; color: var(--ink-muted); text-transform: uppercase; }
+.result-bar-wrap { margin-bottom: 8px; }
+.result-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--ink-muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+.result-bar-track { height: 3px; background: var(--border); border-radius: 1px; overflow: hidden; }
+.result-bar-fill { height: 100%; background: var(--ink); border-radius: 1px; transition: width 0.8s ease; width: 0; }
+
+/* Final card */
+.ficha {
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ficha-header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ficha-header .org { font-family: 'IM Fell English', serif; font-size: 14px; }
+.ficha-header .tip { font-size: 10px; opacity: 0.6; letter-spacing: 0.1em; }
+.ficha-body { padding: 1rem; }
+.ficha-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 12px;
+}
+.ficha-row:last-child { border-bottom: none; }
+.ficha-row .key { color: var(--ink-muted); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.ficha-row .val { font-weight: 500; }
+.ficha-role-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { opacity: 0.85; }
+.btn.full { width: 100%; text-align: center; display: block; }
+.btn-row { display: flex; gap: 10px; margin-top: 1.5rem; justify-content: flex-end; }
+
+/* Divider ornament */
+.ornament {
+  text-align: center;
+  color: var(--border);
+  font-size: 16px;
+  letter-spacing: 8px;
+  margin: 1.25rem 0;
+}
+
+/* Warning box */
+.warning-box {
+  background: var(--paper-darker);
+  border-left: 2px solid var(--ink-muted);
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 1rem 0;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 3rem 0;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+.loading::after {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--ink-muted);
+  margin: 12px auto 0;
+  animation: loadbar 1s ease-in-out infinite alternate;
+}
+@keyframes loadbar { from { width: 24px; opacity: 0.3; } to { width: 80px; opacity: 1; } }
+
+.block-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 1.25rem 0 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 0.5px solid var(--border);
+}
+.block-label:first-child { border-top: none; margin-top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Letterhead -->
+  <div class="letterhead">
+    <div class="org-name">Mulier Fortis Association</div>
+    <div class="org-sub">Despacho de investigación privada · Barcelona</div>
+    <div class="ref-line" id="ref-line">Ref. MFA-2026-INC-001 · Reservado · Uso interno</div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progress-wrap" style="display:none">
+    <div class="progress-label">
+      <span id="prog-phase">Fase 1 / 3</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- PAGE 0: Cover -->
+  <div class="page active" id="p0">
+    <div style="margin-bottom:1rem"><span class="stamp">Confidencial</span></div>
+    <h1 class="headline">Expediente de incorporación al equipo</h1>
+    <p class="body-text" style="margin-bottom:1.25rem">Has sido seleccionado/a para participar en una investigación activa bajo la dirección de la detective Claudia Lozano Sans (TIP 7293).</p>
+    <div class="doc-card">
+      <div class="section-title">Caso activo</div>
+      <p class="body-text"><strong style="color:var(--ink)">Lucentia Consulting S.L.</strong> — Posible filtración interna de información confidencial. Acceso restringido. Sin evidencia de intrusión externa detectada.</p>
+      <div class="ornament">· · ·</div>
+      <p class="body-text">Antes de ser asignado/a a un equipo operativo, el despacho requiere una <strong style="color:var(--ink)">evaluación de capacidades</strong>. Esta evaluación determinará tu rol dentro del equipo de investigación.</p>
+    </div>
+    <div class="warning-box">Procedimiento de carácter confidencial. Las respuestas no tienen respuestas correctas o incorrectas — se evalúa el perfil operativo, no el conocimiento previo. Duración estimada: 6 minutos.</div>
+    <div style="margin-top:1.5rem">
+      <p class="input-label">Identifícate para comenzar</p>
+      <input class="input-field" type="text" id="name-input" placeholder="Nombre completo" maxlength="60">
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="startEval()">Iniciar evaluación →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 1: Observation -->
+  <div class="page" id="p1">
+    <div style="margin-bottom:1rem"><span class="stamp">Fase 1 — Observación</span></div>
+    <h2 class="headline" style="font-size:17px">Lectura de escena</h2>
+    <p class="body-text" style="margin-bottom:1rem">Memoriza los elementos de la escena. Tendrás que responder a una pregunta sin volver a verla.</p>
+    <div class="doc-card">
+      <div class="section-title">Escena: sala de reuniones — 14:32 h</div>
+      <div class="scene-grid">
+        <div class="scene-item"><div class="item-name">Mesa rectangular</div><div class="item-det">6 sillas — 2 ocupadas</div></div>
+        <div class="scene-item"><div class="item-name">Portátil abierto</div><div class="item-det">Pantalla encendida, cable USB</div></div>
+        <div class="scene-item"><div class="item-name">Vaso de agua</div><div class="item-det">Medio lleno, sin posavasos</div></div>
+        <div class="scene-item"><div class="item-name">Proyector activo</div><div class="item-det">Diapositiva con gráfico</div></div>
+        <div class="scene-item"><div class="item-name">Carpeta cerrada</div><div class="item-det">Esquina inferior derecha</div></div>
+        <div class="scene-item"><div class="item-name">Teléfono boca abajo</div><div class="item-det">Junto al portátil</div></div>
+      </div>
+    </div>
+    <div class="doc-card">
+      <div class="section-title">Pregunta de verificación</div>
+      <p class="body-text" style="margin-bottom:1rem">Sin mirar arriba: ¿qué objeto estaba en la <strong style="color:var(--ink)">esquina inferior derecha</strong>?</p>
+      <div class="options-grid" id="obs-options">
+        <button class="opt-btn" onclick="answerObs(this,'wrong')">El vaso de agua</button>
+        <button class="opt-btn" onclick="answerObs(this,'wrong')">El teléfono</button>
+        <button class="opt-btn" onclick="answerObs(this,'correct')">La carpeta cerrada</button>
+        <button class="opt-btn" onclick="answerObs(this,'wrong')">El portátil</button>
+      </div>
+      <div class="feedback" id="obs-fb"></div>
+    </div>
+    <div class="btn-row" id="obs-next" style="display:none">
+      <button class="btn primary" onclick="goTo(2)">Siguiente fase →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Profile questions -->
+  <div class="page" id="p2">
+    <div style="margin-bottom:1rem"><span class="stamp">Fase 2 — Perfil operativo</span></div>
+    <h2 class="headline" style="font-size:17px">Evaluación de capacidades</h2>
+    <p class="body-text" style="margin-bottom:1.25rem">Valora cada afirmación del 1 al 5 con sinceridad. 1 = nada / 5 = totalmente.</p>
+    <div class="doc-card" id="q-container"></div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="calcAndGoResult()">Ver mi perfil →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Result -->
+  <div class="page" id="p3">
+    <div style="margin-bottom:1rem"><span class="stamp green">Evaluación completada</span></div>
+    <h2 class="headline" style="font-size:17px">Tu perfil operativo</h2>
+    <div class="doc-card" id="profile-result"></div>
+    <div class="ornament">· · ·</div>
+    <div class="doc-card">
+      <div class="section-title">Fase 3 — Confirmación de expediente</div>
+      <p class="body-text" style="margin-bottom:1rem">Tu perfil ha sido registrado. El instructor de campo asignará los equipos operativos antes del inicio del caso.</p>
+      <button class="btn primary full" onclick="submitAndFinish()">Confirmar incorporación →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 4: Final -->
+  <div class="page" id="p4">
+    <div style="margin-bottom:1rem"><span class="stamp green">Expediente cerrado</span></div>
+    <h2 class="headline" style="font-size:17px">Bienvenido/a al equipo</h2>
+    <p class="body-text" style="margin-bottom:1.25rem">Tu expediente ha sido registrado en el sistema del despacho. Guarda esta ficha — la necesitarás.</p>
+    <div class="ficha" id="ficha-final"></div>
+    <div class="warning-box" style="margin-top:1rem">Muestra esta pantalla al instructor antes del inicio de la sesión. El caso Lucentia comenzará en breve.</div>
+  </div>
+
+</div>
+
+<script>
+const FIREBASE_URL = 'https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
+
+const questions = [
+  { block: 'Observación', text: 'Detecto detalles pequeños que otras personas suelen pasar por alto.' },
+  { block: 'Observación', text: 'Me resulta fácil recordar rostros, objetos o escenas.' },
+  { block: 'Observación', text: 'Me fijo en cambios sutiles en el comportamiento de las personas.' },
+  { block: 'Razonamiento', text: 'Soy capaz de sacar conclusiones a partir de información incompleta.' },
+  { block: 'Razonamiento', text: 'Identifico contradicciones en historias o explicaciones.' },
+  { block: 'Comunicación', text: 'Me siento cómodo/a hablando con personas desconocidas.' },
+  { block: 'Comunicación', text: 'Sé escuchar activamente y captar los detalles importantes.' },
+  { block: 'Organización', text: 'Soy ordenado/a con la información que recojo.' },
+  { block: 'Organización', text: 'Mantengo la concentración durante tareas largas.' },
+  { block: 'Intuición', text: 'Suelo "sentir" cuando algo no encaja en una situación.' },
+  { block: 'Intuición', text: 'Detecto cuando alguien miente o exagera.' }
+];
+
+const roles = [
+  { id: 'analista', name: 'Analista', icon: 'A', bg: '#E6F1FB', color: '#0C447C', desc: 'Perfil lógico y sistemático. Fuerte en razonamiento y organización. Rol: procesar información, detectar patrones y construir la línea temporal del caso Lucentia.' },
+  { id: 'campo', name: 'Agente de campo', icon: 'C', bg: '#E1F5EE', color: '#085041', desc: 'Perfil observador y detallista. Alto en observación e intuición. Rol: vigilancia, seguimiento y recopilación directa de evidencias.' },
+  { id: 'interrogador', name: 'Interrogador/a', icon: 'I', bg: '#FAECE7', color: '#712B13', desc: 'Perfil comunicativo y perceptivo. Fuerte en comunicación e intuición. Rol: entrevistas a testigos y obtención de información verbal.' },
+  { id: 'coordinador', name: 'Coordinador/a', icon: 'Co', bg: '#EEEDFE', color: '#3C3489', desc: 'Perfil equilibrado y organizativo. Fuerte en organización. Rol: gestión del equipo y síntesis del expediente final.' }
+];
+
+const blockMap = {
+  'Observación': ['campo', 'analista'],
+  'Razonamiento': ['analista', 'coordinador'],
+  'Comunicación': ['interrogador', 'coordinador'],
+  'Organización': ['coordinador', 'analista'],
+  'Intuición': ['campo', 'interrogador']
+};
+
+let agentName = '';
+let obsCorrect = false;
+let answers = {};
+let agentTIP = '';
+let assignedRole = null;
+let blockAvgs = {};
+
+function genTIP() {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const suffix = letters[Math.floor(Math.random() * letters.length)] + letters[Math.floor(Math.random() * letters.length)];
+  const nums = Math.floor(1000 + Math.random() * 9000);
+  return 'MFA-' + nums + '-' + suffix;
+}
+
+
+function renderQuestions() {
+  const c = document.getElementById('q-container');
+  let lastBlock = '';
+  let html = '';
+  questions.forEach((q, i) => {
+    if (q.block !== lastBlock) {
+      html += `<div class="block-label">${q.block}</div>`;
+      lastBlock = q.block;
+    }
+    html += `<div class="q-block">
+      <p class="q-text">${i + 1}. ${q.text}</p>
+      <div class="scale-row">
+        ${[1,2,3,4,5].map(v => `<button class="scale-btn" id="q${i}_${v}" onclick="setAns(${i},${v},'${q.block}')">${v}</button>`).join('')}
+      </div>
+    </div>`;
+  });
+  c.innerHTML = html;
+}
+
+function setAns(qi, v, block) {
+  answers[qi] = { v, block };
+  [1,2,3,4,5].forEach(x => {
+    const b = document.getElementById(`q${qi}_${x}`);
+    if (b) b.classList.toggle('sel', x === v);
+  });
+}
+
+function startEval() {
+  const n = document.getElementById('name-input').value.trim();
+  if (!n) { document.getElementById('name-input').focus(); return; }
+  agentName = n;
+  agentTIP = genTIP();
+  document.getElementById('progress-wrap').style.display = 'block';
+  goTo(1);
+}
+
+function answerObs(el, type) {
+  document.querySelectorAll('.opt-btn').forEach(b => { b.classList.add('disabled'); });
+  obsCorrect = type === 'correct';
+  el.classList.add(type);
+  const fb = document.getElementById('obs-fb');
+  if (obsCorrect) {
+    fb.textContent = 'Correcto. La carpeta cerrada estaba en la esquina inferior derecha.';
+    fb.className = 'feedback correct show';
+  } else {
+    fb.textContent = 'Incorrecto. Presta atención a la posición de los objetos en la escena.';
+    fb.className = 'feedback wrong show';
+  }
+  document.getElementById('obs-next').style.display = 'flex';
+}
+
+function calcProfile() {
+  const blockScores = {};
+  Object.values(answers).forEach(({ v, block }) => {
+    if (!blockScores[block]) blockScores[block] = { sum: 0, count: 0 };
+    blockScores[block].sum += v;
+    blockScores[block].count++;
+  });
+  blockAvgs = {};
+  Object.entries(blockScores).forEach(([b, { sum, count }]) => {
+    blockAvgs[b] = Math.round((sum / count) * 10) / 10;
+  });
+  const roleScores = {};
+  roles.forEach(r => roleScores[r.id] = 0);
+  Object.entries(blockAvgs).forEach(([block, avg]) => {
+    (blockMap[block] || []).forEach(rid => { roleScores[rid] = (roleScores[rid] || 0) + avg; });
+  });
+  if (obsCorrect) roleScores['campo'] = (roleScores['campo'] || 0) + 2;
+  let top = roles[0];
+  roles.forEach(r => { if ((roleScores[r.id] || 0) > (roleScores[top.id] || 0)) top = r; });
+  assignedRole = top;
+}
+
+function calcAndGoResult() {
+  calcProfile();
+  const role = assignedRole;
+  const card = document.getElementById('profile-result');
+  card.innerHTML = `
+    <div class="profile-header">
+      <div class="role-icon" style="background:${role.bg};color:${role.color}">${role.icon}</div>
+      <div>
+        <div class="role-name" style="color:${role.color}">${role.name}</div>
+        <div class="role-sub">Rol asignado · Caso Lucentia</div>
+      </div>
+    </div>
+    <p class="body-text" style="margin-bottom:1.25rem">${role.desc}</p>
+    <div class="section-title">Resultados por bloque</div>
+    ${Object.entries(blockAvgs).map(([b, avg]) => `
+      <div class="result-bar-wrap">
+        <div class="result-bar-label"><span>${b}</span><span>${avg}/5</span></div>
+        <div class="result-bar-track"><div class="result-bar-fill" data-w="${Math.round(avg / 5 * 100)}"></div></div>
+      </div>`).join('')}
+    <p style="font-size:10px;color:var(--ink-muted);margin-top:.75rem">
+      Test de observación: ${obsCorrect ? '✓ Superado' : '✗ Incorrecto'}
+    </p>`;
+  goTo(3);
+  setTimeout(() => {
+    document.querySelectorAll('.result-bar-fill').forEach(el => {
+      el.style.width = el.dataset.w + '%';
+    });
+  }, 100);
+}
+
+async function submitAndFinish() {
+  const agentData = {
+    name: agentName,
+    tip: agentTIP,
+    role: assignedRole.name,
+    roleId: assignedRole.id,
+    blocks: blockAvgs,
+    obsCorrect,
+    ts: Date.now()
+  };
+  try {
+    await fetch(FIREBASE_URL + '/agentes.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(agentData)
+    });
+  } catch(e) { console.error('Firebase error:', e); }
+
+  const role = assignedRole;
+  document.getElementById('ficha-final').innerHTML = `
+    <div class="ficha-header">
+      <div class="org">Mulier Fortis Association</div>
+      <div class="tip">${agentTIP}</div>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-row"><span class="key">Agente</span><span class="val">${agentName}</span></div>
+      <div class="ficha-row"><span class="key">Rol</span>
+        <span class="ficha-role-badge" style="background:${role.bg};color:${role.color}">${role.name}</span></div>
+      <div class="ficha-row"><span class="key">Caso</span><span class="val">Lucentia Consulting S.L.</span></div>
+      <div class="ficha-row"><span class="key">Instructora</span><span class="val">Claudia Lozano Sans · TIP 7293</span></div>
+      <div class="ficha-row"><span class="key">Fecha</span><span class="val">${new Date().toLocaleDateString('es-ES')}</span></div>
+    </div>`;
+  goTo(4);
+}
+
+function goTo(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('p' + n).classList.add('active');
+  const phases = { 0: 0, 1: 33, 2: 66, 3: 90, 4: 100 };
+  const labels = { 0: '—', 1: 'Fase 1 / 3', 2: 'Fase 2 / 3', 3: 'Fase 3 / 3', 4: 'Completado' };
+  const pct = phases[n] || 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-phase').textContent = labels[n] || '';
+  window.scrollTo(0, 0);
+}
+
+renderQuestions();
+</script>
+</body>
+</html>
