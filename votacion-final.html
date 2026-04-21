@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFA · Votación Final</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0908;--bg2:#131211;--bg3:#1a1917;--paper:#f5f0e8;--muted:#6a6560;--border:rgba(245,240,232,0.08);--accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;--mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif}
+html{background:var(--bg);color:var(--paper);font-family:var(--mono)}
+body{min-height:100vh;padding:0}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
+
+/* MOBILE VOTE VIEW */
+.vote-view{display:none;max-width:480px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+.vote-view.show{display:block}
+
+.vote-header{text-align:center;padding:1.5rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.vote-org{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,240,232,.3);margin-bottom:.5rem}
+.vote-title{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:.5rem}
+.vote-sub{font-size:12px;color:rgba(245,240,232,.4);line-height:1.6}
+
+.suspect-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:1.125rem 1.25rem;
+  margin-bottom:.75rem;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;gap:1rem;
+}
+.suspect-card:hover{border-color:rgba(245,240,232,.2);background:var(--bg3)}
+.suspect-card.selected{border:1px solid var(--accent);background:rgba(200,169,110,.08)}
+.suspect-code{
+  width:44px;height:44px;border-radius:4px;
+  background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:500;color:rgba(245,240,232,.5);
+  flex-shrink:0;letter-spacing:.06em;
+}
+.suspect-card.selected .suspect-code{background:rgba(200,169,110,.15);color:var(--accent);border-color:rgba(200,169,110,.3)}
+.suspect-name{font-size:14px;font-weight:400;color:var(--paper);margin-bottom:2px}
+.suspect-cargo{font-size:11px;color:rgba(245,240,232,.4)}
+
+.vote-btn{
+  width:100%;background:var(--accent);color:var(--bg);
+  border:none;border-radius:4px;padding:14px;
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;transition:opacity .15s;margin-top:1.5rem;
+}
+.vote-btn:hover{opacity:.85}
+.vote-btn:disabled{opacity:.3;cursor:not-allowed}
+
+.voted-state{text-align:center;padding:4rem 1rem}
+.voted-icon{font-size:48px;margin-bottom:1rem}
+.voted-title{font-family:var(--serif);font-size:24px;margin-bottom:.5rem}
+.voted-sub{font-size:12px;color:rgba(245,240,232,.4);line-height:1.7}
+
+/* RESULTS VIEW — para proyectar */
+.results-view{display:none;max-width:900px;margin:0 auto;padding:2rem 2rem 4rem}
+.results-view.show{display:block}
+
+.results-header{text-align:center;padding:2rem 0 3rem}
+.results-org{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,240,232,.25);margin-bottom:.75rem}
+.results-title{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:300;margin-bottom:.5rem}
+.results-sub{font-size:13px;color:rgba(245,240,232,.35);letter-spacing:.06em}
+
+.results-grid{display:grid;gap:12px;margin-bottom:2rem}
+.result-row{
+  display:flex;align-items:center;gap:1.25rem;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:1rem 1.25rem;
+  transition:all .3s;
+}
+.result-row.leader{border-color:rgba(200,169,110,.3);background:rgba(200,169,110,.05)}
+.result-code{
+  font-size:12px;font-weight:500;letter-spacing:.06em;
+  color:rgba(245,240,232,.4);min-width:42px;
+}
+.result-name{font-size:14px;color:var(--paper);flex:1;min-width:0}
+.result-bar-wrap{flex:2;display:flex;align-items:center;gap:.875rem}
+.result-bar-track{flex:1;height:6px;background:rgba(245,240,232,.08);border-radius:3px;overflow:hidden}
+.result-bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .8s cubic-bezier(.4,0,.2,1);width:0}
+.result-row.leader .result-bar-fill{background:var(--accent)}
+.result-count{font-size:20px;font-weight:300;color:var(--paper);min-width:32px;text-align:right}
+.result-pct{font-size:11px;color:rgba(245,240,232,.35);min-width:40px;text-align:right}
+.result-crown{font-size:16px;margin-left:4px}
+
+.total-votes{
+  text-align:center;font-size:13px;
+  color:rgba(245,240,232,.3);letter-spacing:.08em;
+  margin-top:1.5rem;
+}
+
+.mode-toggle{
+  position:fixed;top:1rem;right:1rem;z-index:100;
+  display:flex;gap:8px;
+}
+.mode-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;padding:7px 14px;border-radius:3px;
+  border:1px solid rgba(245,240,232,.15);background:rgba(10,9,8,.8);
+  color:rgba(245,240,232,.5);cursor:pointer;transition:all .15s;
+  backdrop-filter:blur(4px);
+}
+.mode-btn:hover{border-color:rgba(245,240,232,.3);color:var(--paper)}
+.mode-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+
+.live-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--teal);margin-right:5px;
+  animation:blink 2s ease infinite;
+  vertical-align:middle;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<div class="mode-toggle">
+  <button class="mode-btn active" id="btn-vote-mode" onclick="setMode('vote')">Votar</button>
+  <button class="mode-btn" id="btn-results-mode" onclick="setMode('results')">Resultados</button>
+  <button class="mode-btn" onclick="clearVotes()">Reset</button>
+</div>
+
+<!-- VOTE VIEW (móvil) -->
+<div class="vote-view show" id="vote-view">
+  <div class="vote-header">
+    <div class="vote-org">Mulier Fortis Association · Caso MFA-2026-LC-001</div>
+    <div class="vote-title">Votación final</div>
+    <div class="vote-sub">¿Quién es el responsable de la filtración?<br>Cada equipo emite un voto.</div>
+  </div>
+
+  <div id="suspect-list">
+    <div class="suspect-card" onclick="selectVote(this,'marcos')">
+      <div class="suspect-code">S-01</div>
+      <div><div class="suspect-name">Marcos Ibáñez Solano</div><div class="suspect-cargo">Senior Consultant</div></div>
+    </div>
+    <div class="suspect-card" onclick="selectVote(this,'silvia')">
+      <div class="suspect-code">S-02</div>
+      <div><div class="suspect-name">Sílvia Mora Puig</div><div class="suspect-cargo">Project Manager</div></div>
+    </div>
+    <div class="suspect-card" onclick="selectVote(this,'andres')">
+      <div class="suspect-code">S-03</div>
+      <div><div class="suspect-name">Andrés Castellví Roca</div><div class="suspect-cargo">Financial Analyst</div></div>
+    </div>
+    <div class="suspect-card" onclick="selectVote(this,'paula')">
+      <div class="suspect-code">S-04</div>
+      <div><div class="suspect-name">Paula Esteve Valls</div><div class="suspect-cargo">Strategy Director</div></div>
+    </div>
+    <div class="suspect-card" onclick="selectVote(this,'varios')">
+      <div class="suspect-code">+1</div>
+      <div><div class="suspect-name">Más de un responsable</div><div class="suspect-cargo">Conspiración interna</div></div>
+    </div>
+  </div>
+
+  <button class="vote-btn" id="vote-btn" onclick="submitVote()" disabled>Emitir voto del equipo →</button>
+</div>
+
+<!-- VOTED STATE -->
+<div class="vote-view" id="voted-view">
+  <div class="voted-state">
+    <div class="voted-icon">✓</div>
+    <div class="voted-title">Voto registrado</div>
+    <div class="voted-sub">Tu equipo ha emitido su voto.<br>El resultado se revelará en la clausura.</div>
+  </div>
+</div>
+
+<!-- RESULTS VIEW (proyector) -->
+<div class="results-view" id="results-view">
+  <div class="results-header">
+    <div class="results-org">Mulier Fortis Association · Despacho de Investigación Privada</div>
+    <div class="results-title">¿Quién es el culpable?</div>
+    <div class="results-sub"><span class="live-dot"></span>Resultados en tiempo real · Caso Lucentia Consulting S.L.</div>
+  </div>
+  <div class="results-grid" id="results-grid"></div>
+  <div class="total-votes" id="total-votes">0 votos emitidos</div>
+</div>
+
+<script>
+const FIREBASE_URL = 'https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
+const VOTES_PATH = '/votos-final.json';
+
+const SUSPECTS = [
+  {id:'marcos', code:'S-01', name:'Marcos Ibáñez Solano', cargo:'Senior Consultant'},
+  {id:'silvia', code:'S-02', name:'Sílvia Mora Puig', cargo:'Project Manager'},
+  {id:'andres', code:'S-03', name:'Andrés Castellví Roca', cargo:'Financial Analyst'},
+  {id:'paula', code:'S-04', name:'Paula Esteve Valls', cargo:'Strategy Director'},
+  {id:'varios', code:'+1', name:'Más de un responsable', cargo:'Conspiración interna'},
+];
+
+let selectedVote = null;
+let hasVoted = localStorage.getItem('mfa_voted_2026') === 'true';
+let currentMode = 'vote';
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-vote-mode').classList.toggle('active', mode==='vote');
+  document.getElementById('btn-results-mode').classList.toggle('active', mode==='results');
+  if (mode === 'vote') {
+    if (hasVoted) {
+      document.getElementById('vote-view').classList.remove('show');
+      document.getElementById('voted-view').classList.add('show');
+    } else {
+      document.getElementById('vote-view').classList.add('show');
+      document.getElementById('voted-view').classList.remove('show');
+    }
+    document.getElementById('results-view').classList.remove('show');
+  } else {
+    document.getElementById('vote-view').classList.remove('show');
+    document.getElementById('voted-view').classList.remove('show');
+    document.getElementById('results-view').classList.add('show');
+    loadResults();
+  }
+}
+
+function selectVote(el, id) {
+  if (hasVoted) return;
+  document.querySelectorAll('.suspect-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedVote = id;
+  document.getElementById('vote-btn').disabled = false;
+}
+
+async function submitVote() {
+  if (!selectedVote || hasVoted) return;
+  try {
+    await fetch(FIREBASE_URL + VOTES_PATH, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({suspect: selectedVote, ts: Date.now()})
+    });
+    hasVoted = true;
+    localStorage.setItem('mfa_voted_2026','true');
+    document.getElementById('vote-view').classList.remove('show');
+    document.getElementById('voted-view').classList.add('show');
+  } catch(e) {
+    alert('Error al enviar el voto. Verifica tu conexión.');
+  }
+}
+
+async function loadResults() {
+  try {
+    const res = await fetch(FIREBASE_URL + VOTES_PATH);
+    const data = await res.json();
+    const counts = {};
+    SUSPECTS.forEach(s => counts[s.id] = 0);
+    if (data && typeof data === 'object') {
+      Object.values(data).forEach(v => {
+        if (counts[v.suspect] !== undefined) counts[v.suspect]++;
+      });
+    }
+    renderResults(counts);
+  } catch(e) { console.error(e); }
+}
+
+function renderResults(counts) {
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+  const maxCount = Math.max(...Object.values(counts), 1);
+  const sorted = [...SUSPECTS].sort((a,b)=>(counts[b.id]||0)-(counts[a.id]||0));
+  const leader = sorted[0];
+
+  document.getElementById('results-grid').innerHTML = sorted.map((s,i) => {
+    const count = counts[s.id] || 0;
+    const pct = total > 0 ? Math.round(count/total*100) : 0;
+    const barW = Math.round(count/maxCount*100);
+    const isLeader = s.id === leader.id && count > 0;
+    return `<div class="result-row${isLeader?' leader':''}">
+      <div class="result-code">${s.code}</div>
+      <div class="result-name">${s.name}${isLeader?' <span class="result-crown">★</span>':''}</div>
+      <div class="result-bar-wrap">
+        <div class="result-bar-track"><div class="result-bar-fill" style="width:${barW}%"></div></div>
+        <div class="result-count">${count}</div>
+        <div class="result-pct">${pct}%</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('total-votes').textContent =
+    `${total} voto${total!==1?'s':''} emitido${total!==1?'s':''}`;
+}
+
+async function clearVotes() {
+  if (!confirm('¿Borrar todos los votos?')) return;
+  try {
+    await fetch(FIREBASE_URL + VOTES_PATH, {method:'DELETE'});
+    localStorage.removeItem('mfa_voted_2026');
+    hasVoted = false;
+    selectedVote = null;
+    document.querySelectorAll('.suspect-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('vote-btn').disabled = true;
+    document.getElementById('vote-view').classList.add('show');
+    document.getElementById('voted-view').classList.remove('show');
+    if (currentMode === 'results') loadResults();
+  } catch(e) {}
+}
+
+// Auto-refresh results
+setInterval(() => { if (currentMode === 'results') loadResults(); }, 3000);
+
+// Init
+if (hasVoted) {
+  document.getElementById('vote-view').classList.remove('show');
+  document.getElementById('voted-view').classList.add('show');
+}
+</script>
+</body>
+</html>
