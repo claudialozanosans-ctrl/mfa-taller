@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFA · Panel del Instructor</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=DM+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1814;
+  --ink-soft: #4a4540;
+  --ink-muted: #8a8278;
+  --paper: #f5f0e8;
+  --paper-dark: #ede8da;
+  --paper-darker: #e0d9c8;
+  --red: #8b1a1a;
+  --teal: #1a4a3a;
+  --teal-light: #2d7a5f;
+  --gold: #8b6914;
+  --border: #c8bfa8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--ink); }
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--ink);
+  color: var(--paper);
+  min-height: 100vh;
+}
+
+.top-bar {
+  background: var(--ink);
+  border-bottom: 1px solid rgba(200,191,168,0.2);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.top-bar .logo { font-family: 'IM Fell English', serif; font-size: 18px; color: var(--paper); }
+.top-bar .sub { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-muted); }
+.top-bar-right { display: flex; align-items: center; gap: 1rem; }
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #2d7a5f;
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.live-label { font-size: 10px; color: var(--ink-muted); letter-spacing: 0.1em; }
+
+.main { padding: 2rem; }
+.section-title {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 1rem;
+  padding-bottom: 8px;
+  border-bottom: 0.5px solid rgba(200,191,168,0.2);
+}
+
+/* Stats */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+.stat-card {
+  background: rgba(255,255,255,0.05);
+  border: 0.5px solid rgba(200,191,168,0.15);
+  border-radius: 4px;
+  padding: 1rem;
+}
+.stat-val { font-family: 'Libre Baskerville', serif; font-size: 28px; margin-bottom: 4px; }
+.stat-label { font-size: 10px; letter-spacing: 0.1em; color: var(--ink-muted); text-transform: uppercase; }
+
+/* Roles summary */
+.roles-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+.role-stat {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(200,191,168,0.12);
+  border-radius: 4px;
+  padding: .75rem 1rem;
+  border-top: 2px solid;
+}
+.role-stat .rname { font-size: 11px; font-weight: 500; margin-bottom: 4px; }
+.role-stat .rcount { font-size: 22px; font-family: 'Libre Baskerville', serif; }
+
+/* Agents table */
+.agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+.agent-card {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(200,191,168,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.agent-card-top {
+  padding: 10px 14px;
+  border-bottom: 0.5px solid rgba(200,191,168,0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.agent-avatar {
+  width: 36px; height: 36px;
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Libre Baskerville', serif;
+  font-size: 14px;
+  font-style: italic;
+  flex-shrink: 0;
+}
+.agent-name { font-size: 13px; font-weight: 500; color: var(--paper); }
+.agent-tip { font-size: 10px; color: var(--ink-muted); }
+.agent-card-body { padding: 10px 14px; }
+.mini-bar-wrap { margin-bottom: 5px; }
+.mini-bar-label { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-muted); letter-spacing: 0.06em; margin-bottom: 2px; text-transform: uppercase; }
+.mini-bar-track { height: 2px; background: rgba(200,191,168,0.15); border-radius: 1px; overflow: hidden; }
+.mini-bar-fill { height: 100%; border-radius: 1px; }
+.obs-badge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 8px;
+}
+.role-pill {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Teams section */
+.teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 2rem; }
+.team-card {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(200,191,168,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.team-header {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 0.5px solid rgba(200,191,168,0.1);
+}
+.team-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 0.5px solid rgba(200,191,168,0.06);
+  font-size: 12px;
+}
+.team-member:last-child { border-bottom: none; }
+.member-role-tag {
+  font-size: 9px;
+  padding: 1px 8px;
+  border-radius: 20px;
+  margin-left: auto;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Buttons */
+.btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  border-radius: 2px;
+  cursor: pointer;
+  border: 1px solid rgba(200,191,168,0.3);
+  background: transparent;
+  color: var(--paper);
+  transition: all 0.15s;
+}
+.btn:hover { background: rgba(255,255,255,0.08); }
+.btn.danger { border-color: rgba(139,26,26,0.5); color: #c0392b; }
+.btn.danger:hover { background: rgba(139,26,26,0.15); }
+.top-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; }
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.8;
+  border: 0.5px dashed rgba(200,191,168,0.2);
+  border-radius: 4px;
+}
+
+.timestamp { font-size: 10px; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <div class="logo">Mulier Fortis Association</div>
+    <div class="sub">Panel del instructor · Caso Lucentia Consulting</div>
+  </div>
+  <div class="top-bar-right">
+    <div class="live-dot"></div>
+    <div class="live-label">En directo</div>
+    <button class="btn" onclick="loadData()">↻ Actualizar</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="top-actions">
+    <button class="btn" onclick="exportCSV()">Exportar CSV</button>
+    <button class="btn" onclick="printTeams()">Imprimir equipos</button>
+    <button class="btn danger" onclick="clearAll()">Borrar todos los datos</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="section-title">Resumen general</div>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val" id="total-count">0</div>
+      <div class="stat-label">Agentes registrados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="obs-pct">—</div>
+      <div class="stat-label">Test observación OK</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="top-block">—</div>
+      <div class="stat-label">Bloque más fuerte</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="teams-count">—</div>
+      <div class="stat-label">Equipos sugeridos</div>
+    </div>
+  </div>
+
+  <!-- Role distribution -->
+  <div class="section-title">Distribución de roles</div>
+  <div class="roles-row" id="roles-row">
+    <div class="role-stat" style="border-top-color:#185FA5"><div class="rname" style="color:#85B7EB">Analista</div><div class="rcount" id="cnt-analista">0</div></div>
+    <div class="role-stat" style="border-top-color:#0F6E56"><div class="rname" style="color:#5DCAA5">Agente de campo</div><div class="rcount" id="cnt-campo">0</div></div>
+    <div class="role-stat" style="border-top-color:#993C1D"><div class="rname" style="color:#F0997B">Interrogador/a</div><div class="rcount" id="cnt-interrogador">0</div></div>
+    <div class="role-stat" style="border-top-color:#534AB7"><div class="rname" style="color:#AFA9EC">Coordinador/a</div><div class="rcount" id="cnt-coordinador">0</div></div>
+  </div>
+
+  <!-- Suggested teams -->
+  <div class="section-title">Equipos sugeridos</div>
+  <div class="teams-grid" id="teams-grid"></div>
+
+  <!-- All agents -->
+  <div class="section-title">Expedientes individuales</div>
+  <div class="agents-grid" id="agents-grid"></div>
+
+</div>
+
+<script>
+const FIREBASE_URL = 'https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
+
+const roleColors = {
+  analista:     { bg: '#0C447C22', pill: '#E6F1FB', text: '#0C447C', border: '#185FA5' },
+  campo:        { bg: '#08504122', pill: '#E1F5EE', text: '#085041', border: '#0F6E56' },
+  interrogador: { bg: '#71130022', pill: '#FAECE7', text: '#712B13', border: '#993C1D' },
+  coordinador:  { bg: '#3C348922', pill: '#EEEDFE', text: '#3C3489', border: '#534AB7' }
+};
+const roleLabels = { analista: 'Analista', campo: 'Agente de campo', interrogador: 'Interrogador/a', coordinador: 'Coordinador/a' };
+const blockColors = { 'Observación': '#378ADD', 'Razonamiento': '#7F77DD', 'Comunicación': '#D85A30', 'Organización': '#1D9E75', 'Intuición': '#EF9F27' };
+
+async function loadData() {
+  let agents = [];
+  try {
+    const res = await fetch(FIREBASE_URL + '/agentes.json');
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      agents = Object.values(data).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+    }
+  } catch(e) { console.error('Firebase error:', e); }
+  renderAll(agents);
+}
+
+function renderAll(agents) {
+  renderStats(agents);
+  renderAgents(agents);
+  renderTeams(agents);
+}
+
+function renderStats(agents) {
+  document.getElementById('total-count').textContent = agents.length;
+  if (agents.length === 0) {
+    document.getElementById('obs-pct').textContent = '—';
+    document.getElementById('top-block').textContent = '—';
+    document.getElementById('teams-count').textContent = '—';
+    return;
+  }
+  const obsOk = agents.filter(a => a.obsCorrect).length;
+  document.getElementById('obs-pct').textContent = Math.round(obsOk / agents.length * 100) + '%';
+  const blockTotals = {};
+  agents.forEach(a => {
+    Object.entries(a.blocks || {}).forEach(([b, v]) => {
+      blockTotals[b] = (blockTotals[b] || 0) + v;
+    });
+  });
+  const topBlock = Object.entries(blockTotals).sort((x, y) => y[1] - x[1])[0];
+  document.getElementById('top-block').textContent = topBlock ? topBlock[0].split(' ')[0] : '—';
+  document.getElementById('teams-count').textContent = Math.max(1, Math.ceil(agents.length / 4));
+  const counts = { analista: 0, campo: 0, interrogador: 0, coordinador: 0 };
+  agents.forEach(a => { if (a.roleId && counts[a.roleId] !== undefined) counts[a.roleId]++; });
+  Object.entries(counts).forEach(([id, n]) => {
+    const el = document.getElementById('cnt-' + id);
+    if (el) el.textContent = n;
+  });
+}
+
+function renderAgents(agents) {
+  const grid = document.getElementById('agents-grid');
+  if (agents.length === 0) {
+    grid.innerHTML = '<div class="empty-state">Ningún agente registrado aún.<br>Los participantes aparecerán aquí al completar el formulario en su móvil.</div>';
+    return;
+  }
+  grid.innerHTML = agents.map(a => {
+    const rc = roleColors[a.roleId] || roleColors.analista;
+    const initials = a.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    const barColor = rc.border;
+    return `
+      <div class="agent-card">
+        <div class="agent-card-top">
+          <div class="agent-avatar" style="background:${rc.pill};color:${rc.text}">${initials}</div>
+          <div>
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-tip">${a.tip}</div>
+          </div>
+        </div>
+        <div class="agent-card-body">
+          <div class="role-pill" style="background:${rc.pill};color:${rc.text}">${a.role}</div>
+          ${Object.entries(a.blocks || {}).map(([b, v]) => `
+            <div class="mini-bar-wrap">
+              <div class="mini-bar-label"><span>${b}</span><span>${v}/5</span></div>
+              <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(v/5*100)}%;background:${blockColors[b]||barColor}"></div></div>
+            </div>`).join('')}
+          <span class="obs-badge" style="${a.obsCorrect ? 'background:rgba(45,122,95,0.2);color:#5DCAA5' : 'background:rgba(139,26,26,0.2);color:#F0997B'}">
+            Obs: ${a.obsCorrect ? '✓ OK' : '✗ Incorrecto'}
+          </span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderTeams(agents) {
+  const grid = document.getElementById('teams-grid');
+  if (agents.length === 0) { grid.innerHTML = ''; return; }
+  const numTeams = Math.max(1, Math.ceil(agents.length / 4));
+  const shuffled = [...agents].sort((a, b) => {
+    const order = ['coordinador', 'analista', 'campo', 'interrogador'];
+    return order.indexOf(a.roleId) - order.indexOf(b.roleId);
+  });
+  const teams = Array.from({ length: numTeams }, () => []);
+  shuffled.forEach((agent, i) => teams[i % numTeams].push(agent));
+  grid.innerHTML = teams.map((team, ti) => `
+    <div class="team-card">
+      <div class="team-header">Equipo ${ti + 1} · ${team.length} agente${team.length !== 1 ? 's' : ''}</div>
+      ${team.map(a => {
+        const rc = roleColors[a.roleId] || roleColors.analista;
+        return `<div class="team-member">
+          <span style="color:var(--paper)">${a.name}</span>
+          <span class="member-role-tag" style="background:${rc.pill};color:${rc.text}">${a.role}</span>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+async function exportCSV() {
+  let agents = [];
+  try {
+    const res = await fetch(FIREBASE_URL + '/agentes.json');
+    const data = await res.json();
+    if (data && typeof data === 'object') agents = Object.values(data);
+  } catch(e) {}
+  if (!agents.length) { alert('Sin datos para exportar.'); return; }
+  const headers = ['Nombre', 'TIP', 'Rol', 'Observación correc.', ...Object.keys(agents[0].blocks || {}), 'Fecha'];
+  const rows = agents.map(a => [
+    a.name, a.tip, a.role, a.obsCorrect ? 'Sí' : 'No',
+    ...Object.values(a.blocks || {}),
+    new Date(a.ts).toLocaleString('es-ES')
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(';')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'mfa-agentes.csv'; a.click();
+}
+
+function printTeams() { window.print(); }
+
+async function clearAll() {
+  if (!confirm('¿Borrar todos los expedientes? Esta acción no se puede deshacer.')) return;
+  try {
+    await fetch(FIREBASE_URL + '/agentes.json', { method: 'DELETE' });
+  } catch(e) {}
+  loadData();
+}
+
+loadData();
+setInterval(loadData, 6000);
+</script>
+</body>
+</html>

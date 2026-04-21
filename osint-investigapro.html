@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>InvestigaPro · Plataforma OSINT</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0e0f;
+  --bg2: #141618;
+  --bg3: #1c1f22;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --text: #e8e4dc;
+  --muted: #7a7872;
+  --accent: #c8a96e;
+  --accent2: #4a9e7a;
+  --red: #c05040;
+  --mono: 'IBM Plex Mono', monospace;
+  --serif: 'Fraunces', serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); color: var(--text); font-family: var(--mono); }
+body { min-height: 100vh; }
+
+/* Grain */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 999; opacity: 0.5;
+}
+
+/* Topbar */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.25rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; color: var(--accent);
+  letter-spacing: .05em;
+}
+.logo-text { font-size: 13px; font-weight: 500; color: var(--text); letter-spacing: .04em; }
+.logo-sub { font-size: 10px; color: var(--muted); letter-spacing: .1em; margin-top: 1px; }
+.top-badge {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--red); border: 1px solid var(--red);
+  padding: 3px 8px; border-radius: 3px; opacity: .8;
+}
+
+/* Main layout */
+.main { max-width: 680px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+
+/* Search */
+.search-wrap { margin-bottom: 2rem; }
+.search-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: .625rem; display: block; }
+.search-box {
+  display: flex; gap: 8px;
+}
+.search-input {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 11px 14px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+.search-btn {
+  background: var(--accent);
+  color: #0d0e0f;
+  border: none;
+  border-radius: 4px;
+  padding: 0 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  cursor: pointer;
+  transition: opacity .15s;
+  white-space: nowrap;
+}
+.search-btn:hover { opacity: .85; }
+
+/* Tabs */
+.tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+.tab {
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all .15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Results count */
+.results-meta {
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 1.25rem;
+  letter-spacing: .04em;
+}
+.results-meta span { color: var(--accent2); }
+
+/* Result cards */
+.result-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.125rem;
+  margin-bottom: .875rem;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  animation: fadeIn .3s ease;
+}
+.result-card:hover { border-color: var(--border2); background: var(--bg3); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.result-source { font-size: 10px; color: var(--muted); letter-spacing: .08em; margin-bottom: 6px; text-transform: uppercase; }
+.result-source span { color: var(--accent2); }
+.result-title { font-family: var(--serif); font-size: 16px; font-weight: 300; color: var(--text); margin-bottom: 5px; line-height: 1.4; }
+.result-snippet { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.result-snippet strong { color: var(--accent); font-weight: 400; }
+.result-meta { display: flex; gap: 12px; margin-top: 8px; }
+.result-tag { font-size: 10px; padding: 2px 8px; border-radius: 3px; letter-spacing: .06em; }
+
+/* Profile view */
+.profile-view { display: none; animation: fadeIn .25s ease; }
+.profile-view.show { display: block; }
+
+.back-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--muted); letter-spacing: .06em;
+  text-transform: uppercase; cursor: pointer;
+  margin-bottom: 1.5rem;
+  transition: color .15s;
+}
+.back-btn:hover { color: var(--text); }
+.back-btn::before { content: '←'; font-size: 14px; }
+
+.profile-header {
+  display: flex; gap: 1rem; align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.profile-avatar {
+  width: 64px; height: 64px;
+  border-radius: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.profile-name { font-family: var(--serif); font-size: 22px; font-weight: 300; margin-bottom: 4px; }
+.profile-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+.profile-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 10px; padding: 3px 10px; border-radius: 3px; letter-spacing: .06em; }
+.badge-green { background: rgba(74,158,122,.15); color: var(--accent2); border: 1px solid rgba(74,158,122,.25); }
+.badge-amber { background: rgba(200,169,110,.12); color: var(--accent); border: 1px solid rgba(200,169,110,.2); }
+.badge-red { background: rgba(192,80,64,.12); color: var(--red); border: 1px solid rgba(192,80,64,.2); }
+.badge-gray { background: rgba(255,255,255,.05); color: var(--muted); border: 1px solid var(--border); }
+
+.section { margin-bottom: 1.5rem; }
+.section-head {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: .875rem;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.info-row {
+  display: flex; gap: .75rem;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-key { color: var(--muted); min-width: 130px; flex-shrink: 0; letter-spacing: .03em; }
+.info-val { color: var(--text); line-height: 1.5; }
+.info-val.warn { color: var(--accent); }
+.info-val.alert { color: var(--red); }
+
+.timeline-item {
+  display: flex; gap: .875rem;
+  padding: .75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.timeline-item:last-child { border-bottom: none; }
+.timeline-date { font-size: 11px; color: var(--muted); min-width: 90px; flex-shrink: 0; padding-top: 1px; }
+.timeline-content { font-size: 12px; color: var(--text); line-height: 1.6; }
+.timeline-content .tl-sub { color: var(--muted); font-size: 11px; margin-top: 2px; }
+.timeline-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border2); flex-shrink: 0; margin-top: 5px;
+}
+.timeline-dot.alert { background: var(--red); }
+.timeline-dot.warn { background: var(--accent); }
+.timeline-dot.ok { background: var(--accent2); }
+
+.connection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.connection-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 4px; padding: .75rem;
+}
+.conn-name { font-size: 13px; color: var(--text); margin-bottom: 2px; }
+.conn-role { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+
+.alert-box {
+  background: rgba(192,80,64,.08);
+  border: 1px solid rgba(192,80,64,.2);
+  border-radius: 4px;
+  padding: .875rem 1rem;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+.alert-box .alert-label {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 6px; font-weight: 500;
+}
+
+.note-box {
+  background: rgba(200,169,110,.06);
+  border: 1px solid rgba(200,169,110,.15);
+  border-radius: 4px;
+  padding: .875rem 1rem;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+/* Mercantil view */
+.mercantil-header {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.125rem;
+  margin-bottom: 1.25rem;
+}
+.merc-title { font-family: var(--serif); font-size: 20px; font-weight: 300; margin-bottom: 4px; }
+.merc-ref { font-size: 11px; color: var(--muted); letter-spacing: .06em; }
+.merc-stamp {
+  display: inline-block;
+  border: 1px solid var(--accent2); color: var(--accent2);
+  font-size: 10px; letter-spacing: .1em; padding: 3px 10px;
+  border-radius: 3px; margin-top: 8px; text-transform: uppercase;
+}
+
+/* Home screen */
+.home { padding: 2rem 0; }
+.home-title { font-family: var(--serif); font-size: 28px; font-weight: 300; margin-bottom: 6px; line-height: 1.3; }
+.home-sub { font-size: 12px; color: var(--muted); margin-bottom: 2rem; line-height: 1.7; }
+.quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1.5rem; }
+.quick-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 6px; padding: .875rem;
+  cursor: pointer; transition: border-color .15s;
+}
+.quick-card:hover { border-color: var(--border2); }
+.quick-label { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+.quick-name { font-size: 13px; color: var(--text); }
+
+.loading-dots { display: inline-flex; gap: 4px; }
+.loading-dots span {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--accent); opacity: .3;
+  animation: blink 1.2s ease infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: .2s; }
+.loading-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+.searching-state { text-align: center; padding: 3rem 0; }
+.searching-state p { font-size: 12px; color: var(--muted); letter-spacing: .06em; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">IP</div>
+    <div>
+      <div class="logo-text">InvestigaPro</div>
+      <div class="logo-sub">Plataforma OSINT · Acceso restringido</div>
+    </div>
+  </div>
+  <div class="top-badge">Caso MFA-2026-LC-001</div>
+</div>
+
+<div class="main">
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <label class="search-label">Búsqueda de inteligencia abierta</label>
+    <div class="search-box">
+      <input class="search-input" type="text" id="search-input" placeholder="Nombre, empresa, NIF, cargo..." autocomplete="off">
+      <button class="search-btn" onclick="doSearch()">Buscar</button>
+    </div>
+  </div>
+
+  <!-- Home -->
+  <div class="home" id="home-view">
+    <h1 class="home-title">Bienvenido al sistema<br><em style="font-style:italic;color:var(--accent)">de fuentes abiertas.</em></h1>
+    <p class="home-sub">Busca personas, empresas o términos relacionados con el caso. Todo lo que encuentres aquí es información pública y legalmente accesible. Documenta cada hallazgo en tu informe.</p>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:.5rem;letter-spacing:.06em;">ACCESOS RÁPIDOS</div>
+    <div class="quick-links">
+      <div class="quick-card" onclick="searchFor('Marcos Ibáñez')">
+        <div class="quick-label">Sospechoso S-01</div>
+        <div class="quick-name">Marcos Ibáñez Solano</div>
+      </div>
+      <div class="quick-card" onclick="searchFor('Sílvia Mora')">
+        <div class="quick-label">Sospechoso S-02</div>
+        <div class="quick-name">Sílvia Mora Puig</div>
+      </div>
+      <div class="quick-card" onclick="searchFor('Andrés Castellví')">
+        <div class="quick-label">Sospechoso S-03</div>
+        <div class="quick-name">Andrés Castellví Roca</div>
+      </div>
+      <div class="quick-card" onclick="searchFor('Paula Esteve')">
+        <div class="quick-label">Sospechoso S-04</div>
+        <div class="quick-name">Paula Esteve Valls</div>
+      </div>
+      <div class="quick-card" onclick="searchFor('Nexum Strategy')">
+        <div class="quick-label">Empresa competidora</div>
+        <div class="quick-name">Nexum Strategy Partners</div>
+      </div>
+      <div class="quick-card" onclick="searchFor('GC Talent')">
+        <div class="quick-label">Empresa vinculada</div>
+        <div class="quick-name">GC Talent Advisors</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Searching animation -->
+  <div class="searching-state" id="searching-view" style="display:none">
+    <p>Consultando fuentes abiertas</p>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- Results list -->
+  <div id="results-view" style="display:none">
+    <div class="tabs">
+      <div class="tab active" onclick="setTab(this,'all')">Todo</div>
+      <div class="tab" onclick="setTab(this,'social')">Redes sociales</div>
+      <div class="tab" onclick="setTab(this,'mercantil')">Reg. Mercantil</div>
+      <div class="tab" onclick="setTab(this,'prensa')">Prensa</div>
+    </div>
+    <div class="results-meta" id="results-meta"></div>
+    <div id="results-list"></div>
+  </div>
+
+  <!-- Profile detail -->
+  <div class="profile-view" id="profile-view">
+    <div class="back-btn" onclick="goBack()">Volver a resultados</div>
+    <div id="profile-content"></div>
+  </div>
+
+</div>
+
+<script>
+const DB = {
+  'marcos ibáñez': {
+    type: 'persona',
+    nombre: 'Marcos Ibáñez Solano',
+    initials: 'MI',
+    cargo: 'Senior Consultant · Lucentia Consulting S.L.',
+    badges: [
+      {text:'LinkedIn · Conexión pública', cls:'badge-green'},
+      {text:'Perfil activo', cls:'badge-green'},
+      {text:'Abierto a oportunidades', cls:'badge-amber'},
+    ],
+    info: [
+      ['Empresa actual','Lucentia Consulting S.L. · desde 2021'],
+      ['Cargo','Senior Consultant — Estrategia corporativa'],
+      ['Formación','MBA ESADE Business School (2019) · Grado ADE, UAB (2015)'],
+      ['Localización','Barcelona, España'],
+      ['Conexiones','312 conexiones'],
+      ['Seguidores LinkedIn','847'],
+      ['Estado','Abierto a nuevas oportunidades', 'warn'],
+      ['Contactos en Nexum','3 contactos añadidos (últimas 6 semanas)', 'alert'],
+      ['Sigue a Nexum','Sí — desde el 10 de febrero de 2026', 'alert'],
+    ],
+    timeline: [
+      {date:'17 mar 2026', dot:'alert', text:'Publicación eliminada (recuperada en caché Google)', sub:'«Grandes movimientos en el horizonte. Pronto novedades.»'},
+      {date:'10 feb 2026', dot:'warn', text:'Comienza a seguir la página de Nexum Strategy Partners en LinkedIn'},
+      {date:'ene–feb 2026', dot:'warn', text:'Añade 3 contactos empleados de Nexum Strategy'},
+      {date:'8 mar 2026', dot:'ok', text:'Citado en artículo La Vanguardia — "Talento en consultoría"', sub:'Menciona interés en «empresas con mayor agilidad»'},
+      {date:'2021–hoy', dot:'ok', text:'Trayectoria en Lucentia Consulting — ascenso a Senior en 2023'},
+    ],
+    conexiones: [
+      {nombre:'Daniel Prat Soler', rol:'CEO · Nexum Strategy Partners'},
+      {nombre:'Cristina Lluch Vidal', rol:'Socia fundadora · Nexum / GC Talent'},
+      {nombre:'Roberto Mas Font', rol:'Managing Partner · Nexum'},
+      {nombre:'Helena Gómez', rol:'Headhunter · GC Talent Advisors'},
+    ],
+    alerta: 'La publicación del 17 de marzo fue eliminada pero permanece indexada en caché de Google hasta 30 días después. Es información pública y legalmente utilizable como indicio si se documenta antes de que desaparezca.',
+    nota: 'Acceso a la ficha completa desde fuentes: LinkedIn (público), hemeroteca La Vanguardia (público), caché Google (público).',
+  },
+  'sílvia mora': {
+    type: 'persona',
+    nombre: 'Sílvia Mora Puig',
+    initials: 'SM',
+    cargo: 'Project Manager · Lucentia Consulting S.L.',
+    badges: [
+      {text:'LinkedIn · Conexión pública', cls:'badge-green'},
+      {text:'Sin actividad inusual', cls:'badge-gray'},
+    ],
+    info: [
+      ['Empresa actual','Lucentia Consulting S.L. · desde 2019'],
+      ['Cargo','Project Manager — Proyectos estratégicos'],
+      ['Formación','Grado Administración, UPF · PMP Certification (2022)'],
+      ['Localización','Sant Cugat del Vallès, Barcelona'],
+      ['Conexiones','489 conexiones'],
+      ['Contactos en Nexum','0 contactos detectados'],
+      ['Estado','Sin actividad pública reciente'],
+    ],
+    timeline: [
+      {date:'mar 2026', dot:'ok', text:'Sin publicaciones ni cambios en perfil'},
+      {date:'feb 2026', dot:'ok', text:'Comparte artículo sobre gestión de proyectos ágiles'},
+      {date:'2022', dot:'ok', text:'Obtiene certificación PMP (Project Management Professional)'},
+      {date:'2019', dot:'ok', text:'Incorporación a Lucentia Consulting'},
+    ],
+    conexiones: [
+      {nombre:'Jordi Puente Alves', rol:'Data Analyst · Lucentia'},
+      {nombre:'Carme Valls Estrada', rol:'Legal Advisor · Lucentia'},
+      {nombre:'Marta Soler Camps', rol:'Junior Consultant · Lucentia'},
+      {nombre:'Raúl Ferrer Mas', rol:'IT Manager · Lucentia'},
+    ],
+    nota: 'Perfil sin indicios externos en fuentes abiertas. Los indicios sobre esta persona provienen de documentación interna facilitada por el cliente, no de OSINT.',
+  },
+  'andrés castellví': {
+    type: 'persona',
+    nombre: 'Andrés Castellví Roca',
+    initials: 'AC',
+    cargo: 'Financial Analyst · Lucentia Consulting S.L.',
+    badges: [
+      {text:'LinkedIn · Conexión pública', cls:'badge-green'},
+      {text:'Vínculo familiar detectado', cls:'badge-red'},
+    ],
+    info: [
+      ['Empresa actual','Lucentia Consulting S.L. · desde 2024'],
+      ['Cargo','Financial Analyst'],
+      ['Formación','Grado Economía, UB · Máster Finanzas, BSM (2022)'],
+      ['Localización','Barcelona, España'],
+      ['Conexiones','214 conexiones'],
+      ['Vínculo familiar','Jordi Castellví Roca (hermano) · Nexum Strategy Partners', 'alert'],
+      ['Conexiones compartidas','14 conexiones en común con Jordi Castellví', 'warn'],
+      ['Declaración en contrato','Conflicto de interés familiar: NO declarado', 'alert'],
+    ],
+    timeline: [
+      {date:'ene 2025', dot:'alert', text:'Su hermano Jordi se incorpora a Nexum Strategy Partners como BDM'},
+      {date:'feb 2026', dot:'warn', text:'Andrés obtiene acceso parcial al Proyecto Atenea (módulo financiero)'},
+      {date:'mar 2026', dot:'warn', text:'Interacción pública en LinkedIn con publicación de su hermano Jordi'},
+      {date:'2024', dot:'ok', text:'Incorporación a Lucentia Consulting'},
+      {date:'2022', dot:'ok', text:'Máster en Finanzas, Barcelona School of Management'},
+    ],
+    conexiones: [
+      {nombre:'Jordi Castellví Roca', rol:'Business Dev. Manager · Nexum Strategy'},
+      {nombre:'Laura Vidal Serra', rol:'Directora General · Lucentia'},
+      {nombre:'Helena Gómez', rol:'Headhunter · GC Talent Advisors'},
+      {nombre:'Pere Mas Vidal', rol:'CFO · Empresa sector retail'},
+    ],
+    alerta: 'Jordi Castellví Roca figura como Business Development Manager en Nexum Strategy Partners desde enero 2025. Andrés Castellví no declaró este vínculo al firmar el acuerdo de confidencialidad del Proyecto Atenea, que incluía expresamente vínculos familiares con competidores directos.',
+    nota: 'Vínculo familiar verificado mediante perfil público de LinkedIn de Jordi Castellví Roca. Conexiones comunes verificadas públicamente.',
+  },
+  'paula esteve': {
+    type: 'persona',
+    nombre: 'Paula Esteve Valls',
+    initials: 'PE',
+    cargo: 'Strategy Director · Lucentia Consulting S.L.',
+    badges: [
+      {text:'LinkedIn · Conexión pública', cls:'badge-green'},
+      {text:'Ponente verificada', cls:'badge-green'},
+      {text:'Búsquedas en Nexum detectadas', cls:'badge-amber'},
+    ],
+    info: [
+      ['Empresa actual','Lucentia Consulting S.L. · desde 2018'],
+      ['Cargo','Strategy Director — Dirección de área'],
+      ['Formación','Derecho + ADE, UPF · MBA IESE Business School (2017)'],
+      ['Localización','Barcelona, España'],
+      ['Conexiones','1.240 conexiones'],
+      ['Perfil visualizado','Daniel Prat Soler (CEO Nexum) — 3 veces en marzo 2026', 'warn'],
+      ['Contactos en Nexum','0 contactos directos'],
+      ['Actividad 22 mar 2026','Ponente en evento Círculo de Economía (09:00–13:00h)'],
+    ],
+    timeline: [
+      {date:'22 mar 2026', dot:'warn', text:'Ponente en evento Círculo de Economía', sub:'Acto confirmado: 09:00–13:00h · Entrada oficina registrada: 08:15h'},
+      {date:'22–25 mar', dot:'warn', text:'Visualización repetida del perfil de Daniel Prat Soler (CEO Nexum)'},
+      {date:'mar 2026', dot:'ok', text:'Sin cambios en perfil LinkedIn ni nuevas conexiones en Nexum'},
+      {date:'2021', dot:'ok', text:'Ascenso a Strategy Director en Lucentia'},
+      {date:'2018', dot:'ok', text:'Incorporación a Lucentia Consulting como Senior Manager'},
+    ],
+    conexiones: [
+      {nombre:'Núria Llopis Grau', rol:'Marketing Manager · Lucentia'},
+      {nombre:'Tomàs Gibert Font', rol:'Senior Consultant · Lucentia'},
+      {nombre:'Daniel Prat Soler', rol:'CEO · Nexum Strategy (sin contacto directo)'},
+      {nombre:'Jordi Puente Alves', rol:'Data Analyst · Lucentia'},
+    ],
+    nota: 'Las búsquedas de perfil en LinkedIn son visibles para la persona buscada si tiene cuenta premium. No implican contacto ni comunicación. Son información pública desde la perspectiva OSINT del investigador.',
+  },
+  'nexum strategy': {
+    type: 'empresa',
+    nombre: 'Nexum Strategy Partners S.L.',
+    initials: 'NS',
+    cargo: 'Consultoría estratégica · Barcelona',
+    badges: [
+      {text:'Registro Mercantil · Verificado', cls:'badge-green'},
+      {text:'Empresa activa', cls:'badge-green'},
+      {text:'Vinculada al caso', cls:'badge-red'},
+    ],
+    info: [
+      ['Nombre completo','Nexum Strategy Partners S.L.'],
+      ['NIF','B-67432918'],
+      ['Fecha constitución','14 de noviembre de 2023'],
+      ['Capital social','15.000 € — totalmente desembolsado'],
+      ['Domicilio','Carrer de Balmes 112, 3ª planta, 08008 Barcelona'],
+      ['Objeto social','Consultoría y asesoramiento empresarial de carácter estratégico'],
+      ['Administrador único','Daniel Prat Soler (DNI: 47***821-K)'],
+      ['Socio mayoritario','Daniel Prat Soler · 60% participación'],
+      ['Socia minoritaria','Cristina Lluch Vidal · 40% participación', 'warn'],
+      ['Registro','Registro Mercantil de Barcelona · Tomo 48.221, Folio 142, Hoja B-498.331'],
+    ],
+    timeline: [
+      {date:'28 mar 2026', dot:'alert', text:'Presenta propuesta a cliente final con contenido coincidente con Proyecto Atenea'},
+      {date:'ene 2026', dot:'ok', text:'Contrata a Jordi Castellví Roca como Business Development Manager'},
+      {date:'nov 2023', dot:'ok', text:'Constitución de la sociedad — capital inicial 15.000€'},
+    ],
+    conexiones: [
+      {nombre:'Daniel Prat Soler', rol:'Administrador único · Socio 60%'},
+      {nombre:'Cristina Lluch Vidal', rol:'Socia 40% · También socia en GC Talent Advisors'},
+      {nombre:'Jordi Castellví Roca', rol:'BDM · Hermano de Andrés Castellví (Lucentia)'},
+      {nombre:'Roberto Mas Font', rol:'Managing Partner'},
+    ],
+    alerta: 'Cristina Lluch Vidal figura simultáneamente como socia de Nexum Strategy Partners y de GC Talent Advisors S.L. — empresa de cazatalentos especializada en el sector de consultoría. Esta doble vinculación es verificable en el Registro Mercantil y puede ser relevante para determinar cómo se estableció el contacto con la fuente de la filtración.',
+    nota: 'Datos obtenidos del Registro Mercantil de Barcelona (acceso público). Última consulta: 19 de abril de 2026.',
+  },
+  'gc talent': {
+    type: 'empresa',
+    nombre: 'GC Talent Advisors S.L.',
+    initials: 'GC',
+    cargo: 'Selección y recolocación de directivos · Barcelona',
+    badges: [
+      {text:'Registro Mercantil · Verificado', cls:'badge-green'},
+      {text:'Empresa activa', cls:'badge-green'},
+      {text:'Vínculo con Nexum', cls:'badge-amber'},
+    ],
+    info: [
+      ['Nombre completo','GC Talent Advisors S.L.'],
+      ['NIF','B-65219004'],
+      ['Fecha constitución','3 de marzo de 2021'],
+      ['Capital social','10.000 €'],
+      ['Domicilio','Carrer de Provença 318, 1º 2ª, 08008 Barcelona'],
+      ['Objeto social','Selección, evaluación y recolocación de directivos y profesionales cualificados'],
+      ['Administradora','Cristina Lluch Vidal', 'warn'],
+      ['Socia única','Cristina Lluch Vidal · 100% participación'],
+      ['Vínculo','Cristina Lluch Vidal es también socia (40%) de Nexum Strategy Partners', 'alert'],
+    ],
+    timeline: [
+      {date:'feb 2026', dot:'warn', text:'Posible contacto con Marcos Ibáñez Solano (en investigación)'},
+      {date:'ene 2026', dot:'warn', text:'Nexum contrata a Jordi Castellví a través de GC Talent Advisors'},
+      {date:'2021', dot:'ok', text:'Constitución de GC Talent Advisors'},
+    ],
+    conexiones: [
+      {nombre:'Cristina Lluch Vidal', rol:'Administradora única · También socia Nexum'},
+      {nombre:'Helena Gómez', rol:'Consultora senior · GC Talent'},
+      {nombre:'Jordi Castellví Roca', rol:'Colocado en Nexum a través de GC Talent'},
+    ],
+    alerta: 'GC Talent Advisors actuó como intermediaria en la contratación de Jordi Castellví para Nexum. La socia de GC Talent es también socia de Nexum — lo que indica una relación estrecha entre ambas empresas más allá de la relación cliente-proveedor habitual.',
+    nota: 'Datos obtenidos del Registro Mercantil de Barcelona (acceso público). La vinculación entre GC Talent y Nexum es trazable públicamente.',
+  },
+};
+
+const RESULTS_DB = {
+  'marcos ibáñez': [
+    {id:'marcos-ibanez', source:'LinkedIn', sourceTag:'Red profesional', title:'Marcos Ibáñez Solano — Senior Consultant en Lucentia Consulting', snippet:'Senior Consultant especializado en estrategia corporativa. MBA ESADE. <strong>Abierto a nuevas oportunidades.</strong> Barcelona. 312 conexiones.', tags:[{text:'Perfil activo',bg:'rgba(74,158,122,.15)',color:'#4a9e7a'},{text:'Abierto a oportunidades',bg:'rgba(200,169,110,.12)',color:'#c8a96e'}], key:'marcos ibáñez'},
+    {id:'marcos-lv', source:'La Vanguardia · Hemeroteca', sourceTag:'Prensa', title:'"El talento en consultoría estratégica busca nuevos horizontes"', snippet:'Marcos Ibáñez, de Lucentia Consulting, señala que <strong>«los proyectos más interesantes están en empresas con mayor agilidad».</strong> Entrevista publicada el 8 de marzo de 2026.', tags:[{text:'8 mar 2026',bg:'rgba(255,255,255,.05)',color:'#7a7872'}], key:null},
+    {id:'marcos-cache', source:'Google Cache · Recuperado', sourceTag:'Caché', title:'Publicación eliminada — Marcos Ibáñez Solano (17 mar 2026)', snippet:'Texto recuperado en caché: <strong>«Grandes movimientos en el horizonte. Pronto novedades.»</strong> Publicación eliminada por el usuario. Fecha original: 17/03/2026.', tags:[{text:'ELIMINADA',bg:'rgba(192,80,64,.15)',color:'#c05040'},{text:'Legalmente utilizable',bg:'rgba(74,158,122,.12)',color:'#4a9e7a'}], key:null},
+  ],
+  'sílvia mora': [
+    {id:'silvia-li', source:'LinkedIn', sourceTag:'Red profesional', title:'Sílvia Mora Puig — Project Manager en Lucentia Consulting', snippet:'Project Manager certificada PMP. Especialización en proyectos estratégicos. <strong>Sin actividad reciente.</strong> Sant Cugat del Vallès.', tags:[{text:'Sin actividad inusual',bg:'rgba(255,255,255,.05)',color:'#7a7872'}], key:'sílvia mora'},
+    {id:'silvia-nores', source:'Prensa · Sin resultados relevantes', sourceTag:'Prensa', title:'Sin apariciones en hemeroteca para este período', snippet:'No se han encontrado menciones en medios de comunicación digitales de acceso público para Sílvia Mora Puig en el período enero–abril 2026.', tags:[{text:'Sin resultados',bg:'rgba(255,255,255,.05)',color:'#7a7872'}], key:null},
+  ],
+  'andrés castellví': [
+    {id:'andres-li', source:'LinkedIn', sourceTag:'Red profesional', title:'Andrés Castellví Roca — Financial Analyst en Lucentia Consulting', snippet:'Economista y analista financiero. <strong>14 conexiones en común con Jordi Castellví Roca (Nexum Strategy Partners).</strong> Barcelona.', tags:[{text:'Vínculo familiar detectado',bg:'rgba(192,80,64,.15)',color:'#c05040'}], key:'andrés castellví'},
+    {id:'jordi-li', source:'LinkedIn', sourceTag:'Red profesional', title:'Jordi Castellví Roca — Business Development Manager en Nexum Strategy Partners', snippet:'BDM en Nexum Strategy Partners desde enero 2025. <strong>Hermano de Andrés Castellví Roca (Lucentia Consulting).</strong> Incorporado a través de GC Talent Advisors.', tags:[{text:'Nexum Strategy',bg:'rgba(192,80,64,.15)',color:'#c05040'}], key:null},
+  ],
+  'paula esteve': [
+    {id:'paula-li', source:'LinkedIn', sourceTag:'Red profesional', title:'Paula Esteve Valls — Strategy Director en Lucentia Consulting', snippet:'Directora de estrategia con más de 8 años en consultoría. <strong>Ha visualizado el perfil de Daniel Prat Soler (CEO Nexum) 3 veces en marzo.</strong> 1.240 conexiones.', tags:[{text:'Búsquedas en Nexum',bg:'rgba(200,169,110,.12)',color:'#c8a96e'}], key:'paula esteve'},
+    {id:'paula-evento', source:'Círculo de Economía · Web oficial', sourceTag:'Evento público', title:'Ponentes — Jornada Innovación Empresarial 2026', snippet:'Paula Esteve Valls, Strategy Director de Lucentia Consulting, participó como ponente. <strong>Horario del acto: 09:00 a 13:00h del 22 de marzo de 2026.</strong> Acto celebrado en el Palau Macaya, Barcelona.', tags:[{text:'22 mar 2026',bg:'rgba(74,158,122,.12)',color:'#4a9e7a'},{text:'Verificable',bg:'rgba(74,158,122,.12)',color:'#4a9e7a'}], key:null},
+  ],
+  'nexum strategy': [
+    {id:'nexum-rm', source:'Registro Mercantil de Barcelona', sourceTag:'Reg. Mercantil', title:'Nexum Strategy Partners S.L. — Hoja B-498.331', snippet:'Sociedad de responsabilidad limitada. Constituida el 14/11/2023. Capital: 15.000€. Administrador: Daniel Prat Soler. <strong>Socia Cristina Lluch Vidal también es administradora de GC Talent Advisors S.L.</strong>', tags:[{text:'Activa',bg:'rgba(74,158,122,.15)',color:'#4a9e7a'},{text:'Vínculo GC Talent',bg:'rgba(192,80,64,.15)',color:'#c05040'}], key:'nexum strategy'},
+    {id:'nexum-li', source:'LinkedIn · Página de empresa', sourceTag:'Red profesional', title:'Nexum Strategy Partners — Consultoría estratégica', snippet:'Firma de consultoría estratégica fundada en 2023. 12 empleados. Especialización en estrategia competitiva y expansión de mercado. <strong>Jordi Castellví Roca figura como Business Development Manager.</strong>', tags:[{text:'12 empleados',bg:'rgba(255,255,255,.05)',color:'#7a7872'}], key:null},
+  ],
+  'gc talent': [
+    {id:'gc-rm', source:'Registro Mercantil de Barcelona', sourceTag:'Reg. Mercantil', title:'GC Talent Advisors S.L. — Hoja B-421.004', snippet:'Socia y administradora única: Cristina Lluch Vidal. <strong>Esta misma persona es socia al 40% de Nexum Strategy Partners S.L.</strong> Especializada en selección de directivos en consultoría.', tags:[{text:'Activa',bg:'rgba(74,158,122,.15)',color:'#4a9e7a'},{text:'Vinculada a Nexum',bg:'rgba(192,80,64,.15)',color:'#c05040'}], key:'gc talent'},
+  ],
+};
+
+let currentQuery = '';
+let currentTab = 'all';
+let currentResults = [];
+
+function searchFor(q) {
+  document.getElementById('search-input').value = q;
+  doSearch();
+}
+
+function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  currentQuery = q;
+  showSearching();
+  setTimeout(() => renderResults(q), 900);
+}
+
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+function showSearching() {
+  document.getElementById('home-view').style.display = 'none';
+  document.getElementById('searching-view').style.display = 'block';
+  document.getElementById('results-view').style.display = 'none';
+  document.getElementById('profile-view').classList.remove('show');
+}
+
+function renderResults(q) {
+  const key = q.toLowerCase()
+    .replace(/\s+/g,' ').trim()
+    .replace(/solano|puig|roca|valls|partners|s\.l\.|sl/gi,'').trim()
+    .replace(/\s+/g,' ').trim();
+
+  let results = [];
+  for (const [dbKey, items] of Object.entries(RESULTS_DB)) {
+    if (key.includes(dbKey) || dbKey.includes(key) || 
+        key.split(' ').some(w => w.length > 3 && dbKey.includes(w))) {
+      results = [...results, ...items];
+    }
+  }
+  // Deduplicate
+  results = results.filter((r,i,a) => a.findIndex(x=>x.id===r.id)===i);
+  currentResults = results;
+
+  document.getElementById('searching-view').style.display = 'none';
+  document.getElementById('results-view').style.display = 'block';
+
+  const meta = document.getElementById('results-meta');
+  if (results.length === 0) {
+    meta.innerHTML = `Sin resultados para <span>"${q}"</span> en fuentes abiertas.`;
+    document.getElementById('results-list').innerHTML = '<div style="padding:2rem 0;text-align:center;font-size:12px;color:var(--muted)">No se han encontrado registros públicos para esta búsqueda.</div>';
+  } else {
+    meta.innerHTML = `<span>${results.length} resultado${results.length!==1?'s':''}</span> encontrado${results.length!==1?'s':''} para "${q}"`;
+    renderResultsList(results);
+  }
+}
+
+function renderResultsList(results) {
+  document.getElementById('results-list').innerHTML = results.map(r => `
+    <div class="result-card" onclick="openProfile('${r.key||''}','${r.id}')">
+      <div class="result-source">Fuente: <span>${r.sourceTag}</span> · ${r.source}</div>
+      <div class="result-title">${r.title}</div>
+      <div class="result-snippet">${r.snippet}</div>
+      <div class="result-meta">
+        ${r.tags.map(t=>`<span class="result-tag" style="background:${t.bg};color:${t.color}">${t.text}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function setTab(el, tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = tab;
+  // Filter by tab
+  const filterMap = {all: ()=>true, social: r=>r.sourceTag==='Red profesional', mercantil: r=>r.sourceTag==='Reg. Mercantil'||r.sourceTag==='Reg. Mercantil', prensa: r=>r.sourceTag==='Prensa'||r.sourceTag==='Evento público'||r.sourceTag==='Caché'};
+  const filtered = currentResults.filter(filterMap[tab]||filterMap.all);
+  const meta = document.getElementById('results-meta');
+  meta.innerHTML = `<span>${filtered.length} resultado${filtered.length!==1?'s':''}</span> en esta categoría`;
+  renderResultsList(filtered);
+}
+
+function openProfile(key, id) {
+  if (!key) return; // No detail for this result
+  const data = DB[key];
+  if (!data) return;
+  document.getElementById('results-view').style.display = 'none';
+  const pv = document.getElementById('profile-view');
+  pv.classList.add('show');
+  renderProfile(data);
+  window.scrollTo(0,0);
+}
+
+function renderProfile(d) {
+  const isMerc = d.type === 'empresa';
+  let html = '';
+
+  html += `<div class="profile-header">
+    <div class="profile-avatar">${d.initials}</div>
+    <div>
+      <div class="profile-name">${d.nombre}</div>
+      <div class="profile-title">${d.cargo}</div>
+      <div class="profile-badges">${d.badges.map(b=>`<span class="badge ${b.cls}">${b.text}</span>`).join('')}</div>
+    </div>
+  </div>`;
+
+  if (d.alerta) {
+    html += `<div class="alert-box"><div class="alert-label">Alerta OSINT</div>${d.alerta}</div>`;
+  }
+
+  html += `<div class="section"><div class="section-head">${isMerc?'Datos registrales':'Datos del perfil'}</div>`;
+  html += d.info.map(([k,v,flag])=>`
+    <div class="info-row">
+      <div class="info-key">${k}</div>
+      <div class="info-val ${flag==='alert'?'alert':flag==='warn'?'warn':''}">${v}</div>
+    </div>`).join('');
+  html += `</div>`;
+
+  html += `<div class="section"><div class="section-head">Línea temporal</div>`;
+  html += d.timeline.map(t=>`
+    <div class="timeline-item">
+      <div class="timeline-date">${t.date}</div>
+      <div class="timeline-dot ${t.dot}"></div>
+      <div class="timeline-content">${t.text}${t.sub?`<div class="tl-sub">${t.sub}</div>`:''}</div>
+    </div>`).join('');
+  html += `</div>`;
+
+  if (d.conexiones) {
+    html += `<div class="section"><div class="section-head">Conexiones relevantes</div>
+    <div class="connection-grid">
+      ${d.conexiones.map(c=>`<div class="connection-card">
+        <div class="conn-name">${c.nombre}</div>
+        <div class="conn-role">${c.rol}</div>
+      </div>`).join('')}
+    </div></div>`;
+  }
+
+  if (d.nota) {
+    html += `<div class="note-box">Fuentes consultadas: ${d.nota}</div>`;
+  }
+
+  document.getElementById('profile-content').innerHTML = html;
+}
+
+function goBack() {
+  document.getElementById('profile-view').classList.remove('show');
+  document.getElementById('results-view').style.display = 'block';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

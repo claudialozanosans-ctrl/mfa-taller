@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFA · Control del Taller</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0908;--bg2:#111010;--paper:#f5f0e8;
+  --ink:#1a1814;--muted:#6a6560;--border:rgba(245,240,232,0.1);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;--mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--paper);font-family:var(--mono);overflow:hidden}
+
+/* GRAIN */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
+
+/* PROJECTION VIEW — lo que se proyecta */
+.projection{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:2rem;
+  transition:background .5s;
+}
+
+.proj-org{
+  font-size:clamp(11px,1.2vw,15px);
+  letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(245,240,232,0.3);
+  margin-bottom:1.5rem;
+}
+
+.proj-case{
+  font-size:clamp(13px,1.5vw,18px);
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:3rem;
+  opacity:.7;
+}
+
+.proj-phase-label{
+  font-size:clamp(11px,1.2vw,14px);
+  letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(245,240,232,0.35);
+  margin-bottom:.75rem;
+}
+
+.proj-phase{
+  font-family:var(--serif);
+  font-size:clamp(28px,5vw,64px);
+  text-align:center;line-height:1.2;
+  margin-bottom:2.5rem;
+  transition:opacity .4s;
+}
+
+.proj-timer{
+  font-size:clamp(60px,14vw,180px);
+  font-weight:300;letter-spacing:-.02em;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  transition:color .3s;
+}
+.proj-timer.warning{color:var(--accent)}
+.proj-timer.danger{color:var(--red);animation:pulse 1s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+.proj-progress{
+  width:clamp(200px,40vw,500px);
+  height:2px;background:rgba(245,240,232,0.1);
+  border-radius:1px;margin-top:2.5rem;overflow:hidden;
+}
+.proj-progress-fill{
+  height:100%;background:var(--accent);
+  border-radius:1px;transition:width .5s linear;
+}
+
+.proj-status{
+  font-size:clamp(11px,1.2vw,13px);
+  letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(245,240,232,0.25);margin-top:1.5rem;
+}
+
+.proj-paused-overlay{
+  position:fixed;inset:0;
+  background:rgba(10,9,8,.85);
+  display:none;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:clamp(40px,8vw,100px);
+  color:rgba(245,240,232,0.15);letter-spacing:.1em;
+  z-index:50;
+}
+.proj-paused-overlay.show{display:flex}
+
+/* CONTROL PANEL — flotante abajo */
+.control{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:1rem 1.5rem;
+  display:flex;align-items:center;gap:1rem;
+  z-index:200;
+  transition:transform .3s;
+}
+.control.hidden{transform:translateY(100%)}
+
+.ctrl-btn{
+  font-family:var(--mono);font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:9px 18px;border-radius:3px;
+  border:1px solid rgba(245,240,232,0.2);
+  background:transparent;color:var(--paper);
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.ctrl-btn:hover{background:rgba(245,240,232,0.08)}
+.ctrl-btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.ctrl-btn.primary:hover{opacity:.85}
+.ctrl-btn.danger{border-color:rgba(192,80,64,.4);color:var(--red)}
+.ctrl-btn.danger:hover{background:rgba(192,80,64,.1)}
+
+.ctrl-phase-info{flex:1;text-align:center}
+.ctrl-phase-name{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:2px}
+.ctrl-phase-num{font-size:10px;color:rgba(245,240,232,0.4);letter-spacing:.06em}
+
+.ctrl-toggle{
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(245,240,232,0.3);cursor:pointer;padding:4px 8px;
+  border:1px solid rgba(245,240,232,0.1);border-radius:3px;
+}
+
+.phases-selector{
+  display:flex;gap:6px;flex-wrap:wrap;
+}
+.phase-pill{
+  font-size:10px;letter-spacing:.06em;
+  padding:4px 12px;border-radius:20px;
+  border:1px solid rgba(245,240,232,0.15);
+  background:transparent;color:rgba(245,240,232,0.4);
+  cursor:pointer;transition:all .15s;
+}
+.phase-pill:hover{border-color:rgba(245,240,232,0.3);color:var(--paper)}
+.phase-pill.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+
+/* Animate phase change */
+@keyframes phaseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.phase-animate{animation:phaseIn .5s ease}
+</style>
+</head>
+<body>
+
+<!-- PROJECTION -->
+<div class="projection" id="projection">
+  <div class="proj-org">Mulier Fortis Association · Despacho de Investigación Privada</div>
+  <div class="proj-case">Caso MFA-2026-LC-001 · Lucentia Consulting S.L.</div>
+  <div class="proj-phase-label" id="proj-phase-label">Fase activa</div>
+  <div class="proj-phase" id="proj-phase">—</div>
+  <div class="proj-timer" id="proj-timer">00:00</div>
+  <div class="proj-progress"><div class="proj-progress-fill" id="proj-progress" style="width:0%"></div></div>
+  <div class="proj-status" id="proj-status">Esperando inicio</div>
+</div>
+
+<div class="proj-paused-overlay" id="paused-overlay">PAUSA</div>
+
+<!-- CONTROL -->
+<div class="control" id="control-panel">
+  <button class="ctrl-btn" onclick="toggleControl()">↑ Ocultar</button>
+  <div class="phases-selector">
+    <div class="phase-pill" onclick="selectPhase(0)">Intro</div>
+    <div class="phase-pill" onclick="selectPhase(1)">Fase 1</div>
+    <div class="phase-pill" onclick="selectPhase(2)">Fase 2</div>
+    <div class="phase-pill" onclick="selectPhase(3)">Fase 3</div>
+    <div class="phase-pill" onclick="selectPhase(4)">Informe</div>
+    <div class="phase-pill" onclick="selectPhase(5)">Clausura</div>
+  </div>
+  <div class="ctrl-phase-info">
+    <div class="ctrl-phase-name" id="ctrl-phase-name">—</div>
+    <div class="ctrl-phase-num" id="ctrl-phase-num">Selecciona una fase</div>
+  </div>
+  <button class="ctrl-btn primary" id="btn-start" onclick="startPause()">▶ Iniciar</button>
+  <button class="ctrl-btn danger" onclick="resetTimer()">↺ Reset</button>
+</div>
+
+<div style="position:fixed;bottom:0;right:0;padding:8px 12px;z-index:300">
+  <div class="ctrl-toggle" id="toggle-hint" onclick="revealControl()">▲ Control</div>
+</div>
+
+<script>
+const PHASES = [
+  {name:"Presentación del caso", label:"Apertura", mins:5, color:"#0a0908", accent:"#c8a96e"},
+  {name:"Fase 1 · Análisis documental", label:"Sobre 1 abierto", mins:15, color:"#0a0908", accent:"#c8a96e"},
+  {name:"Fase 2 · Investigación OSINT", label:"Sobre 2 + InvestigaPro activo", mins:15, color:"#0a0908", accent:"#4a9e7a"},
+  {name:"Fase 3 · Entrevistas voluntarias", label:"Sobre 3 abierto", mins:20, color:"#0a0908", accent:"#c8a96e"},
+  {name:"Redacción del informe", label:"Plantilla en mano", mins:20, color:"#0a0908", accent:"#c8a96e"},
+  {name:"Clausura · Rueda de prensa", label:"Presentaciones de 3 min por equipo", mins:30, color:"#0a0908", accent:"#c05040"},
+];
+
+let currentPhase = -1;
+let totalSecs = 0;
+let remainingSecs = 0;
+let running = false;
+let interval = null;
+let controlVisible = true;
+
+function selectPhase(idx) {
+  currentPhase = idx;
+  const ph = PHASES[idx];
+  totalSecs = ph.mins * 60;
+  remainingSecs = totalSecs;
+  running = false;
+  clearInterval(interval);
+
+  document.querySelectorAll('.phase-pill').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  document.getElementById('ctrl-phase-name').textContent = ph.name;
+  document.getElementById('ctrl-phase-num').textContent = `${ph.mins} minutos`;
+  document.getElementById('btn-start').textContent = '▶ Iniciar';
+
+  const projPhase = document.getElementById('proj-phase');
+  projPhase.classList.remove('phase-animate');
+  void projPhase.offsetWidth;
+  projPhase.classList.add('phase-animate');
+  projPhase.textContent = ph.name;
+
+  document.getElementById('proj-phase-label').textContent = ph.label;
+  document.getElementById('proj-status').textContent = 'Listo para iniciar';
+  document.getElementById('proj-timer').className = 'proj-timer';
+  document.getElementById('paused-overlay').classList.remove('show');
+  document.body.style.setProperty('--accent', ph.accent);
+  updateTimerDisplay();
+  updateProgress();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(remainingSecs / 60);
+  const s = remainingSecs % 60;
+  const display = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const el = document.getElementById('proj-timer');
+  el.textContent = display;
+  el.classList.remove('warning','danger');
+  if (remainingSecs <= 60 && remainingSecs > 0) el.classList.add('danger');
+  else if (remainingSecs <= totalSecs * 0.25) el.classList.add('warning');
+}
+
+function updateProgress() {
+  const pct = totalSecs > 0 ? Math.round((1 - remainingSecs/totalSecs)*100) : 0;
+  document.getElementById('proj-progress').style.width = pct + '%';
+}
+
+function startPause() {
+  if (currentPhase < 0) return;
+  if (running) {
+    running = false;
+    clearInterval(interval);
+    document.getElementById('btn-start').textContent = '▶ Continuar';
+    document.getElementById('proj-status').textContent = 'En pausa';
+    document.getElementById('paused-overlay').classList.add('show');
+  } else {
+    if (remainingSecs <= 0) return;
+    running = true;
+    document.getElementById('btn-start').textContent = '⏸ Pausar';
+    document.getElementById('proj-status').textContent = 'En curso';
+    document.getElementById('paused-overlay').classList.remove('show');
+    interval = setInterval(() => {
+      if (remainingSecs > 0) {
+        remainingSecs--;
+        updateTimerDisplay();
+        updateProgress();
+        if (remainingSecs === 0) {
+          running = false;
+          clearInterval(interval);
+          document.getElementById('proj-status').textContent = '¡Tiempo!';
+          document.getElementById('btn-start').textContent = '▶ Iniciar';
+          document.getElementById('proj-timer').classList.add('danger');
+        }
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  if (currentPhase < 0) return;
+  running = false;
+  clearInterval(interval);
+  remainingSecs = totalSecs;
+  document.getElementById('btn-start').textContent = '▶ Iniciar';
+  document.getElementById('proj-status').textContent = 'Reiniciado';
+  document.getElementById('paused-overlay').classList.remove('show');
+  document.getElementById('proj-timer').className = 'proj-timer';
+  updateTimerDisplay();
+  updateProgress();
+}
+
+function toggleControl() {
+  controlVisible = false;
+  document.getElementById('control-panel').classList.add('hidden');
+  document.getElementById('toggle-hint').style.display = 'block';
+}
+
+function revealControl() {
+  controlVisible = true;
+  document.getElementById('control-panel').classList.remove('hidden');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); startPause(); }
+  if (e.code === 'ArrowRight' && currentPhase < PHASES.length-1) selectPhase(currentPhase+1);
+  if (e.code === 'ArrowLeft' && currentPhase > 0) selectPhase(currentPhase-1);
+  if (e.code === 'KeyR') resetTimer();
+  if (e.code === 'KeyH') toggleControl();
+});
+
+// Init
+selectPhase(0);
+</script>
+</body>
+</html>
