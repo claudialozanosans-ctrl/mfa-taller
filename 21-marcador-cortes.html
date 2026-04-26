@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MFA · Marcador de Cortes</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0908;--bg2:#141210;--bg3:#1e1b18;
+  --paper:#f5f0e8;--muted:#7a7570;--border:rgba(245,240,232,0.1);--border2:rgba(245,240,232,0.2);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;
+  --mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:var(--mono)}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.4}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--serif);font-size:16px}
+.sub{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+
+.main{max-width:600px;margin:0 auto;padding:1.25rem 1.25rem 5rem}
+
+.hint-box{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2);border-radius:6px;padding:.875rem 1rem;margin-bottom:1.25rem;font-size:12px;color:var(--muted);line-height:1.7}
+.hint-box strong{color:var(--accent)}
+
+.section-title{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:.875rem;padding-bottom:6px;border-bottom:1px solid var(--border);margin-top:1.25rem}
+
+/* INTERVIEW TABS */
+.itabs{display:flex;gap:8px;margin-bottom:1.25rem}
+.itab{flex:1;padding:9px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;cursor:pointer;text-align:center;font-size:11px;color:var(--muted);transition:all .15s}
+.itab.active{border-color:var(--accent);color:var(--accent);background:rgba(200,169,110,.06)}
+
+/* STEP INDICATOR */
+.steps{display:flex;gap:0;margin-bottom:1.5rem}
+.step-item{flex:1;text-align:center;padding:.5rem;font-size:10px;color:var(--muted);border-bottom:2px solid var(--border);position:relative}
+.step-item.active{color:var(--accent);border-bottom-color:var(--accent)}
+.step-item.done{color:var(--teal);border-bottom-color:var(--teal)}
+.step-num{display:block;font-size:16px;margin-bottom:2px}
+
+/* UPLOAD */
+.upload-slot{background:var(--bg2);border:1.5px dashed var(--border2);border-radius:8px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:.75rem}
+.upload-slot:hover{border-color:var(--accent)}
+.upload-slot.loaded{border-style:solid}
+.upload-slot.loaded.det{border-color:#5dcaa5}
+.upload-slot.loaded.sus{border-color:var(--accent)}
+.slot-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.slot-icon{font-size:22px;margin-bottom:5px}
+.slot-lbl{font-size:12px;font-weight:500}
+.slot-lbl.det{color:#5dcaa5}
+.slot-lbl.sus{color:var(--accent)}
+.slot-info{font-size:11px;color:var(--paper);margin-top:4px}
+
+/* MARKING INTERFACE */
+.mark-card{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;margin-bottom:1rem}
+.mark-header{background:var(--bg3);padding:.875rem 1.125rem;border-bottom:1px solid var(--border)}
+.mark-who{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.mark-who.det{color:#5dcaa5}
+.mark-who.sus{color:var(--accent)}
+.mark-progress{font-size:12px;color:var(--paper);margin-bottom:4px}
+.mark-fraction{font-size:10px;color:var(--muted)}
+
+/* Audio progress bar */
+.audio-bar{height:3px;background:rgba(245,240,232,.08);border-radius:2px;overflow:hidden;margin-top:8px;cursor:pointer}
+.audio-fill{height:100%;background:var(--accent);border-radius:2px;width:0;transition:width .1s linear;pointer-events:none}
+
+.mark-body{padding:1.125rem}
+.current-phrase{font-family:var(--serif);font-size:18px;line-height:1.5;color:var(--paper);margin-bottom:1rem;min-height:60px}
+.next-phrase{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:1.25rem;font-style:italic}
+.next-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+
+/* BIG TAP BUTTON */
+.tap-btn{
+  width:100%;background:var(--accent);color:#0a0908;
+  border:none;border-radius:6px;padding:20px;
+  font-family:var(--mono);font-size:13px;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;transition:all .1s;
+  display:flex;align-items:center;justify-content:center;gap:.75rem;
+  user-select:none;-webkit-user-select:none;
+}
+.tap-btn:active{transform:scale(.97);opacity:.9}
+.tap-btn.last{background:var(--teal)}
+.tap-icon{font-size:20px}
+
+.play-controls{display:flex;gap:.75rem;margin-bottom:1rem}
+.ctrl-btn{flex:1;background:transparent;border:1px solid var(--border2);border-radius:4px;padding:9px;font-family:var(--mono);font-size:11px;color:var(--paper);cursor:pointer;transition:all .15s;letter-spacing:.04em;text-transform:uppercase}
+.ctrl-btn:hover{background:rgba(245,240,232,.06)}
+.ctrl-btn.playing{border-color:var(--accent);color:var(--accent)}
+
+/* MARKS LIST */
+.marks-list{margin-top:1rem}
+.marks-title{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.mark-item{display:flex;align-items:center;gap:.625rem;padding:.5rem .75rem;background:var(--bg3);border-radius:4px;margin-bottom:4px;font-size:11px}
+.mark-item.det{border-left:2px solid #5dcaa5}
+.mark-item.sus{border-left:2px solid var(--accent)}
+.mark-speaker{font-size:10px;font-weight:500;min-width:60px}
+.mark-speaker.det{color:#5dcaa5}
+.mark-speaker.sus{color:var(--accent)}
+.mark-text{flex:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mark-time{font-size:10px;color:var(--accent);min-width:45px;text-align:right}
+.mark-del{background:transparent;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px}
+
+/* MERGE SECTION */
+.merge-section{margin-top:1.25rem}
+.primary-btn{width:100%;background:var(--accent);color:#0a0908;border:none;border-radius:4px;padding:13px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:opacity .15s;margin-bottom:.75rem}
+.primary-btn:hover{opacity:.85}
+.primary-btn:disabled{opacity:.3;cursor:not-allowed}
+.secondary-btn{width:100%;background:transparent;color:var(--paper);border:1px solid var(--border2);border-radius:4px;padding:10px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-bottom:.75rem}
+.secondary-btn:hover{background:rgba(245,240,232,.06)}
+
+.prog-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1rem;display:none}
+.prog-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:.5rem 0}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;width:0}
+.prog-text{font-size:11px;color:var(--muted)}
+
+.dl-card{background:rgba(45,122,95,.08);border:1px solid rgba(45,122,95,.25);border-radius:8px;padding:1.5rem;text-align:center;display:none;animation:fi .3s ease;margin-bottom:1rem}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.dl-btn{display:inline-block;background:var(--teal);color:var(--paper);border:none;border-radius:4px;padding:12px 28px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none}
+
+/* Keyboard hint */
+.key-hint{text-align:center;font-size:11px;color:var(--muted);margin-top:.5rem}
+.key{display:inline-block;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:2px 8px;font-size:10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <div class="logo">MFA · Marcador de Cortes</div>
+    <div class="sub">Marca dónde termina cada frase</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="hint-box">
+    <strong>Cómo funciona:</strong> reproduce el audio y pulsa <strong style="color:var(--accent)">el botón grande</strong> (o la barra espaciadora) justo cuando termina cada frase. El sistema guarda ese momento exacto. Al final mezcla todo automáticamente con tus cortes.
+  </div>
+
+  <!-- INTERVIEW SELECT -->
+  <div class="section-title">Entrevista</div>
+  <div class="itabs">
+    <div class="itab active" onclick="selectIV('mora')">Sílvia Mora</div>
+    <div class="itab" onclick="selectIV('castellvi')">Andrés Castellví</div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step-item active" id="step1"><span class="step-num">①</span>Marcar detective</div>
+    <div class="step-item" id="step2"><span class="step-num">②</span>Marcar sospechosa</div>
+    <div class="step-item" id="step3"><span class="step-num">③</span>Mezclar</div>
+  </div>
+
+  <!-- STEP 1: MARK DETECTIVE -->
+  <div id="panel-det">
+    <div class="section-title">Paso 1 · Marca las frases de la detective</div>
+    <div class="upload-slot loaded det" id="slot-det" style="cursor:default">
+      <input type="file" class="slot-input" id="file-det" accept="audio/*" onchange="loadAudio('det',this)" style="cursor:pointer">
+      <div class="slot-icon">🎙️</div>
+      <div class="slot-lbl det">Detective — sube el audio</div>
+      <div class="slot-info" id="det-info">Pulsa para seleccionar el MP3</div>
+    </div>
+
+    <div class="mark-card" id="mark-det-card" style="display:none">
+      <div class="mark-header">
+        <div class="mark-who det">Detective</div>
+        <div class="mark-progress" id="det-progress">Frase 1 de 6</div>
+        <div class="mark-fraction" id="det-time-display">0:00</div>
+        <div class="audio-bar" id="det-audio-bar" onclick="seekDet(event)">
+          <div class="audio-fill" id="det-audio-fill"></div>
+        </div>
+      </div>
+      <div class="mark-body">
+        <div class="current-phrase" id="det-current-phrase"></div>
+        <div class="next-label">Siguiente frase:</div>
+        <div class="next-phrase" id="det-next-phrase"></div>
+        <div class="play-controls">
+          <button class="ctrl-btn" id="det-play-btn" onclick="togglePlay('det')">▶ Reproducir</button>
+          <button class="ctrl-btn" onclick="rewind('det')">↩ -3s</button>
+        </div>
+        <button class="tap-btn" id="det-tap-btn" onclick="markCut('det')">
+          <span class="tap-icon">✂️</span>
+          <span>Aquí termina esta frase</span>
+        </button>
+        <div class="key-hint">También puedes pulsar <span class="key">Espacio</span></div>
+      </div>
+    </div>
+
+    <div class="marks-list" id="det-marks-list" style="display:none">
+      <div class="marks-title">Cortes marcados</div>
+      <div id="det-marks"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2: MARK SUSPECT -->
+  <div id="panel-sus" style="display:none">
+    <div class="section-title">Paso 2 · Marca las frases de <span id="sus-step-name">Sílvia Mora</span></div>
+    <div class="upload-slot" id="slot-sus">
+      <input type="file" class="slot-input" id="file-sus" accept="audio/*" onchange="loadAudio('sus',this)">
+      <div class="slot-icon">👤</div>
+      <div class="slot-lbl sus" id="sus-slot-lbl">Mora — sube el audio</div>
+      <div class="slot-info" id="sus-info">Pulsa para seleccionar el MP3</div>
+    </div>
+
+    <div class="mark-card" id="mark-sus-card" style="display:none">
+      <div class="mark-header">
+        <div class="mark-who sus" id="sus-mark-who">Mora</div>
+        <div class="mark-progress" id="sus-progress">Frase 1 de 6</div>
+        <div class="mark-fraction" id="sus-time-display">0:00</div>
+        <div class="audio-bar" id="sus-audio-bar" onclick="seekSus(event)">
+          <div class="audio-fill" id="sus-audio-fill"></div>
+        </div>
+      </div>
+      <div class="mark-body">
+        <div class="current-phrase" id="sus-current-phrase"></div>
+        <div class="next-label">Siguiente frase:</div>
+        <div class="next-phrase" id="sus-next-phrase"></div>
+        <div class="play-controls">
+          <button class="ctrl-btn" id="sus-play-btn" onclick="togglePlay('sus')">▶ Reproducir</button>
+          <button class="ctrl-btn" onclick="rewind('sus')">↩ -3s</button>
+        </div>
+        <button class="tap-btn" id="sus-tap-btn" onclick="markCut('sus')">
+          <span class="tap-icon">✂️</span>
+          <span>Aquí termina esta frase</span>
+        </button>
+        <div class="key-hint">También puedes pulsar <span class="key">Espacio</span></div>
+      </div>
+    </div>
+
+    <div class="marks-list" id="sus-marks-list" style="display:none">
+      <div class="marks-title">Cortes marcados</div>
+      <div id="sus-marks"></div>
+    </div>
+  </div>
+
+  <!-- STEP 3: MERGE -->
+  <div id="panel-merge" style="display:none">
+    <div class="section-title">Paso 3 · Genera la entrevista mezclada</div>
+    <div class="hint-box">
+      Todos los cortes están marcados. Pulsa para generar la entrevista con detective y sospechosa intercalados en el orden correcto.
+    </div>
+
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:.5rem">Silencio entre fragmentos</div>
+      <div style="display:flex;align-items:center;gap:.75rem;font-size:12px;color:var(--muted)">
+        <input type="range" id="gap-slider" min="0" max="1500" value="600" step="100" style="flex:1" oninput="document.getElementById('gap-val').textContent=this.value+'ms'">
+        <span id="gap-val" style="min-width:45px;color:var(--paper)">600ms</span>
+      </div>
+    </div>
+
+    <button class="primary-btn" onclick="mergeAll()">Generar entrevista mezclada →</button>
+    <button class="secondary-btn" onclick="goBack()">← Volver a ajustar cortes</button>
+
+    <div class="prog-card" id="prog-card">
+      <div class="prog-text" id="prog-text">Procesando...</div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+    </div>
+
+    <div class="dl-card" id="dl-card">
+      <div style="font-size:36px;margin-bottom:.75rem">✓</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:.375rem" id="dl-title">Entrevista lista</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:1.25rem">Lista para cargar en el reproductor del taller.</div>
+      <a class="dl-btn" id="dl-link">Descargar WAV →</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const INTERVIEWS = {
+  mora: {
+    name: 'Sílvia Mora',
+    detLines: [
+      'Señora Mora, gracias por quedar. Esta conversación es voluntaria. Soy detective privada, número de identificación profesional siete dos nueve tres.',
+      'El catorce de marzo imprimió cuarenta y siete páginas del Proyecto Atenea. ¿Para qué las necesitaba?',
+      '¿Qué hizo con esa impresión después?',
+      '¿Envió algún archivo del proyecto a una cuenta personal de correo?',
+      '¿Conoce a alguien de Nexum Strategy Partners?',
+      '¿Sabe por qué Nexum presentó una propuesta tan similar a la de Lucentia?',
+    ],
+    susLines: [
+      'Lo sé. No tengo ningún problema en hablar. Al contrario, me alegra poder aclarar las cosas.',
+      'Para preparar la presentación del día veintidós. Trabajo mejor con papel. Me gusta anotar a mano. Es mi método desde siempre.',
+      'La destruí. Siempre destruyo la documentación sensible cuando ya no la necesito. Es un hábito profesional.',
+      'Puede ser que sí... Tengo la costumbre de hacerme copias de seguridad. No lo recuerdo con exactitud. Pero si lo hice, fue por precaución.',
+      'De nombre, sí. Es un sector pequeño, todo el mundo se conoce. Pero no tengo relación profesional con nadie de allí. Ni personal.',
+      'No tengo ni idea. Honestamente, me parece tan grave como a vosotros. Llevo seis años en esta empresa. No haría algo así.',
+    ],
+    order: ['det','sus','det','sus','det','sus','det','sus','det','sus','det','sus']
+  },
+  castellvi: {
+    name: 'Andrés Castellví',
+    detLines: [
+      'Señor Castellví, buenas tardes. Soy detective privada, número de identificación profesional siete dos nueve tres. Esta conversación es voluntaria.',
+      '¿Sabe usted que su hermano Jordi trabaja en Nexum Strategy Partners?',
+      '¿Por qué no lo declaró al incorporarse al Proyecto Atenea?',
+      '¿Ha compartido con su hermano alguna información del proyecto?',
+      '¿Recuerda haber accedido al sistema el dieciocho de marzo a las siete doce de la mañana?',
+      '¿Qué cifras exactamente?',
+    ],
+    susLines: [
+      'Sí, de acuerdo. Quiero colaborar en todo lo que pueda.',
+      'Sí, claro. Lleva allí desde el año pasado. Entró a través de una empresa de selección.',
+      'No pensé que fuera relevante... El formulario preguntaba por conflictos de interés profesionales. No creí que hubiera conflicto.',
+      'No. Absolutamente no. Nuestra relación es... distante. Nos vemos poco. En Navidad, alguna vez más. No hablamos de trabajo.',
+      'Sí, entré pronto ese día. Tenía una reunión importante y quería revisar unas cifras antes.',
+      'Las proyecciones financieras del módulo que gestiono. Solo tuve acceso a esa parte, no al documento completo.',
+    ],
+    order: ['det','sus','det','sus','det','sus','det','sus','det','sus','det','sus']
+  }
+};
+
+let currentIV = 'mora';
+let audioCtx = null;
+let detAudio = null, susAudio = null;
+let detBuf = null, susBuf = null;
+let detCuts = [], susCuts = [];
+let detIdx = 0, susIdx = 0;
+let detLastMark = 0, susLastMark = 0;
+let activeType = 'det';
+let progressInterval = null;
+
+function getCtx(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+
+function selectIV(id){
+  currentIV=id;
+  document.querySelectorAll('.itab').forEach((t,i)=>t.classList.toggle('active',['mora','castellvi'][i]===id));
+  const iv=INTERVIEWS[id];
+  document.getElementById('sus-step-name').textContent=iv.name;
+  document.getElementById('sus-slot-lbl').textContent=iv.name+' — sube el audio';
+  document.getElementById('sus-mark-who').textContent=iv.name.split(' ')[0];
+  resetAll();
+}
+
+function resetAll(){
+  detAudio=null; susAudio=null; detBuf=null; susBuf=null;
+  detCuts=[]; susCuts=[]; detIdx=0; susIdx=0;
+  detLastMark=0; susLastMark=0;
+  document.getElementById('det-info').textContent='Pulsa para seleccionar el MP3';
+  document.getElementById('sus-info').textContent='Pulsa para seleccionar el MP3';
+  document.getElementById('mark-det-card').style.display='none';
+  document.getElementById('mark-sus-card').style.display='none';
+  document.getElementById('det-marks-list').style.display='none';
+  document.getElementById('sus-marks-list').style.display='none';
+  document.getElementById('panel-sus').style.display='none';
+  document.getElementById('panel-merge').style.display='none';
+  document.getElementById('panel-det').style.display='block';
+  document.getElementById('dl-card').style.display='none';
+  setStep(1);
+}
+
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    const el=document.getElementById('step'+i);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    if(i===n) el.classList.add('active');
+  });
+}
+
+async function loadAudio(type, input){
+  if(!input.files||!input.files[0]) return;
+  const file=input.files[0];
+  const objectUrl=URL.createObjectURL(file);
+  const audio=new Audio();
+  audio.src=objectUrl;
+  audio.preload='auto';
+
+  // Wait for metadata
+  await new Promise((resolve,reject)=>{
+    audio.onloadedmetadata=resolve;
+    audio.onerror=()=>reject(new Error('No se pudo cargar el audio'));
+    audio.load();
+  });
+
+  // Decode for buffer (needed for merge)
+  let buf=null;
+  try{
+    const ab=await file.arrayBuffer();
+    const ctx=getCtx();
+    buf=await ctx.decodeAudioData(ab);
+  } catch(e){ console.warn('AudioContext decode warning:',e); }
+
+  if(type==='det'){
+    detAudio=audio;
+    detBuf=buf;
+    detAudio.addEventListener('timeupdate',()=>updateProgress('det'));
+    detAudio.addEventListener('ended',()=>stopProgress('det'));
+    const dur=audio.duration||buf?.duration||0;
+    document.getElementById('det-info').textContent=file.name+' · '+fmtD(dur);
+    document.getElementById('slot-det').classList.add('loaded','det');
+    initMarkingDet();
+  } else {
+    susAudio=audio;
+    susBuf=buf;
+    susAudio.addEventListener('timeupdate',()=>updateProgress('sus'));
+    susAudio.addEventListener('ended',()=>stopProgress('sus'));
+    const dur=audio.duration||buf?.duration||0;
+    document.getElementById('sus-info').textContent=file.name+' · '+fmtD(dur);
+    document.getElementById('slot-sus').classList.add('loaded','sus');
+    initMarkingSus();
+  }
+}
+
+function initMarkingDet(){
+  detIdx=0; detCuts=[]; detLastMark=0;
+  activeType='det';
+  const iv=INTERVIEWS[currentIV];
+  document.getElementById('det-progress').textContent=`Frase 1 de ${iv.detLines.length}`;
+  document.getElementById('det-current-phrase').textContent=iv.detLines[0];
+  document.getElementById('det-next-phrase').textContent=iv.detLines[1]||'(última frase)';
+  document.getElementById('mark-det-card').style.display='block';
+}
+
+function initMarkingSus(){
+  susIdx=0; susCuts=[]; susLastMark=0;
+  activeType='sus';
+  const iv=INTERVIEWS[currentIV];
+  document.getElementById('sus-progress').textContent=`Frase 1 de ${iv.susLines.length}`;
+  document.getElementById('sus-current-phrase').textContent=iv.susLines[0];
+  document.getElementById('sus-next-phrase').textContent=iv.susLines[1]||'(última frase)';
+  document.getElementById('mark-sus-card').style.display='block';
+}
+
+function updateProgress(type){
+  const audio = type==='det'?detAudio:susAudio;
+  if(!audio||!audio.duration) return;
+  const dur=audio.duration;
+  const pct = (audio.currentTime/dur)*100;
+  document.getElementById(type+'-audio-fill').style.width=pct+'%';
+  document.getElementById(type+'-time-display').textContent=fmtD(audio.currentTime)+' / '+fmtD(dur);
+}
+
+function stopProgress(type){
+  const btn=document.getElementById(type+'-play-btn');
+  if(btn) btn.textContent='▶ Reproducir';
+  btn?.classList.remove('playing');
+}
+
+function togglePlay(type){
+  const audio=type==='det'?detAudio:susAudio;
+  if(!audio) return;
+  activeType=type;
+  if(audio.paused){
+    audio.play();
+    document.getElementById(type+'-play-btn').textContent='⏸ Pausar';
+    document.getElementById(type+'-play-btn').classList.add('playing');
+  } else {
+    audio.pause();
+    document.getElementById(type+'-play-btn').textContent='▶ Reproducir';
+    document.getElementById(type+'-play-btn').classList.remove('playing');
+  }
+}
+
+function rewind(type){
+  const audio=type==='det'?detAudio:susAudio;
+  if(!audio) return;
+  audio.currentTime=Math.max(0,audio.currentTime-3);
+}
+
+function seekDet(e){
+  if(!detAudio||!detAudio.duration) return;
+  const bar=document.getElementById('det-audio-bar');
+  const pct=(e.clientX-bar.getBoundingClientRect().left)/bar.offsetWidth;
+  detAudio.currentTime=pct*detAudio.duration;
+}
+function seekSus(e){
+  if(!susAudio||!susAudio.duration) return;
+  const bar=document.getElementById('sus-audio-bar');
+  const pct=(e.clientX-bar.getBoundingClientRect().left)/bar.offsetWidth;
+  susAudio.currentTime=pct*susAudio.duration;
+}
+
+function markCut(type){
+  const audio=type==='det'?detAudio:susAudio;
+  const buf=type==='det'?detBuf:susBuf;
+  const iv=INTERVIEWS[currentIV];
+  const lines=type==='det'?iv.detLines:iv.susLines;
+  const cuts=type==='det'?detCuts:susCuts;
+  let idx=type==='det'?detIdx:susIdx;
+  const lastMark=type==='det'?detLastMark:susLastMark;
+
+  if(!audio||!buf) return;
+
+  const currentTime=audio.currentTime;
+  const sr=buf.sampleRate;
+
+  // Save cut
+  cuts.push({
+    start:Math.floor(lastMark*sr),
+    end:Math.floor(currentTime*sr),
+    duration:currentTime-lastMark,
+    text:lines[idx]
+  });
+
+  // Flash feedback
+  const tapBtn=document.getElementById(type+'-tap-btn');
+  tapBtn.style.background='var(--teal)';
+  setTimeout(()=>tapBtn.style.background='',300);
+
+  // Update last mark
+  if(type==='det') detLastMark=currentTime;
+  else susLastMark=currentTime;
+
+  idx++;
+  if(type==='det') detIdx=idx;
+  else susIdx=idx;
+
+  // Update marks display
+  renderMarks(type);
+
+  if(idx>=lines.length){
+    // All phrases marked
+    const _audio=type==='det'?detAudio:susAudio;
+  finishMarking(type, buf, _audio, currentTime, sr, lines, cuts);
+    return;
+  }
+
+  // Update UI for next phrase
+  document.getElementById(type+'-progress').textContent=`Frase ${idx+1} de ${lines.length}`;
+  document.getElementById(type+'-current-phrase').textContent=lines[idx];
+  document.getElementById(type+'-next-phrase').textContent=lines[idx+1]||'(última frase — pulsa al terminar)';
+
+  if(idx===lines.length-1){
+    tapBtn.querySelector('span:last-child').textContent='Aquí termina la última frase';
+    tapBtn.classList.add('last');
+  }
+}
+
+function finishMarking(type, buf, audio, lastTime, sr, lines, cuts){
+  // Add final segment to end of audio
+  const finalDur=(buf?.length)||Math.floor((audio?.duration||0)*44100);
+  cuts[cuts.length-1].end=finalDur;
+  cuts[cuts.length-1].duration=(buf?.duration||audio?.duration||0)-lastTime;
+
+  document.getElementById('mark-'+type+'-card').style.display='none';
+  document.getElementById(type+'-marks-list').style.display='block';
+  renderMarks(type);
+
+  // Pause audio
+  const audio=type==='det'?detAudio:susAudio;
+  if(audio) audio.pause();
+
+  if(type==='det'){
+    // Move to step 2
+    setTimeout(()=>{
+      document.getElementById('panel-sus').style.display='block';
+      setStep(2);
+      document.getElementById('panel-sus').scrollIntoView({behavior:'smooth'});
+    },500);
+  } else {
+    // Move to step 3
+    setTimeout(()=>{
+      document.getElementById('panel-merge').style.display='block';
+      setStep(3);
+      document.getElementById('panel-merge').scrollIntoView({behavior:'smooth'});
+    },500);
+  }
+}
+
+function renderMarks(type){
+  const cuts=type==='det'?detCuts:susCuts;
+  const iv=INTERVIEWS[currentIV];
+  const name=type==='det'?'Detective':iv.name.split(' ')[0];
+  const el=document.getElementById(type+'-marks');
+  el.innerHTML=cuts.map((c,i)=>`
+    <div class="mark-item ${type}">
+      <span class="mark-speaker ${type}">${name} ${i+1}</span>
+      <span class="mark-text">${c.text}</span>
+      <span class="mark-time">${fmtD(c.duration)}</span>
+    </div>`).join('');
+}
+
+function goBack(){
+  document.getElementById('panel-merge').style.display='none';
+  setStep(2);
+}
+
+async function mergeAll(){
+  const iv=INTERVIEWS[currentIV];
+  const gapMs=parseInt(document.getElementById('gap-slider').value);
+  const ctx=getCtx();
+
+  document.getElementById('prog-card').style.display='block';
+  document.getElementById('dl-card').style.display='none';
+
+  try{
+    // Build sequence following interview order
+    const sequence=[];
+    let di=0,si=0;
+    for(const role of iv.order){
+      if(role==='det'&&di<detCuts.length) sequence.push({type:'det',cut:detCuts[di++]});
+      else if(role==='sus'&&si<susCuts.length) sequence.push({type:'sus',cut:susCuts[si++]});
+    }
+
+    const gapSamples=Math.floor(ctx.sampleRate*gapMs/1000);
+    let totalSamples=0;
+    sequence.forEach((s,i)=>{
+      const buf=s.type==='det'?detBuf:susBuf;
+      const safeStart=Math.min(s.cut.start,buf.length-1);
+      const safeEnd=Math.min(s.cut.end,buf.length);
+      totalSamples+=Math.max(0,safeEnd-safeStart);
+      if(i<sequence.length-1) totalSamples+=gapSamples;
+    });
+
+    const numCh=Math.max(detBuf.numberOfChannels,susBuf.numberOfChannels);
+    const outBuf=ctx.createBuffer(numCh,totalSamples,ctx.sampleRate);
+    let offset=0;
+
+    for(let i=0;i<sequence.length;i++){
+      const {type,cut}=sequence[i];
+      const srcBuf=type==='det'?detBuf:susBuf;
+      const safeStart=Math.min(cut.start,srcBuf.length-1);
+      const safeEnd=Math.min(cut.end,srcBuf.length);
+      const segLen=Math.max(0,safeEnd-safeStart);
+      if(segLen===0){if(i<sequence.length-1)offset+=gapSamples;continue;}
+
+      const pct=Math.round(i/sequence.length*90);
+      document.getElementById('prog-fill').style.width=pct+'%';
+      document.getElementById('prog-text').textContent=`Fragmento ${i+1} de ${sequence.length}...`;
+      await new Promise(r=>setTimeout(r,8));
+
+      for(let ch=0;ch<numCh;ch++){
+        const src=ch<srcBuf.numberOfChannels?srcBuf.getChannelData(ch).slice(safeStart,safeEnd):new Float32Array(segLen);
+        outBuf.getChannelData(ch).set(src,offset);
+      }
+      offset+=segLen;
+      if(i<sequence.length-1) offset+=gapSamples;
+    }
+
+    document.getElementById('prog-fill').style.width='100%';
+    document.getElementById('prog-text').textContent='Exportando...';
+    await new Promise(r=>setTimeout(r,80));
+
+    const blob=bufToWav(outBuf);
+    const url=URL.createObjectURL(blob);
+    const fname=`entrevista-${currentIV}.wav`;
+    document.getElementById('prog-card').style.display='none';
+    document.getElementById('dl-card').style.display='block';
+    document.getElementById('dl-title').textContent='Entrevista con '+iv.name+' lista';
+    const link=document.getElementById('dl-link');
+    link.href=url;link.download=fname;link.textContent='Descargar '+fname+' →';
+  } catch(e){
+    document.getElementById('prog-text').textContent='Error: '+e.message;
+  }
+}
+
+function bufToWav(buffer){
+  const nc=buffer.numberOfChannels,sr=buffer.sampleRate,len=buffer.length;
+  const ab=new ArrayBuffer(44+len*nc*2);
+  const v=new DataView(ab);
+  const ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  ws(0,'RIFF');v.setUint32(4,36+len*nc*2,true);ws(8,'WAVE');ws(12,'fmt ');
+  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,nc,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*nc*2,true);
+  v.setUint16(32,nc*2,true);v.setUint16(34,16,true);ws(36,'data');
+  v.setUint32(40,len*nc*2,true);
+  let off=44;
+  for(let i=0;i<len;i++){
+    for(let ch=0;ch<nc;ch++){
+      const s=Math.max(-1,Math.min(1,buffer.getChannelData(ch)[i]));
+      v.setInt16(off,s<0?s*0x8000:s*0x7FFF,true);off+=2;
+    }
+  }
+  return new Blob([ab],{type:'audio/wav'});
+}
+
+function fmtD(s){s=Math.round(s||0);return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
+
+// Keyboard shortcut
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&e.target.tagName!=='INPUT'){
+    e.preventDefault();
+    markCut(activeType);
+  }
+});
+</script>
+</body>
+</html>
