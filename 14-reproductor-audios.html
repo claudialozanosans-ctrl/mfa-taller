@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MFA · Reproductor de Audios</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0908;--bg2:#141210;--bg3:#1e1b18;
+  --paper:#f5f0e8;--muted:#7a7570;--border:rgba(245,240,232,0.1);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;
+  --mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--paper);font-family:var(--mono);overflow:hidden}
+
+/* Grain */
+body::before{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:999;opacity:.4}
+
+/* TOPBAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.875rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+}
+.top-logo{font-family:var(--serif);font-size:16px;color:var(--paper)}
+.top-case{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.top-badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--accent);color:var(--accent);padding:3px 8px;border-radius:2px}
+
+/* VIEWS */
+.view{display:none;height:calc(100vh - 52px);overflow-y:auto;padding:1.25rem}
+.view.active{display:block}
+
+/* HOME — lista de audios */
+.audio-list{display:flex;flex-direction:column;gap:.75rem;padding-bottom:2rem}
+.audio-item{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:1rem 1.125rem;
+  display:flex;align-items:center;gap:1rem;
+  cursor:pointer;transition:all .15s;
+}
+.audio-item:hover{border-color:rgba(245,240,232,.2)}
+.audio-item.playing{border-color:var(--accent);background:rgba(200,169,110,.06)}
+.audio-item.done{opacity:.5}
+.audio-num{
+  font-size:11px;letter-spacing:.06em;color:var(--muted);
+  min-width:28px;
+}
+.audio-info{flex:1}
+.audio-title{font-size:13px;font-weight:400;color:var(--paper);margin-bottom:2px;line-height:1.3}
+.audio-meta{font-size:10px;color:var(--muted);letter-spacing:.04em}
+.audio-duration{font-size:11px;color:var(--muted);flex-shrink:0}
+.status-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border);flex-shrink:0;
+}
+.status-dot.playing{background:var(--accent);animation:pulse 1.5s ease infinite}
+.status-dot.done{background:var(--teal)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.home-header{margin-bottom:1.5rem}
+.home-title{font-family:var(--serif);font-size:22px;margin-bottom:4px}
+.home-sub{font-size:11px;color:var(--muted);line-height:1.6}
+.fase-label{
+  font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin:1.25rem 0 .625rem;
+  padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+
+/* PLAYER VIEW */
+.player-view{display:flex;flex-direction:column;height:calc(100vh - 52px)}
+
+.player-back{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:var(--muted);letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer;padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);transition:color .15s;
+  background:var(--bg2);flex-shrink:0;
+}
+.player-back:hover{color:var(--paper)}
+.player-back::before{content:'←';font-size:14px}
+
+.player-content{flex:1;overflow-y:auto;padding:1.25rem;padding-bottom:200px}
+
+.player-phase{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.player-title{font-family:var(--serif);font-size:22px;margin-bottom:.5rem;line-height:1.3}
+.player-legal{
+  background:rgba(45,122,95,.1);border:1px solid rgba(45,122,95,.2);
+  border-radius:4px;padding:.75rem 1rem;margin:1rem 0;
+  font-size:11px;color:rgba(245,240,232,.6);line-height:1.6;
+}
+.player-legal-title{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:4px;font-weight:500}
+
+/* Transcript */
+.transcript{margin:1.25rem 0}
+.transcript-line{
+  padding:.625rem 0;border-bottom:1px solid rgba(245,240,232,.06);
+  font-size:12px;line-height:1.7;
+  transition:all .3s;
+}
+.transcript-line.active{color:var(--paper)}
+.transcript-line.past{color:rgba(245,240,232,.3)}
+.transcript-line.future{color:rgba(245,240,232,.2)}
+.speaker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:3px;font-weight:500}
+.speaker.detective{color:var(--teal)}
+.speaker.suspect{color:var(--accent)}
+.speaker.narrator{color:var(--muted)}
+
+/* PAUSA overlay */
+.pausa-overlay{
+  display:none;
+  background:rgba(10,9,8,.95);
+  border:1px solid rgba(192,80,64,.3);
+  border-radius:8px;
+  padding:1.25rem;
+  margin:1rem 0;
+  animation:fadeIn .3s ease;
+}
+.pausa-overlay.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.pausa-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:.75rem;font-weight:500}
+.pausa-instruccion{font-size:13px;color:rgba(245,240,232,.7);line-height:1.7;margin-bottom:.875rem;font-style:italic}
+.pausa-pregunta{font-size:14px;color:var(--paper);line-height:1.6;margin-bottom:1rem;font-weight:500}
+.pausa-timer{
+  font-size:32px;font-weight:300;color:var(--accent);
+  text-align:center;margin:.75rem 0;font-variant-numeric:tabular-nums;
+}
+.pausa-btn{
+  width:100%;background:var(--red);color:var(--paper);
+  border:none;border-radius:4px;padding:12px;
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  transition:opacity .15s;
+}
+.pausa-btn:hover{opacity:.85}
+
+/* BOTTOM PLAYER BAR */
+.player-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:1rem 1.25rem 1.5rem;z-index:100;
+}
+.progress-wrap{margin-bottom:.875rem}
+.progress-track{
+  width:100%;height:3px;background:rgba(245,240,232,.1);
+  border-radius:2px;cursor:pointer;position:relative;
+}
+.progress-fill{
+  height:100%;background:var(--accent);border-radius:2px;
+  transition:width .1s linear;pointer-events:none;
+}
+.progress-handle{
+  width:12px;height:12px;border-radius:50%;
+  background:var(--accent);position:absolute;
+  top:50%;transform:translateY(-50%);
+  margin-left:-6px;pointer-events:none;
+}
+.time-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+
+.controls{display:flex;align-items:center;justify-content:center;gap:1.5rem}
+.ctrl-btn{
+  background:transparent;border:none;color:var(--paper);
+  cursor:pointer;padding:8px;border-radius:50%;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.ctrl-btn:hover{background:rgba(245,240,232,.08)}
+.ctrl-btn svg{width:22px;height:22px;fill:currentColor}
+.play-btn{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--accent);border:none;color:#0a0908;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.play-btn:hover{opacity:.85;transform:scale(1.03)}
+.play-btn svg{width:24px;height:24px;fill:currentColor}
+
+.upload-hint{
+  text-align:center;padding:2rem 1rem;
+  font-size:11px;color:var(--muted);line-height:1.7;
+}
+.upload-btn{
+  display:inline-block;margin-top:.75rem;
+  background:transparent;border:1px solid rgba(245,240,232,.2);
+  color:var(--paper);border-radius:4px;padding:8px 20px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  cursor:pointer;transition:all .15s;text-transform:uppercase;
+}
+.upload-btn:hover{background:rgba(245,240,232,.08)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="top-logo">Mulier Fortis</div>
+    <div class="top-case">Caso MFA-2026-LC-001</div>
+  </div>
+  <div class="top-badge">Audios</div>
+</div>
+
+<!-- HOME VIEW -->
+<div class="view active" id="home-view">
+  <div class="home-header">
+    <div class="home-title">Sistema de audios</div>
+    <div class="home-sub">Pulsa un audio para reproducirlo. Las pausas se activan automáticamente con el texto de la pregunta en pantalla.</div>
+  </div>
+
+  <div class="fase-label">Día 1 — Apertura</div>
+  <div class="audio-list" id="list-day1-open">
+    <div class="audio-item" onclick="openAudio(0)" id="item-0">
+      <div class="status-dot" id="dot-0"></div>
+      <div class="audio-num">01</div>
+      <div class="audio-info">
+        <div class="audio-title">Presentación del caso</div>
+        <div class="audio-meta">Claudia Lozano Sans · Apertura oficial</div>
+      </div>
+      <div class="audio-duration">1:30</div>
+    </div>
+  </div>
+
+  <div class="fase-label">Día 1 — Fase 2 · OSINT</div>
+  <div class="audio-list">
+    <div class="audio-item" onclick="openAudio(1)" id="item-1">
+      <div class="status-dot" id="dot-1"></div>
+      <div class="audio-num">02</div>
+      <div class="audio-info">
+        <div class="audio-title">Informe de vigilancia</div>
+        <div class="audio-meta">Observación en espacio público · Legal en España</div>
+      </div>
+      <div class="audio-duration">2:00</div>
+    </div>
+  </div>
+
+  <div class="fase-label">Día 1 — Fase 3 · Entrevistas</div>
+  <div class="audio-list">
+    <div class="audio-item" onclick="openAudio(2)" id="item-2">
+      <div class="status-dot" id="dot-2"></div>
+      <div class="audio-num">03</div>
+      <div class="audio-info">
+        <div class="audio-title">Entrevista — Marcos Ibáñez</div>
+        <div class="audio-meta">Entrevista voluntaria · 3 pausas interactivas</div>
+      </div>
+      <div class="audio-duration">3:00</div>
+    </div>
+    <div class="audio-item" onclick="openAudio(3)" id="item-3">
+      <div class="status-dot" id="dot-3"></div>
+      <div class="audio-num">04</div>
+      <div class="audio-info">
+        <div class="audio-title">Entrevista — Sílvia Mora</div>
+        <div class="audio-meta">Entrevista voluntaria · 2 pausas interactivas</div>
+      </div>
+      <div class="audio-duration">2:00</div>
+    </div>
+    <div class="audio-item" onclick="openAudio(4)" id="item-4">
+      <div class="status-dot" id="dot-4"></div>
+      <div class="audio-num">05</div>
+      <div class="audio-info">
+        <div class="audio-title">Entrevista — Andrés Castellví</div>
+        <div class="audio-meta">Videollamada consentida · 2 pausas interactivas</div>
+      </div>
+      <div class="audio-duration">2:00</div>
+    </div>
+  </div>
+
+  <div class="fase-label">Día 2 — Clausura</div>
+  <div class="audio-list">
+    <div class="audio-item" onclick="openAudio(5)" id="item-5">
+      <div class="status-dot" id="dot-5"></div>
+      <div class="audio-num">06</div>
+      <div class="audio-info">
+        <div class="audio-title">Llamada telefónica — Ibáñez</div>
+        <div class="audio-meta">Grabación legal · Una parte consiente</div>
+      </div>
+      <div class="audio-duration">1:30</div>
+    </div>
+    <div class="audio-item" onclick="openAudio(6)" id="item-6">
+      <div class="status-dot" id="dot-6"></div>
+      <div class="audio-num">07</div>
+      <div class="audio-info">
+        <div class="audio-title">Cierre del caso</div>
+        <div class="audio-meta">Claudia Lozano Sans · Resolución final</div>
+      </div>
+      <div class="audio-duration">1:00</div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER VIEW -->
+<div class="player-view" id="player-view" style="display:none">
+  <div class="player-back" onclick="goHome()">Volver a la lista</div>
+  <div class="player-content" id="player-content"></div>
+  <div class="player-bar">
+    <div class="progress-wrap">
+      <div class="progress-track" id="progress-track" onclick="seekAudio(event)">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        <div class="progress-handle" id="progress-handle" style="left:0%"></div>
+      </div>
+      <div class="time-row">
+        <span id="time-current">0:00</span>
+        <span id="time-total">0:00</span>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn" onclick="skip(-15)" title="Retroceder 15s">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8zm-1.1 11H10v-3.26L9 13.12v-.85l1.85-.87h.05V16zm4.28-1.15c0 .32-.03.6-.1.82s-.17.42-.29.57-.28.26-.45.33-.37.1-.59.1-.41-.03-.59-.1-.33-.18-.46-.33-.23-.34-.3-.57-.11-.5-.11-.82v-.74c0-.32.03-.6.1-.82s.17-.42.29-.57.28-.26.45-.33.37-.1.59-.1.41.03.59.1.33.18.46.33.23.34.3.57.11.5.11.82v.74zm-.83-.86c0-.19-.01-.35-.04-.48s-.07-.23-.12-.31-.11-.14-.19-.17-.16-.05-.25-.05-.18.02-.25.05-.14.09-.19.17-.09.18-.12.31-.04.29-.04.48v.97c0 .19.01.35.04.48s.07.24.12.32.11.14.19.17.16.05.25.05.18-.02.25-.05.14-.09.19-.17.09-.19.12-.32.04-.29.04-.48v-.97z"/></svg>
+      </button>
+      <button class="play-btn" id="play-btn" onclick="togglePlay()">
+        <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="ctrl-btn" onclick="skip(15)" title="Avanzar 15s">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8zm-1.1 11H10v-3.26L9 13.12v-.85l1.85-.87h.05V16zm4.28-1.15c0 .32-.03.6-.1.82s-.17.42-.29.57-.28.26-.45.33-.37.1-.59.1-.41-.03-.59-.1-.33-.18-.46-.33-.23-.34-.3-.57-.11-.5-.11-.82v-.74c0-.32.03-.6.1-.82s.17-.42.29-.57.28-.26.45-.33.37-.1.59-.1.41.03.59.1.33.18.46.33.23.34.3.57.11.5.11.82v.74zm-.83-.86c0-.19-.01-.35-.04-.48s-.07-.23-.12-.31-.11-.14-.19-.17-.16-.05-.25-.05-.18.02-.25.05-.14.09-.19.17-.09.18-.12.31-.04.29-.04.48v.97c0 .19.01.35.04.48s.07.24.12.32.11.14.19.17.16.05.25.05.18-.02.25-.05.14-.09.19-.17.09-.19.12-.32.04-.29.04-.48v-.97z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Archivos de audio disponibles
+const AUDIO_FILES = {
+  0: "Introdución.mp3",
+  2: "entrevista-Iba%C3%B1ez.wav"
+};
+
+const AUDIOS = [
+  {
+    id:0, title:"Presentación del caso", fase:"Apertura · Día 1",
+    legal:{titulo:"Identificación profesional", texto:"El detective privado debe identificarse como tal cuando actúa en el ejercicio de su profesión (Ley 5/2014). Nunca puede suplantar identidades ni hacerse pasar por funcionario público."},
+    lines:[
+      {speaker:"CLAUDIA",role:"detective",text:"Buenos días. Soy Claudia Lozano Sans. Detective privada, número de identificación profesional siete dos nueve tres."},
+      {speaker:"CLAUDIA",role:"detective",text:"El despacho Mulier Fortis Association ha aceptado un encargo de investigación por parte de Lucentia Consulting. El caso lleva el número de referencia MFA-2026-LC-001."},
+      {speaker:"CLAUDIA",role:"detective",text:"Vosotros sois el equipo investigador que me asiste. Vuestra función: analizar la información disponible, aplicar técnicas legalmente válidas y elaborar un informe profesional."},
+      {speaker:"CLAUDIA",role:"detective",text:"No busco opiniones. Busco hechos verificables. El caso Lucentia comienza ahora."},
+    ],
+    pausas:[]
+  },
+  {
+    id:1, title:"Informe de vigilancia", fase:"Fase 2 · OSINT",
+    legal:{titulo:"Vigilancia en espacio público", texto:"El detective puede observar y documentar comportamientos en espacios públicos sin autorización judicial ni consentimiento del observado. Calles, cafeterías, vestíbulos accesibles al público: todo legal."},
+    lines:[
+      {speaker:"NARRADOR",role:"narrator",text:"[Ambiente: calle tranquila. Pasos. Tráfico lejano.]"},
+      {speaker:"CLAUDIA",role:"detective",text:"Informe de observación número dos. Martes diecinueve de marzo, dieciséis cuarenta. Lugar: Carrer d'Enric Granados, Barcelona. Espacio público peatonal."},
+      {speaker:"CLAUDIA",role:"detective",text:"El sujeto S-uno sale del número cuarenta y dos a las dieciséis cuarenta y dos. Porta mochila negra con peso aparente. Camina dirección norte. No demuestra conductas de contravigilancia."},
+      {speaker:"CLAUDIA",role:"detective",text:"A las dieciséis cuarenta y siete entra en cafetería Cosmo. Se sienta de espaldas a la pared, con visión directa a la puerta."},
+    ],
+    pausas:[
+      {afterLine:2, instruccion:"Para el audio. ¿Qué significa 'conductas de contravigilancia'? Debate 30 segundos.", pregunta:"Si alguien mira hacia atrás repetidamente o cambia de ruta sin motivo, ¿qué indica desde el punto de vista de la investigación?", timer:30}
+    ]
+  },
+  {
+    id:2, title:"Entrevista — Marcos Ibáñez", fase:"Fase 3 · Entrevistas",
+    legal:{titulo:"Entrevista voluntaria", texto:"El detective puede entrevistar a quien consienta voluntariamente. Debe identificarse. El entrevistado puede negarse o marcharse. El acta es un documento interno — no una declaración judicial."},
+    lines:[
+      {speaker:"NARRADOR",role:"narrator",text:"[Ambiente: cafetería tranquila. Ruido de fondo suave.]"},
+      {speaker:"CLAUDIA",role:"detective",text:"Señor Ibáñez, gracias por acceder a hablar. Esta conversación es completamente voluntaria. Soy Claudia Lozano Sans, detective privada."},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"Sí, claro. No tengo nada que ocultar."},
+      {speaker:"CLAUDIA",role:"detective",text:"La noche del quince de marzo, ¿dónde estaba usted?"},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"... En casa. Trabajando desde casa. Tengo la conexión VPN registrada, se lo puedo demostrar."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Qué archivos consultó esa noche?"},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"...... El documento de estrategia, creo. No recuerdo exactamente."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Solo ese?"},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"... Sí. Creo que sí."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Ha tenido contacto con personas de Nexum Strategy Partners?"},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"......... Del sector se conoce todo el mundo. He coincidido con gente de Nexum en eventos. Es normal."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Está buscando trabajo actualmente?"},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"Estoy siempre abierto a escuchar. Es algo completamente normal en el sector."},
+    ],
+    pausas:[
+      {afterLine:4, instruccion:"Para el audio. Anotad en silencio: ¿qué os llama la atención de esta respuesta? 60 segundos.", pregunta:"¿Por qué alguien que no tiene nada que ocultar necesita demostrar dónde estaba antes de que se lo pregunten?", timer:60},
+      {afterLine:8, instruccion:"Para el audio. Comparad con el log del servidor del Sobre 1. 90 segundos.", pregunta:"El log muestra 3 archivos descargados. Ibáñez dice que solo revisó uno. ¿Cómo redactáis esta contradicción en el informe?", timer:90},
+      {afterLine:10, instruccion:"Para el audio. La pausa más larga del audio — 1.5 segundos antes de responder sobre Nexum.", pregunta:"¿Qué indica una pausa larga antes de responder una pregunta directa? ¿Es un indicio suficiente para el informe?", timer:60},
+    ]
+  },
+  {
+    id:3, title:"Entrevista — Sílvia Mora", fase:"Fase 3 · Entrevistas",
+    legal:{titulo:"Valor probatorio de las entrevistas", texto:"Un cambio de versión entre lo declarado al cliente y lo declarado al detective es un indicio relevante. El acta puede incluirse en el informe como 'manifestaciones voluntarias del entrevistado'."},
+    lines:[
+      {speaker:"NARRADOR",role:"narrator",text:"[Ambiente: terraza de bar. Tarde. Ruido suave de calle.]"},
+      {speaker:"CLAUDIA",role:"detective",text:"Señora Mora, gracias por quedar. Soy detective privada del despacho Mulier Fortis. Su participación es voluntaria."},
+      {speaker:"MORA",role:"suspect",text:"Lo sé. No tengo ningún problema en hablar."},
+      {speaker:"CLAUDIA",role:"detective",text:"El catorce de marzo imprimió cuarenta y siete páginas del Proyecto Atenea. ¿Para qué?"},
+      {speaker:"MORA",role:"suspect",text:"Para preparar la presentación del día veintidós. Trabajo mejor con papel. Me gusta anotar a mano."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Envió algún archivo del proyecto a una cuenta personal de correo?"},
+      {speaker:"MORA",role:"suspect",text:"...... Puede ser que sí. Tengo la costumbre de hacerme copias de seguridad. No lo recuerdo con exactitud."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Conoce a alguien de Nexum Strategy Partners?"},
+      {speaker:"MORA",role:"suspect",text:"De nombre, sí. Pero no tengo relación profesional con nadie de allí."},
+    ],
+    pausas:[
+      {afterLine:6, instruccion:"Para el audio. Esto es un cambio de versión — antes negó el correo a Lucentia. 90 segundos.", pregunta:"¿Cuál es la diferencia entre escribir 'Mora mintió' y 'la señora Mora modificó su versión respecto a su declaración previa'? ¿Por qué importa en un informe de detective?", timer:90},
+    ]
+  },
+  {
+    id:4, title:"Entrevista — Andrés Castellví", fase:"Fase 3 · Entrevistas",
+    legal:{titulo:"Entrevista por videollamada", texto:"Una entrevista puede realizarse por videollamada si el entrevistado consiente expresamente (aquí, por email). El detective no puede grabar sin consentimiento, pero puede tomar notas y elaborar un acta."},
+    lines:[
+      {speaker:"NARRADOR",role:"narrator",text:"[Tono de conexión de videollamada. Leve eco.]"},
+      {speaker:"CLAUDIA",role:"detective",text:"Señor Castellví, buenas tardes. Claudia Lozano Sans, detective privada. Esta conversación es voluntaria y no está siendo grabada."},
+      {speaker:"CASTELLVÍ",role:"suspect",text:"Sí, de acuerdo. Adelante."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Sabe que su hermano Jordi trabaja en Nexum Strategy Partners?"},
+      {speaker:"CASTELLVÍ",role:"suspect",text:"Sí, claro. Lleva allí desde el año pasado."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Por qué no lo declaró al incorporarse al Proyecto Atenea? El formulario incluye expresamente vínculos familiares con competidores."},
+      {speaker:"CASTELLVÍ",role:"suspect",text:"......... No pensé que fuera relevante. No me preguntaron por familiares. Me preguntaron por conflictos de interés profesionales."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Tiene contacto frecuente con su hermano?"},
+      {speaker:"CASTELLVÍ",role:"suspect",text:"...... No mucho. Nuestra relación es... distante."},
+      {speaker:"CLAUDIA",role:"detective",text:"En LinkedIn comparten catorce conexiones y han interactuado en publicaciones recientes."},
+      {speaker:"CASTELLVÍ",role:"suspect",text:"...... Eso no significa que tengamos una relación cercana. Uno puede tener conexiones en común sin..."},
+    ],
+    pausas:[
+      {afterLine:6, instruccion:"Para el audio. La pausa más larga de Castellví — ante la pregunta del formulario. 60 segundos.", pregunta:"¿No declarar un vínculo familiar con una empresa competidora es un delito o una infracción contractual? ¿Cambia eso su papel en el caso?", timer:60},
+      {afterLine:10, instruccion:"Para el audio. Castellví no termina la frase. Debate 90 segundos.", pregunta:"¿Qué habría dicho si hubiera terminado la frase? ¿Por qué se para? ¿Es esto incluible en el informe?", timer:90},
+    ]
+  },
+  {
+    id:5, title:"Llamada telefónica — Ibáñez", fase:"Clausura · Día 2",
+    legal:{titulo:"Grabación de llamadas en España", texto:"Grabar una llamada en la que participas es legal en España (STS 298/2016). No necesitas el consentimiento de la otra parte. Lo que es ilegal es grabar conversaciones entre terceros sin ser parte."},
+    lines:[
+      {speaker:"NARRADOR",role:"narrator",text:"[Tono de llamada. Descuelgan.]"},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"¿Sí?"},
+      {speaker:"CLAUDIA",role:"detective",text:"Señor Ibáñez, buenas tardes. Soy Claudia Lozano Sans, del despacho Mulier Fortis. Solo tengo una pregunta rápida."},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"... Dígame."},
+      {speaker:"CLAUDIA",role:"detective",text:"¿Descargó el archivo de perfil del cliente la noche del quince de marzo?"},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"......... No... no recuerdo haber descargado ese archivo. Creo que no."},
+      {speaker:"CLAUDIA",role:"detective",text:"De acuerdo. Gracias por confirmar. Que tenga buena tarde."},
+      {speaker:"IBÁÑEZ",role:"suspect",text:"Igualmente."},
+      {speaker:"NARRADOR",role:"narrator",text:"[Tono de llamada cortada.]"},
+    ],
+    pausas:[
+      {afterLine:5, instruccion:"Para el audio. La pausa de 2.1 segundos más el 'creo que no'. 3 minutos de debate.", pregunta:"¿Esta grabación es admisible como prueba en un juicio? ¿Por qué? ¿Cómo redactaríais este momento en el informe?", timer:180},
+    ]
+  },
+  {
+    id:6, title:"Cierre del caso", fase:"Clausura · Día 2",
+    legal:null,
+    lines:[
+      {speaker:"CLAUDIA",role:"detective",text:"El caso Lucentia ha concluido."},
+      {speaker:"CLAUDIA",role:"detective",text:"Lo que habéis hecho hoy es exactamente lo que hace un detective privado en España: analizar documentación, investigar por fuentes abiertas sin vulnerar la privacidad de nadie, entrevistar a quienes consientan, y escuchar lo que la gente no dice con tanto cuidado como lo que sí dice."},
+      {speaker:"CLAUDIA",role:"detective",text:"Lo que más me interesa no es si habéis acertado. Es si habéis aprendido a distinguir entre un hecho verificable y una interpretación. Entre un indicio y una prueba. Entre lo que un detective puede hacer y lo que nunca debe hacer."},
+      {speaker:"CLAUDIA",role:"detective",text:"Esa diferencia es la que separa una investigación profesional de una vulneración de derechos."},
+      {speaker:"CLAUDIA",role:"detective",text:"Bienvenidos al mundo de la investigación privada."},
+    ],
+    pausas:[]
+  }
+];
+
+let currentAudioId = null;
+let audioEl = null;
+let currentLines = [];
+let pausaQueue = [];
+let isPaused = false;
+let pausaTimerInterval = null;
+let doneAudios = new Set();
+
+function fmt(s){
+  s=Math.floor(s||0);
+  return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);
+}
+
+function goHome(){
+  document.getElementById('home-view').style.display='block';
+  document.getElementById('player-view').style.display='none';
+  if(audioEl){ audioEl.pause(); }
+  clearInterval(pausaTimerInterval);
+  hidePausa();
+}
+
+function openAudio(id){
+  currentAudioId=id;
+  const audio=AUDIOS[id];
+  document.getElementById('home-view').style.display='none';
+  document.getElementById('player-view').style.display='flex';
+  renderPlayer(audio);
+  // Reset audio element
+  if(audioEl){ audioEl.pause(); audioEl.src=''; }
+  audioEl = new Audio();
+  audioEl.addEventListener('timeupdate', onTimeUpdate);
+  audioEl.addEventListener('ended', onEnded);
+  document.getElementById('play-icon').innerHTML='<path d="M8 5v14l11-7z"/>';
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('progress-handle').style.left='0%';
+  document.getElementById('time-current').textContent='0:00';
+  document.getElementById('time-total').textContent='--:--';
+  pausaQueue=[...audio.pausas];
+  isPaused=false;
+  // Auto-load if file is available
+  if(AUDIO_FILES[id]){
+    audioEl.src = AUDIO_FILES[id];
+    audioEl.load();
+    audioEl.addEventListener('loadedmetadata',()=>{
+      document.getElementById('time-total').textContent=fmt(audioEl.duration);
+      const hint=document.querySelector('.upload-hint');
+      if(hint) hint.style.display='none';
+    },{once:true});
+  }
+}
+
+function renderPlayer(audio){
+  let html=`
+    <div class="player-phase">${audio.fase}</div>
+    <div class="player-title">${audio.title}</div>`;
+  if(audio.legal){
+    html+=`<div class="player-legal">
+      <div class="player-legal-title">${audio.legal.titulo}</div>
+      ${audio.legal.texto}
+    </div>`;
+  }
+  html+=`<div class="transcript" id="transcript">`;
+  audio.lines.forEach((l,i)=>{
+    const roleClass = l.role==='detective'?'detective':l.role==='narrator'?'narrator':'suspect';
+    const speakerLabel = l.role==='narrator'?'':l.speaker;
+    html+=`<div class="transcript-line future" id="line-${i}">
+      ${speakerLabel?`<div class="speaker ${roleClass}">${speakerLabel}</div>`:''}
+      <div>${l.text}</div>
+    </div>`;
+    // Check if there's a pausa after this line
+    const pausa = audio.pausas.find(p=>p.afterLine===i);
+    if(pausa){
+      html+=`<div class="pausa-overlay" id="pausa-${i}">
+        <div class="pausa-label">Pausa — detén el audio aquí</div>
+        <div class="pausa-instruccion">${pausa.instruccion}</div>
+        ${pausa.pregunta?`<div class="pausa-pregunta">${pausa.pregunta}</div>`:''}
+        <div class="pausa-timer" id="ptimer-${i}">${fmt(pausa.timer)}</div>
+        <button class="pausa-btn" onclick="resumeFromPausa(${i})">Continuar →</button>
+      </div>`;
+    }
+  });
+  html+=`</div>`;
+  // Upload hint
+  html+=`<div class="upload-hint">
+    <p>Cuando tengas el audio generado en ElevenLabs,<br>cárgalo aquí para reproducirlo con las pausas automáticas.</p>
+    <label class="upload-btn" for="file-upload-${audio.id}">Cargar audio MP3</label>
+    <input type="file" id="file-upload-${audio.id}" accept="audio/*" style="display:none" onchange="loadAudioFile(this)">
+  </div>`;
+  document.getElementById('player-content').innerHTML=html;
+}
+
+function loadAudioFile(input){
+  if(!input.files||!input.files[0]) return;
+  const file=input.files[0];
+  const url=URL.createObjectURL(file);
+  audioEl.src=url;
+  audioEl.load();
+  audioEl.addEventListener('loadedmetadata',()=>{
+    document.getElementById('time-total').textContent=fmt(audioEl.duration);
+  },{once:true});
+  // Remove upload hint
+  const hint=document.querySelector('.upload-hint');
+  if(hint) hint.style.display='none';
+}
+
+function togglePlay(){
+  if(!audioEl.src){
+    // No audio loaded — show hint
+    const hint=document.querySelector('.upload-hint');
+    if(hint){ hint.style.backgroundColor='rgba(192,80,64,.1)'; setTimeout(()=>hint.style.backgroundColor='',1000); }
+    return;
+  }
+  if(isPaused) return; // Don't allow play during pausa
+  if(audioEl.paused){ audioEl.play(); document.getElementById('play-icon').innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; }
+  else { audioEl.pause(); document.getElementById('play-icon').innerHTML='<path d="M8 5v14l11-7z"/>'; }
+}
+
+function skip(s){
+  if(!audioEl.src) return;
+  audioEl.currentTime=Math.max(0,Math.min(audioEl.duration||0,audioEl.currentTime+s));
+}
+
+function seekAudio(e){
+  if(!audioEl.src||!audioEl.duration) return;
+  const track=document.getElementById('progress-track');
+  const rect=track.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  audioEl.currentTime=pct*audioEl.duration;
+}
+
+function onTimeUpdate(){
+  if(!audioEl.duration) return;
+  const pct=audioEl.currentTime/audioEl.duration*100;
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-handle').style.left=pct+'%';
+  document.getElementById('time-current').textContent=fmt(audioEl.currentTime);
+  // Highlight current line (approximate by time proportion)
+  const audio=AUDIOS[currentAudioId];
+  if(!audio) return;
+  const lineIdx=Math.floor((audioEl.currentTime/audioEl.duration)*audio.lines.length);
+  audio.lines.forEach((_,i)=>{
+    const el=document.getElementById('line-'+i);
+    if(!el) return;
+    el.classList.remove('active','past','future');
+    if(i<lineIdx) el.classList.add('past');
+    else if(i===lineIdx) el.classList.add('active');
+    else el.classList.add('future');
+  });
+  // Scroll active line into view
+  const activeLine=document.querySelector('.transcript-line.active');
+  if(activeLine) activeLine.scrollIntoView({behavior:'smooth',block:'center'});
+  // Check for pausas
+  const audio2=AUDIOS[currentAudioId];
+  if(!audio2||isPaused) return;
+  const approxLine=Math.floor((audioEl.currentTime/audioEl.duration)*audio2.lines.length);
+  const pendingPausa=pausaQueue.find(p=>p.afterLine<=approxLine);
+  if(pendingPausa){
+    pausaQueue=pausaQueue.filter(p=>p!==pendingPausa);
+    triggerPausa(pendingPausa);
+  }
+}
+
+function triggerPausa(pausa){
+  isPaused=true;
+  audioEl.pause();
+  document.getElementById('play-icon').innerHTML='<path d="M8 5v14l11-7z"/>';
+  const overlay=document.getElementById('pausa-'+pausa.afterLine);
+  if(overlay){ overlay.classList.add('show'); overlay.scrollIntoView({behavior:'smooth',block:'center'}); }
+  // Countdown timer
+  let remaining=pausa.timer;
+  const timerEl=document.getElementById('ptimer-'+pausa.afterLine);
+  clearInterval(pausaTimerInterval);
+  if(timerEl){
+    pausaTimerInterval=setInterval(()=>{
+      remaining--;
+      if(timerEl) timerEl.textContent=fmt(remaining);
+      if(remaining<=0){ clearInterval(pausaTimerInterval); }
+    },1000);
+  }
+}
+
+function resumeFromPausa(afterLine){
+  clearInterval(pausaTimerInterval);
+  const overlay=document.getElementById('pausa-'+afterLine);
+  if(overlay) overlay.classList.remove('show');
+  isPaused=false;
+  audioEl.play();
+  document.getElementById('play-icon').innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; 
+}
+
+function hidePausa(){
+  document.querySelectorAll('.pausa-overlay').forEach(el=>el.classList.remove('show'));
+}
+
+function onEnded(){
+  document.getElementById('play-icon').innerHTML='<path d="M8 5v14l11-7z"/>';
+  doneAudios.add(currentAudioId);
+  const dot=document.getElementById('dot-'+currentAudioId);
+  if(dot){ dot.classList.remove('playing'); dot.classList.add('done'); }
+}
+</script>
+</body>
+</html>
