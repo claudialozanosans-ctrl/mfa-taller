@@ -3,905 +3,1055 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>MFA · Misiones del Caso</title>
+<title>MFA · Expediente Lucentia</title>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#0a0908;--bg2:#141210;--bg3:#1e1b18;--bg4:#252220;
-  --paper:#f5f0e8;--muted:#7a7570;--border:rgba(245,240,232,0.08);--border2:rgba(245,240,232,0.18);
-  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;--gold:#7a5c10;
+  --paper:#f5f0e8;--muted:#7a7570;
+  --b1:rgba(245,240,232,0.07);--b2:rgba(245,240,232,0.16);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;--gold:#8a6c1a;--blue:#1a3a6a;
   --mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
 }
-html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:var(--mono)}
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
+html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:var(--mono);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
 
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.top-logo{font-family:var(--serif);font-size:15px}
-.top-sub{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:1px}
-.top-right{display:flex;align-items:center;gap:8px}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blink 2s ease infinite}
+/* ─── TOP BAR ─────────────────────────────────────── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.tl{font-family:var(--serif);font-size:14px;color:var(--paper)}
+.ts{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+.tr{display:flex;align-items:center;gap:8px}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s ease infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.team-badge{font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--accent)}
-.progress-strip{height:2px;background:var(--border);position:fixed;top:52px;left:0;right:0;z-index:99}
-.progress-fill{height:100%;background:var(--accent);transition:width .4s ease}
+.ltxt{font-size:9px;color:var(--muted)}
+.tbadge{font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid var(--b2);color:var(--accent)}
+.pbar{height:2px;background:var(--b1);position:fixed;top:44px;left:0;right:0;z-index:201}
+.pfill{height:100%;background:var(--accent);transition:width .5s ease}
 
-.main{max-width:500px;margin:0 auto;padding:1.25rem 1.125rem 6rem}
+.main{max-width:480px;margin:0 auto;padding:1rem 1rem 5rem}
 
-/* ── SETUP ── */
-.setup-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:1.5rem}
-.setup-logo{font-family:var(--serif);font-size:26px;margin-bottom:4px}
-.setup-sub{font-size:11px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6}
-.setup-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
-.setup-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:11px;font-family:var(--mono);font-size:13px;color:var(--paper);outline:none;margin-bottom:.875rem;appearance:none}
-.setup-btn{width:100%;background:var(--accent);color:#0a0908;border:none;border-radius:4px;padding:13px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+/* ─── SETUP ───────────────────────────────────────── */
+.setup{background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:1.5rem}
+.setup-stamp{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);border:1px solid rgba(192,80,64,.4);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:1rem}
+.setup-title{font-family:var(--serif);font-size:24px;margin-bottom:4px}
+.setup-sub{font-size:11px;color:var(--muted);margin-bottom:1.5rem;line-height:1.65}
+.slbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
+.sinp{width:100%;background:var(--bg3);border:1px solid var(--b2);border-radius:4px;padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--paper);outline:none;margin-bottom:.875rem;-webkit-appearance:none}
+.sinp:focus{border-color:var(--accent)}
+.sbtn{width:100%;background:var(--accent);color:#0a0908;border:none;border-radius:4px;padding:12px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
+.sbtn:hover{opacity:.88}
 
-/* ── WAITING ── */
-.waiting-view{text-align:center;padding:3.5rem 1rem}
-.waiting-icon{font-size:44px;margin-bottom:1rem}
-.waiting-title{font-family:var(--serif);font-size:22px;margin-bottom:.5rem}
-.waiting-sub{font-size:12px;color:var(--muted);line-height:1.7}
-.pulse{width:48px;height:48px;border-radius:50%;border:2px solid var(--accent);margin:1.5rem auto 0;animation:ring 2s ease-out infinite;opacity:.4}
-@keyframes ring{0%{transform:scale(1);opacity:.4}100%{transform:scale(1.7);opacity:0}}
+/* ─── WAITING ─────────────────────────────────────── */
+.wait{text-align:center;padding:3rem 1rem}
+.wait-seal{width:80px;height:80px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:32px;animation:seal-pulse 3s ease infinite}
+@keyframes seal-pulse{0%,100%{border-color:var(--accent);opacity:1}50%{border-color:var(--muted);opacity:.6}}
+.wait-title{font-family:var(--serif);font-size:20px;margin-bottom:.5rem}
+.wait-sub{font-size:11px;color:var(--muted);line-height:1.7}
 
-/* ── MISSION WRAPPER ── */
-.mission-wrap{animation:up .4s ease}
-@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ─── EXPEDIENTE HEADER ───────────────────────────── */
+.exp-header{background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:1.125rem;margin-bottom:.875rem;position:relative;overflow:hidden}
+.exp-header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--accent))}
+.exp-class{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:.375rem}
+.exp-title{font-family:var(--serif);font-size:19px;margin-bottom:2px;line-height:1.2}
+.exp-code{font-size:10px;color:var(--muted);letter-spacing:.06em}
+.exp-meta{display:flex;gap:.625rem;margin-top:.75rem;flex-wrap:wrap}
+.exp-tag{font-size:9px;letter-spacing:.06em;padding:2px 8px;border-radius:20px;border:1px solid var(--b2);color:var(--muted)}
+.exp-tag.active{border-color:var(--accent);color:var(--accent)}
 
-.mission-header{border-radius:10px 10px 0 0;padding:1.25rem 1.125rem}
-.m-phase{font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.65;margin-bottom:.4rem}
-.m-title{font-family:var(--serif);font-size:21px;line-height:1.25;margin-bottom:.3rem}
-.m-code{font-size:10px;letter-spacing:.08em;opacity:.5}
+/* ─── STEP INDICATOR ─────────────────────────────── */
+.step-ind{display:flex;gap:5px;align-items:center;margin-bottom:.875rem;padding:.5rem .75rem;background:var(--bg2);border-radius:6px;border:1px solid var(--b1)}
+.sind{width:7px;height:7px;border-radius:50%;background:var(--b2);transition:all .2s;flex-shrink:0}
+.sind.done{background:var(--teal)}
+.sind.active{background:var(--accent);transform:scale(1.3)}
+.sind-lbl{font-size:9px;color:var(--muted);margin-left:auto}
+.sind-phase{font-size:10px;color:var(--muted);margin-right:auto;letter-spacing:.04em}
 
-.mission-card{background:var(--bg2);border:1px solid var(--border);border-radius:0 0 10px 10px;margin-bottom:1rem;overflow:hidden}
+/* ─── STEP CARD ──────────────────────────────────── */
+.step-card{background:var(--bg2);border:1px solid var(--b1);border-radius:10px;overflow:hidden;margin-bottom:.875rem;animation:appear .3s ease}
+@keyframes appear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.step-type{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);padding:.875rem 1.125rem .375rem;font-weight:500}
+.step-title{font-size:13px;font-weight:500;color:var(--paper);padding:0 1.125rem .5rem;line-height:1.35}
+.step-text{font-size:11px;color:var(--muted);padding:0 1.125rem .875rem;line-height:1.7}
+.step-hint{font-size:10px;color:var(--muted);line-height:1.6;font-style:italic;margin:0 1.125rem .875rem;padding:.5rem .75rem;border-left:2px solid var(--b2)}
 
-/* step nav */
-.step-nav{display:flex;align-items:center;padding:.875rem 1rem .5rem;gap:5px;border-bottom:1px solid var(--border)}
-.sdot{width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;transition:all .2s;flex-shrink:0}
-.sdot.active{background:var(--accent);transform:scale(1.3)}
-.sdot.done{background:var(--teal)}
-.slabel{font-size:10px;color:var(--muted);margin-left:auto}
+/* ─── DOCUMENT (classified style) ────────────────── */
+.doc-envelope{margin:.5rem 1.125rem .875rem;cursor:pointer}
+.doc-closed{background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.875rem 1rem;display:flex;align-items:center;gap:.875rem;transition:border-color .2s}
+.doc-closed:hover{border-color:var(--accent)}
+.doc-closed.open{border-color:var(--teal)}
+.doc-seal{width:36px;height:36px;border-radius:50%;border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .2s}
+.doc-closed.open .doc-seal{border-color:var(--teal);background:rgba(45,122,95,.15)}
+.doc-info{flex:1}
+.doc-ref{font-size:9px;letter-spacing:.1em;color:var(--muted);margin-bottom:2px}
+.doc-name{font-size:11px;font-weight:500;color:var(--paper)}
+.doc-status{font-size:9px;color:var(--muted);margin-top:1px}
+.doc-arrow{font-size:14px;color:var(--muted);transition:transform .2s}
+.doc-closed.open .doc-arrow{transform:rotate(90deg);color:var(--teal)}
 
-.step-body{padding:1.125rem;min-height:180px}
-.step-type-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:500}
-.step-title{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:.75rem;line-height:1.4}
-.step-text{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:1rem}
-.step-hint{font-size:11px;color:var(--muted);line-height:1.6;font-style:italic;padding:.625rem .875rem;border-left:2px solid var(--border2);margin-bottom:1rem}
+.doc-content{background:var(--bg3);border:1px solid var(--b2);border-top:none;border-radius:0 0 6px 6px;overflow:hidden;max-height:0;transition:max-height .4s ease;margin:-6px 0 0}
+.doc-content.open{max-height:600px}
+.doc-inner{padding:.75rem 1rem;overflow-y:auto;max-height:320px}
+.doc-inner::-webkit-scrollbar{width:3px}
+.doc-inner::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.drow{display:flex;gap:.75rem;padding:.375rem 0;border-bottom:.5px solid var(--b1);font-size:11px;line-height:1.45}
+.drow:last-child{border-bottom:none}
+.dk{color:var(--muted);min-width:80px;flex-shrink:0;padding-top:1px;font-size:10px}
+.dv{color:var(--paper);flex:1}
+.dv.red{color:var(--red)}
+.dv.amber{color:var(--accent)}
+.dv.green{color:#5dcaa5}
 
-/* ── DOCUMENT VIEWER ── */
-.doc-viewer{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;margin-bottom:1rem;overflow:hidden}
-.doc-header{background:var(--bg4);padding:.625rem 1rem;display:flex;align-items:center;justify-content:space-between}
-.doc-id{font-size:10px;letter-spacing:.08em;color:var(--accent)}
-.doc-title{font-size:11px;color:var(--paper);font-weight:500}
-.doc-content{padding:.875rem 1rem;max-height:260px;overflow-y:auto}
-.doc-content::-webkit-scrollbar{width:3px}
-.doc-content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.doc-row{display:flex;gap:.75rem;padding:.4rem 0;border-bottom:.5px solid var(--border);font-size:11px}
-.doc-row:last-child{border-bottom:none}
-.doc-key{color:var(--muted);min-width:90px;flex-shrink:0}
-.doc-val{color:var(--paper);line-height:1.5}
-.doc-val.alert{color:var(--red)}
-.doc-val.ok{color:#5dcaa5}
-.doc-table{width:100%;border-collapse:collapse;font-size:11px}
-.doc-table th{background:var(--bg);color:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:.4rem .5rem;text-align:left;border-bottom:1px solid var(--border2)}
-.doc-table td{padding:.5rem;border-bottom:.5px solid var(--border);color:var(--paper);vertical-align:top;line-height:1.4}
-.doc-table tr:last-child td{border-bottom:none}
-.doc-table tr.highlight td{background:rgba(192,80,64,.08);color:var(--paper)}
-.doc-table tr.suspicious td{background:rgba(200,169,110,.06)}
+/* classified table */
+.ctable{width:100%;border-collapse:collapse;font-size:10.5px}
+.ctable th{background:rgba(245,240,232,.05);color:var(--muted);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:.375rem .5rem;text-align:left;border-bottom:1px solid var(--b2)}
+.ctable td{padding:.4rem .5rem;border-bottom:.5px solid var(--b1);color:var(--paper);vertical-align:top;line-height:1.4}
+.ctable tr:last-child td{border-bottom:none}
+.ctable tr.hl td{background:rgba(192,80,64,.08)}
+.ctable tr.amb td{background:rgba(200,169,110,.06)}
 
-/* ── ACTIVITIES ── */
+/* ─── AUDIO ──────────────────────────────────────── */
+.audio-block{margin:.5rem 1.125rem .875rem;background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.875rem 1rem}
+.audio-tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.375rem}
+.audio-name{font-size:11px;font-weight:500;color:var(--paper);margin-bottom:.625rem}
+audio{width:100%;height:34px;border-radius:4px;outline:none}
+.dual-audio{margin:.5rem 1.125rem .875rem;display:flex;flex-direction:column;gap:.625rem}
+.daudio{background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.75rem 1rem}
+.daudio-who{font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.375rem;font-weight:500}
+.daudio-who.det{color:#5dcaa5}
+.daudio-who.sus{color:var(--accent)}
+.daudio-note{font-size:10px;color:var(--muted);margin-bottom:.5rem;font-style:italic;line-height:1.5}
 
-/* Drag & Drop */
-.drag-list{display:flex;flex-direction:column;gap:7px;margin-bottom:1rem}
-.drag-item{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:.75rem 1rem;display:flex;align-items:flex-start;gap:.75rem;cursor:grab;user-select:none;transition:border-color .15s}
-.drag-item.drag-over{border-color:var(--accent);background:rgba(200,169,110,.06)}
-.drag-handle{color:var(--muted);font-size:13px;flex-shrink:0;margin-top:1px}
-.drag-num{font-size:10px;font-weight:500;color:var(--accent);min-width:18px;flex-shrink:0;margin-top:2px}
-.drag-text{font-size:12px;line-height:1.5;color:var(--paper)}
+/* ─── OSINT BUTTON ───────────────────────────────── */
+.osint-btn{margin:.5rem 1.125rem .875rem;display:flex;align-items:center;gap:.875rem;background:rgba(26,58,106,.25);border:1px solid rgba(26,58,106,.5);border-radius:8px;padding:.875rem 1rem;text-decoration:none;transition:all .15s}
+.osint-btn:hover{border-color:rgba(100,150,255,.4);background:rgba(26,58,106,.4)}
+.osint-ico{font-size:20px;flex-shrink:0}
+.osint-txt .ot{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:1px}
+.osint-txt .os{font-size:10px;color:var(--muted)}
+.osint-arr{color:var(--accent);font-size:16px;margin-left:auto}
 
-/* Connect */
-.connect-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
-.connect-col-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;text-align:center}
-.connect-item{background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:.5rem .625rem;font-size:11px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.4;margin-bottom:5px}
-.connect-item:hover{border-color:var(--border2)}
-.connect-item.sel{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
-.connect-item.matched{border-color:var(--teal);background:rgba(45,122,95,.1);color:#5dcaa5;cursor:default}
-.connect-item.wrong{border-color:var(--red);animation:shake .3s ease}
-@keyframes shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}70%{transform:translateX(5px)}}
+/* ─── ACTIVITY WRAPPER ───────────────────────────── */
+.activity{margin:.5rem 1.125rem;padding-top:.625rem;border-top:1px solid var(--b1)}
+.act-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.625rem;font-weight:500}
+.act-q{font-size:12px;color:var(--paper);margin-bottom:.875rem;line-height:1.5;font-weight:500}
+.act-sub{font-size:11px;color:var(--muted);margin-bottom:.75rem;line-height:1.6}
 
-/* Quiz */
-.quiz-opts{display:flex;flex-direction:column;gap:7px;margin-bottom:.75rem}
-.quiz-opt{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:.875rem 1rem;font-size:12px;cursor:pointer;transition:all .15s;line-height:1.5}
-.quiz-opt:hover{background:var(--bg4)}
-.quiz-opt.correct{border-color:var(--teal);background:rgba(45,122,95,.1);color:#5dcaa5;pointer-events:none}
-.quiz-opt.wrong{border-color:var(--red);background:rgba(192,80,64,.08);color:var(--red);pointer-events:none}
-.quiz-opt.disabled{pointer-events:none;opacity:.4}
-.feedback{font-size:11px;padding:.75rem 1rem;border-radius:6px;line-height:1.65;margin-bottom:.75rem;display:none}
+/* ─── LUPA FORENSE ───────────────────────────────── */
+.lupa-doc{position:relative;font-size:11px;line-height:1.7;color:var(--paper);background:var(--bg4);border-radius:4px;padding:.875rem;margin-bottom:.75rem;user-select:none}
+.lupa-line{padding:2px 4px;border-radius:3px;cursor:pointer;transition:all .2s;border:1px solid transparent;margin:1px 0;display:block}
+.lupa-line:hover{background:rgba(200,169,110,.1);border-color:rgba(200,169,100,.2)}
+.lupa-line.flagged{background:rgba(192,80,64,.15);border-color:rgba(192,80,64,.35);color:var(--paper)}
+.lupa-line.flagged::after{content:'⚑';float:right;color:var(--red);font-size:10px}
+.lupa-instructions{font-size:10px;color:var(--muted);margin-bottom:.625rem;display:flex;align-items:center;gap:5px}
+.lupa-count{font-size:10px;color:var(--muted);margin-top:.5rem}
+.lupa-count span{color:var(--accent)}
+
+/* ─── TABLERO DE CONEXIONES ──────────────────────── */
+.board{position:relative;width:100%;height:320px;background:var(--bg4);border-radius:6px;border:1px solid var(--b2);overflow:hidden;margin-bottom:.75rem;touch-action:none}
+.board-node{position:absolute;background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.375rem .625rem;font-size:10px;cursor:pointer;transition:all .2s;user-select:none;white-space:nowrap;z-index:10}
+.board-node:hover{border-color:var(--border2)}
+.board-node.selected{border-color:var(--accent);background:rgba(200,169,110,.12);color:var(--accent)}
+.board-node.connected{border-color:var(--teal);color:#5dcaa5}
+.board-node.suspect{border-left:3px solid var(--red)}
+.board-node.company{border-left:3px solid var(--blue)}
+.board-node.person{border-left:3px solid var(--accent)}
+.board-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.board-line{stroke:rgba(200,169,110,.4);stroke-width:1.5;stroke-dasharray:4 3}
+.board-line.verified{stroke:rgba(45,122,95,.6);stroke-dasharray:none}
+.board-legend{display:flex;gap:.875rem;flex-wrap:wrap;margin-bottom:.625rem}
+.bl{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.bl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.board-hint{font-size:10px;color:var(--muted);margin-bottom:.625rem;line-height:1.5}
+.board-connections{font-size:10px;color:var(--muted);margin-top:.5rem}
+.board-connections span{color:var(--teal)}
+
+/* ─── COMPARADOR DE DECLARACIONES ────────────────── */
+.comparator{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.75rem}
+.comp-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.comp-side{background:var(--bg4);border-radius:5px;padding:.625rem .75rem;font-size:10.5px;line-height:1.5;border-left:2px solid var(--b2)}
+.comp-side.decl{border-left-color:var(--accent)}
+.comp-side.fact{border-left-color:var(--teal)}
+.comp-lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.375rem}
+.comp-text{color:var(--paper)}
+.comp-mark{width:100%;margin-top:.375rem;background:transparent;border:1px solid var(--b2);border-radius:3px;padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--paper);outline:none;resize:none;line-height:1.5}
+.comp-mark::placeholder{color:var(--muted)}
+.comp-mark:focus{border-color:var(--red)}
+.comp-verdict{display:flex;gap:6px;margin-top:4px}
+.cvbtn{flex:1;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:5px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s}
+.cvbtn:hover{background:var(--bg3)}
+.cvbtn.sel-ok{border-color:var(--teal);background:rgba(45,122,95,.15);color:#5dcaa5}
+.cvbtn.sel-bad{border-color:var(--red);background:rgba(192,80,64,.12);color:var(--red)}
+
+/* ─── QUIZ ───────────────────────────────────────── */
+.qopts{display:flex;flex-direction:column;gap:6px;margin-bottom:.625rem}
+.qopt{background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.75rem 1rem;font-size:11.5px;cursor:pointer;transition:all .15s;line-height:1.5;display:flex;gap:.75rem;align-items:flex-start}
+.qopt:hover{background:var(--bg4)}
+.ql{width:18px;height:18px;border-radius:50%;background:var(--bg4);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0;margin-top:1px}
+.qopt.correct{border-color:var(--teal);background:rgba(45,122,95,.1);pointer-events:none}
+.qopt.correct .ql{background:var(--teal);border-color:var(--teal);color:#fff}
+.qopt.wrong{border-color:var(--red);background:rgba(192,80,64,.08);pointer-events:none}
+.qopt.wrong .ql{background:var(--red);border-color:var(--red);color:#fff}
+.qopt.dim{pointer-events:none;opacity:.3}
+.feedback{font-size:11px;padding:.625rem .875rem;border-radius:5px;line-height:1.65;margin-bottom:.625rem;display:none}
 .feedback.show{display:block}
 .feedback.ok{background:rgba(45,122,95,.08);border:1px solid rgba(45,122,95,.2);color:#5dcaa5}
 .feedback.bad{background:rgba(192,80,64,.06);border:1px solid rgba(192,80,64,.2);color:var(--paper)}
 
-/* Textarea */
-.txt-area{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:.875rem;font-family:var(--mono);font-size:12px;color:var(--paper);outline:none;resize:vertical;min-height:80px;line-height:1.6;margin-bottom:.5rem}
-.txt-area:focus{border-color:var(--accent)}
-.txt-area::placeholder{color:var(--muted)}
-.char-hint{font-size:10px;color:var(--muted);text-align:right;margin-bottom:.75rem}
+/* ─── DRAG ORDER ─────────────────────────────────── */
+.dlist{display:flex;flex-direction:column;gap:6px;margin-bottom:.625rem}
+.ditem{background:var(--bg3);border:1px solid var(--b2);border-radius:5px;padding:.625rem .875rem;display:flex;align-items:flex-start;gap:.75rem;cursor:grab;user-select:none;transition:border-color .15s}
+.ditem.over{border-color:var(--accent)}
+.dh{color:var(--muted);font-size:12px;flex-shrink:0;margin-top:1px}
+.dn{font-size:10px;font-weight:500;color:var(--accent);min-width:16px;flex-shrink:0;margin-top:2px}
+.dt{font-size:11px;line-height:1.45;color:var(--paper)}
 
-/* Decision */
-.decision-list{display:flex;flex-direction:column;gap:.75rem;margin-bottom:.75rem}
-.decision-opt{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1rem;cursor:pointer;transition:all .15s}
-.decision-opt:hover{background:var(--bg4)}
-.decision-opt.sel{border-color:var(--accent);background:rgba(200,169,110,.06)}
-.d-title{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:3px}
-.d-sub{font-size:11px;color:var(--muted);line-height:1.5}
+/* ─── TEXTAREA ───────────────────────────────────── */
+.txta{width:100%;background:var(--bg3);border:1px solid var(--b2);border-radius:4px;padding:.75rem .875rem;font-family:var(--mono);font-size:11px;color:var(--paper);outline:none;resize:vertical;min-height:72px;line-height:1.65;margin-bottom:.25rem}
+.txta:focus{border-color:var(--accent)}
+.txta::placeholder{color:var(--muted)}
+.cc{font-size:9px;color:var(--muted);text-align:right;margin-bottom:.625rem}
 
-/* Suspect sliders */
-.sliders{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem}
-.slider-row{display:flex;align-items:center;gap:.75rem}
-.slider-name{font-size:11px;color:var(--muted);min-width:85px;flex-shrink:0}
-.slider-input{flex:1;-webkit-appearance:none;height:4px;background:var(--border2);border-radius:2px;outline:none}
-.slider-input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
-.slider-val{font-size:11px;color:var(--accent);min-width:32px;text-align:right}
+/* ─── SLIDERS ────────────────────────────────────── */
+.sliders{display:flex;flex-direction:column;gap:.75rem;margin-bottom:.75rem}
+.srow{display:flex;align-items:center;gap:.75rem}
+.sn{font-size:11px;color:var(--muted);min-width:85px;flex-shrink:0}
+.si{flex:1;-webkit-appearance:none;height:3px;background:var(--b2);border-radius:2px;outline:none}
+.si::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer}
+.sv{font-size:10px;color:var(--accent);min-width:32px;text-align:right}
 
-/* Evidence tags */
-.evidence-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
-.etag{font-size:10px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--muted);transition:all .15s}
-.etag.selected{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
+/* ─── DECISION ───────────────────────────────────── */
+.dopts{display:flex;flex-direction:column;gap:.625rem;margin-bottom:.625rem}
+.dopt{background:var(--bg3);border:1px solid var(--b2);border-radius:7px;padding:.875rem;cursor:pointer;transition:all .15s}
+.dopt:hover{background:var(--bg4)}
+.dopt.sel{border-color:var(--accent);background:rgba(200,169,110,.06)}
+.dts{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:3px}
+.dss{font-size:10px;color:var(--muted);line-height:1.5}
 
-/* OSINT link */
-.osint-link{display:flex;align-items:center;gap:.875rem;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1rem;margin-bottom:1rem;text-decoration:none;transition:border-color .15s}
-.osint-link:hover{border-color:var(--accent)}
-.osint-icon{font-size:24px;flex-shrink:0}
-.osint-info{flex:1}
-.osint-title{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:2px}
-.osint-sub{font-size:11px;color:var(--muted)}
-.osint-arrow{color:var(--accent);font-size:16px}
+/* ─── EVIDENCE TAGS ──────────────────────────────── */
+.etags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+.etag{font-size:10px;padding:3px 9px;border-radius:20px;cursor:pointer;border:1px solid var(--b2);background:var(--bg3);color:var(--muted);transition:all .15s;line-height:1.4}
+.etag.on{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
 
-/* Audio player */
-.audio-card{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1rem;margin-bottom:1rem}
-.audio-title{font-size:11px;font-weight:500;color:var(--paper);margin-bottom:.625rem}
-.audio-player{width:100%;height:36px;border-radius:4px;background:var(--bg4)}
-.audio-player::-webkit-media-controls-panel{background:var(--bg4)}
+/* ─── INFORME TEMPLATE ───────────────────────────── */
+.informe{background:var(--bg3);border:1px solid var(--b2);border-radius:6px;overflow:hidden;margin-bottom:.625rem}
+.informe-header{background:var(--bg);padding:.75rem 1rem;border-bottom:1px solid var(--b1)}
+.informe-header-title{font-family:var(--serif);font-size:14px;margin-bottom:2px}
+.informe-header-sub{font-size:9px;color:var(--muted);letter-spacing:.06em}
+.informe-section{padding:.625rem 1rem;border-bottom:.5px solid var(--b1)}
+.informe-section:last-child{border-bottom:none}
+.informe-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.375rem}
+.informe-field{width:100%;background:transparent;border:none;border-bottom:1px solid var(--b2);padding:.25rem 0;font-family:var(--mono);font-size:11px;color:var(--paper);outline:none;line-height:1.5;resize:none;min-height:40px}
+.informe-field:focus{border-bottom-color:var(--accent)}
+.informe-field::placeholder{color:var(--muted)}
 
-/* Navigation */
-.step-controls{display:flex;gap:.75rem;padding:1rem;border-top:1px solid var(--border)}
-.s-btn{flex:1;padding:11px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--paper);transition:all .15s}
-.s-btn:hover{background:rgba(245,240,232,.05)}
-.s-btn.primary{background:var(--accent);color:#0a0908;border-color:var(--accent)}
-.s-btn.primary:hover{opacity:.85}
-.s-btn:disabled{opacity:.25;cursor:not-allowed}
+/* ─── NAV ────────────────────────────────────────── */
+.nav{display:flex;gap:.625rem;padding:.875rem 1.125rem;border-top:1px solid var(--b1)}
+.nbtn{flex:1;padding:10px;border-radius:4px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--b2);background:transparent;color:var(--paper);transition:all .15s}
+.nbtn:hover{background:rgba(245,240,232,.04)}
+.nbtn.p{background:var(--accent);color:#0a0908;border-color:var(--accent)}
+.nbtn.p:hover{opacity:.85}
+.nbtn:disabled{opacity:.2;cursor:not-allowed}
 
-/* Completed */
-.done-card{background:rgba(45,122,95,.07);border:1px solid rgba(45,122,95,.22);border-radius:10px;padding:1.5rem;text-align:center;animation:up .3s ease}
-.done-icon{font-size:36px;margin-bottom:.75rem}
-.done-title{font-family:var(--serif);font-size:20px;margin-bottom:.375rem}
-.done-sub{font-size:12px;color:var(--muted);line-height:1.6}
+/* ─── DONE ───────────────────────────────────────── */
+.done{background:rgba(45,122,95,.07);border:1px solid rgba(45,122,95,.22);border-radius:10px;padding:1.5rem;text-align:center;animation:appear .3s ease}
+.done-icon{font-size:32px;margin-bottom:.75rem}
+.done-title{font-family:var(--serif);font-size:19px;margin-bottom:.375rem}
+.done-sub{font-size:11px;color:var(--muted);line-height:1.65}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div>
-    <div class="top-logo">MFA · Caso Lucentia</div>
-    <div class="top-sub">Misiones de investigación</div>
-  </div>
-  <div class="top-right">
-    <div class="live-dot"></div>
-    <div class="team-badge" id="team-badge" style="display:none">—</div>
+  <div><div class="tl">MFA · Expediente Lucentia</div><div class="ts">Investigación privada · Caso LC-001</div></div>
+  <div class="tr">
+    <div class="ldot"></div><div class="ltxt">En vivo</div>
+    <div class="tbadge" id="tbadge" style="display:none">—</div>
   </div>
 </div>
-<div class="progress-strip"><div class="progress-fill" id="prog-strip" style="width:0%"></div></div>
+<div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
 
 <div class="main">
   <div id="setup-view">
-    <div class="setup-card">
-      <div class="setup-logo">Mulier Fortis</div>
-      <div class="setup-sub">Sistema de misiones — Caso Lucentia Consulting S.L.<br>Identifica tu equipo para empezar.</div>
-      <label class="setup-label">Equipo</label>
-      <select class="setup-input" id="team-sel">
-        <option value="">Selecciona tu equipo</option>
-        <option value="1">Equipo 1</option>
-        <option value="2">Equipo 2</option>
-        <option value="3">Equipo 3</option>
-        <option value="4">Equipo 4</option>
-      </select>
-      <label class="setup-label">Coordinador/a</label>
-      <input class="setup-input" type="text" id="coord-inp" placeholder="Nombre completo">
-      <button class="setup-btn" onclick="startApp()">Entrar al caso →</button>
+    <div class="setup">
+      <div class="setup-stamp">Clasificado · Acceso restringido</div>
+      <div class="setup-title">Expediente MFA-2026-LC-001</div>
+      <div class="setup-sub">Caso Lucentia Consulting S.L. — Filtración interna de información confidencial de alto valor económico. Identifica tu equipo para acceder al expediente.</div>
+      <label class="slbl">Equipo investigador</label>
+      <select class="sinp" id="tsel"><option value="">Selecciona</option><option value="1">Equipo 1</option><option value="2">Equipo 2</option><option value="3">Equipo 3</option><option value="4">Equipo 4</option></select>
+      <label class="slbl">Coordinador/a del equipo</label>
+      <input class="sinp" type="text" id="cinp" placeholder="Nombre completo">
+      <button class="sbtn" onclick="startApp()">Acceder al expediente →</button>
     </div>
   </div>
-  <div id="waiting-view" style="display:none">
-    <div class="waiting-view">
-      <div class="waiting-icon">🔍</div>
-      <div class="waiting-title">Preparaos...</div>
-      <div class="waiting-sub">La instructora activará la siguiente misión en breve.<br>Tened el expediente a mano.</div>
-      <div class="pulse"></div>
+  <div id="wait-view" style="display:none">
+    <div class="wait">
+      <div class="wait-seal">🔒</div>
+      <div class="wait-title">Expediente en preparación</div>
+      <div class="wait-sub">La detective activará la primera operación en breve.<br>Preparaos. Sin papel. Todo aquí.</div>
     </div>
   </div>
   <div id="mission-view" style="display:none"></div>
   <div id="done-view" style="display:none">
-    <div class="done-card">
+    <div class="done">
       <div class="done-icon">✓</div>
-      <div class="done-title">Misión completada</div>
-      <div class="done-sub">Respuestas enviadas. Esperad la siguiente misión.</div>
+      <div class="done-title">Operación completada</div>
+      <div class="done-sub">Informe enviado al despacho.<br>Esperad la siguiente operación.</div>
     </div>
   </div>
 </div>
 
 <script>
 const FB='https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
-// GitHub Pages base URL for audio files
-const AUDIO_BASE='https://claudialozanosans-ctrl.github.io/mfa-taller/';
-const OSINT_URL='https://claudialozanosans-ctrl.github.io/mfa-taller/osint-investigapro.html';
+const BASE='https://claudialozanosans-ctrl.github.io/mfa-taller/';
+const OSINT_URL=BASE+'osint-investigapro.html';
 
-// ════════════════════════════════════════════════════════════════════════════
-// MISSION DATA — conspiración Ibáñez + Castellví
-// Confusión: Mora parece culpable en OSINT, Paula sospechosa en entrevistas
-// Solo cruzando los 3 niveles se ve la conspiración de los dos hombres
-// ════════════════════════════════════════════════════════════════════════════
-const MISSIONS={
+// ════════════════════════════════════════════════════════════════
+// MISSION DATA
+// Culpable: Ibáñez + Castellví (conspiración)
+// Ibáñez descargó archivos con sus credenciales
+// Castellví pasó datos financieros a su hermano en Nexum
+// Mora parece culpable en OSINT (confusión)
+// Paula parece sospechosa por rechazar entrevista (confusión)
+// ════════════════════════════════════════════════════════════════
+const MISSIONS = {
 
-// ── MISIÓN 1 · ANÁLISIS DOCUMENTAL ──────────────────────────────────────────
-M1:{
-  phase:'Fase 1 · Análisis documental',
-  title:'Operación Archivo',
+M1: {
+  phase:'Apertura · Análisis documental',
+  title:'Operación Expediente',
   code:'MFA-OP-001',
   color:'#1a3a2a',
+  tags:['Encargo inicial','Log servidor','Organigrama','Análisis Nexum'],
   steps:[
-    {
-      type:'doc+order',
-      typeLabel:'Documento + Actividad',
-      title:'El log del servidor — algo no cuadra',
-      text:'Lucentia os ha facilitado el registro de accesos al servidor del Proyecto Atenea durante marzo. Antes de analizarlo, hay algo que el sistema de seguridad detectó: los registros del 14 al 16 de marzo aparecen con datos incompletos — parece que alguien modificó el log después. Analizad lo que queda y reconstruid la cronología.',
-      hint:'Fijáos no solo en quién accede, sino en cuándo, cuántas veces y desde dónde. Un acceso legítimo y uno sospechoso pueden parecerse mucho.',
-      doc:{
-        id:'DOC-01',title:'Registro de accesos — datos recuperados',
+
+    // ── PASO 1: Audio + test de comprensión ──
+    { id:'m1p1', stype:'🎧 Escucha activa', title:'El caso comienza ahora',
+      text:'La detective os asigna el caso. Escuchad con atención — cada palabra define los límites de vuestra investigación.',
+      audio:{file:'Introdución.mp3', label:'Mensaje de apertura — Detective TIP 7293'},
+      activity:{
+        type:'quiz',
+        label:'Test de comprensión',
+        q:'Según la detective, ¿qué tipo de conclusiones NO podéis incluir en el informe?',
+        opts:['Hechos documentados con fecha y fuente','Indicios verificables con referencia documental','Afirmaciones de culpabilidad sin respaldo documental','Contradicciones entre declaraciones y registros'],
+        correct:2,
+        fb:{ok:'Exacto. La culpabilidad la determina un juez. Vosotros describís hechos y señaláis indicios. Sin fuente, no existe.',bad:'No. Relectura necesaria. El informe de detective solo contiene hechos verificables. Las afirmaciones de culpabilidad son competencia judicial, no del detective privado.'}
+      }
+    },
+
+    // ── PASO 2: Encargo + decisión inicial ──
+    { id:'m1p2', stype:'📋 Documento clasificado', title:'El encargo de Lucentia Consulting',
+      text:'Leed el encargo completo antes de proceder. Un detective que no entiende el encargo investiga en la dirección equivocada.',
+      doc:{id:'DOC-00 · ENCARGO OFICIAL', name:'Encargo de investigación — Lucentia Consulting S.L.',
         rows:[
-          {k:'08/03 · 07:12',v:'A.CASTELLVI — Módulo financiero — 1 archivo — IP corporativa'},
-          {k:'12/03 · 21:47',v:'S.MORA — Documento completo — impresión 47 págs — IP corporativa',alert:true},
-          {k:'14/03 · 23:??',v:'REGISTRO CORRUPTO — IP externa desconocida — archivos: dato no recuperado',alert:true},
-          {k:'15/03 · 23:14',v:'M.IBANEZ — 3 archivos (estrategia + anexos + perfil cliente) — IP corporativa VPN',alert:true},
-          {k:'18/03 · 07:12',v:'A.CASTELLVI — Acceso sin descarga — IP corporativa'},
-          {k:'21/03 · 10:15',v:'M.IBANEZ — 12 págs módulo estratégico — IP corporativa'},
-          {k:'22/03 · 08:47',v:'P.ESTEVE — Acceso sin descarga — IP corporativa'},
+          {k:'CLIENTE',v:'Lucentia Consulting S.L. — Laura Vidal Serra, Directora General'},
+          {k:'FECHA',v:'20 de abril de 2026 · Barcelona'},
+          {k:'PROBLEMA',v:'Nexum Strategy Partners presentó el 28/03 una propuesta con 3 secciones IDÉNTICAS al Proyecto Atenea v4 de Lucentia',cls:'red'},
+          {k:'DATO CLAVE',v:'El Proyecto Atenea v4 solo existió desde el 15/03. Ventana de filtración: 13 días exactos.',cls:'amber'},
+          {k:'VALOR',v:'1.200.000€ en riesgo + daño reputacional indeterminado',cls:'red'},
+          {k:'AUDITORÍA',v:'Sin evidencia de intrusión externa. La filtración fue interna.'},
+          {k:'ENCARGO',v:'Identificar al responsable con indicios que puedan sostenerse ante un juez'},
         ]
       },
-      dragItems:[
-        'Nexum recibe datos del Proyecto Atenea',
-        'Se detecta registro corrupto del 14 de marzo',
-        'Ibáñez descarga 3 archivos incluyendo perfil del cliente',
-        'Lucentia inicia el Proyecto Atenea — acceso restringido a 4 personas',
-        'El cliente alerta a Lucentia sobre propuesta idéntica de Nexum',
-        'Castellví accede sin descargar nada — dos días después del registro corrupto',
-      ],
-      correctOrder:[3,1,2,5,0,4]
+      activity:{
+        type:'decision',
+        label:'Primera decisión táctica',
+        q:'Antes de ver los documentos internos, ¿qué hipótesis inicial parece más probable basándose solo en el encargo?',
+        opts:[
+          {t:'Una sola persona actuó voluntariamente',s:'Motivación individual: económica, profesional o personal'},
+          {t:'Fue un error involuntario de alguien con acceso',s:'Error humano: correo equivocado, archivo compartido por descuido'},
+          {t:'Dos personas coordinadas: una con acceso, otra con contacto en Nexum',s:'Para filtrar hay que tener los archivos Y saber a quién enviarlos'},
+          {t:'Ataque externo no detectado por la auditoría interna',s:'Las auditorías internas no siempre son exhaustivas'},
+        ],
+        noCorrect:true, fb:'Hipótesis inicial registrada. Los documentos que recibiréis a continuación confirmarán o refutarán esta primera intuición.'
+      }
     },
-    {
-      type:'connect',
-      typeLabel:'Conecta · Acceso real',
-      title:'¿Quién vio exactamente qué?',
-      text:'El organigrama de accesos es clave. Conecta cada persona con lo que realmente podía ver en el sistema — no con lo que dice que vio.',
-      hint:'Hay una diferencia importante entre acceso completo y acceso parcial. Alguien con acceso parcial no puede filtrar el perfil del cliente aunque quiera.',
-      left:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve'],
-      right:['Acceso completo incl. perfil del cliente','Acceso completo incl. perfil del cliente','Solo módulo financiero — sin perfil cliente','Acceso completo incl. perfil del cliente'],
-      pairs:[[0,0],[1,1],[2,2],[3,3]]
+
+    // ── PASO 3: Log con lupa forense ──
+    { id:'m1p3', stype:'🔬 Lupa forense', title:'El registro que alguien intentó manipular',
+      text:'El log del servidor tiene un hueco: los datos del 14 de marzo aparecen corruptos. Alguien los modificó. Leed lo que queda y marcad todas las líneas que consideréis sospechosas.',
+      doc:{id:'DOC-01 · LOG SERVIDOR', name:'Registro de accesos recuperado — Proyecto Atenea',
+        table:{
+          headers:['Fecha/Hora','Usuario','Acción','Detalle',''],
+          rows:[
+            ['08/03 · 07:12','A.CASTELLVI','Acceso + descarga','1 archivo — módulo financiero — IP corporativa',''],
+            ['12/03 · 21:47','S.MORA','Acceso + impresión','47 págs. doc. completo — IP corporativa','amb'],
+            ['14/03 · 23:??','DESCONOCIDO','REGISTRO CORRUPTO','IP externa — archivos: DATO NO RECUPERADO','hl'],
+            ['15/03 · 23:14','M.IBANEZ','Acceso + descarga','3 archivos: estrategia+anexos+perfil cliente — VPN','hl'],
+            ['18/03 · 07:12','A.CASTELLVI','Acceso','0 descargas — IP corporativa',''],
+            ['21/03 · 10:15','M.IBANEZ','Acceso + impresión','12 págs. módulo estratégico',''],
+            ['22/03 · 08:47','P.ESTEVE','Acceso','0 descargas — IP corporativa',''],
+          ]
+        }
+      },
+      activity:{
+        type:'lupa',
+        label:'Lupa forense — marca las líneas sospechosas',
+        lines:[
+          '08/03 · 07:12 — CASTELLVI descarga módulo financiero a las 7h de la mañana',
+          '12/03 · 21:47 — MORA imprime 47 páginas a las 9:47 de la noche',
+          '14/03 · 23:?? — REGISTRO CORRUPTO — IP externa no identificada',
+          '15/03 · 23:14 — IBÁÑEZ descarga 3 archivos incluyendo perfil del cliente con VPN',
+          '18/03 · 07:12 — CASTELLVI accede sin descargar nada — dos días después del registro corrupto',
+          '21/03 · 10:15 — IBÁÑEZ imprime 12 páginas del módulo estratégico',
+          '22/03 · 08:47 — ESTEVE accede sin descargar nada — dentro del horario normal',
+        ],
+        minFlags:2,
+        textq:'¿Por qué habéis marcado esas líneas? ¿Qué tienen en común?',
+        ph:'Hemos marcado las líneas ... porque ...'
+      }
     },
-    {
-      type:'quiz',
-      typeLabel:'Test legal',
-      title:'¿Qué dice exactamente el log del 15 de marzo?',
-      text:'El log muestra que M.IBANEZ descargó el archivo de perfil del cliente a las 23:14h. ¿Cuál de estas conclusiones es la ÚNICA que podéis incluir en vuestro informe?',
-      opts:[
-        {t:'Ibáñez robó el perfil del cliente para entregárselo a Nexum',correct:false},
-        {t:'El usuario M.IBANEZ descargó el archivo de perfil del cliente el 15/03 a las 23:14h desde IP corporativa VPN',correct:true},
-        {t:'Ibáñez es el principal sospechoso de la filtración',correct:false},
-        {t:'La descarga nocturna prueba que Ibáñez tenía intención de filtrar los documentos',correct:false},
-      ],
-      fb:{ok:'Exacto. El log es un hecho: quién, cuándo, qué. La intención y la culpabilidad las determina un juez. Vuestro informe solo puede afirmar lo que el documento acredita.',bad:'Cuidado. Un informe de detective solo describe hechos verificables. "Robó", "entregó" o "es culpable" son conclusiones que no podéis afirmar. Solo podéis decir lo que el log demuestra.'}
-    },
-    {
-      type:'decision',
-      typeLabel:'Decisión táctica',
-      title:'¿Cuál es vuestro siguiente paso?',
-      text:'Tenéis el log, el organigrama y el análisis comparativo de Nexum. El registro corrupto del 14 de marzo os preocupa — no sabéis quién accedió esa noche. ¿Qué hacéis ahora?',
-      opts:[
-        {t:'Investigar a Ibáñez en fuentes abiertas — ya tenemos suficiente para señalarle',s:'Tiene la descarga más sospechosa. Podemos centrarnos en él y olvidar el registro corrupto.'},
-        {t:'Investigar a todos en fuentes abiertas antes de descartar a nadie',s:'El registro corrupto podría ser de cualquiera. Las fuentes abiertas pueden revelar conexiones que el log no muestra.'},
-        {t:'Pedir a Lucentia que recupere el registro corrupto del 14 de marzo',s:'Si alguien modificó el log, esa noche podría ser la más importante del caso.'},
-        {t:'Entrevistar a Ibáñez directamente — es el más sospechoso del log',s:'Las entrevistas son más efectivas cuando ya tenemos más información. ¿Estamos seguros de que es él?'},
-      ],
-      noCorrect:true,
-      fb:'Decisión registrada. Recordad: en investigación privada, descartar un sospechoso demasiado pronto es el error más frecuente. El registro corrupto del 14 de marzo todavía no tiene explicación.'
+
+    // ── PASO 4: Organigrama + tablero de conexiones ──
+    { id:'m1p4', stype:'🗺️ Tablero de conexiones', title:'¿Quién podía filtrar el perfil del cliente?',
+      text:'No todos tenían acceso a lo mismo. Solo quien tenía acceso COMPLETO podía filtrar el perfil del cliente, que es el dato más sensible. Construid el mapa de accesos.',
+      doc:{id:'DOC-02 · ORGANIGRAMA', name:'Niveles de acceso al Proyecto Atenea v4',
+        rows:[
+          {k:'ACCESO COMPLETO',v:'Módulo estratégico + perfil del cliente + datos financieros + contrato. Puede filtrar cualquier dato.',cls:'amber'},
+          {k:'ACCESO PARCIAL',v:'Solo el módulo correspondiente a su función. NO puede acceder al perfil del cliente.'},
+          {k:'ACCESO TÉCNICO',v:'Gestión del sistema. Sin contenido confidencial del proyecto.'},
+        ]
+      },
+      activity:{
+        type:'board',
+        label:'Tablero — conecta personas con su nivel de acceso',
+        hint:'Conecta cada persona con su nivel real. Fíjate en quién queda automáticamente descartado como filtrador del perfil del cliente.',
+        nodes:[
+          {id:'ibanez',label:'Ibáñez',type:'suspect',x:10,y:15},
+          {id:'mora',label:'Mora',type:'suspect',x:10,y:38},
+          {id:'castellvi',label:'Castellví',type:'suspect',x:10,y:61},
+          {id:'esteve',label:'Esteve',type:'suspect',x:10,y:84},
+          {id:'completo',label:'Acceso completo\n(perfil cliente)',type:'company',x:60,y:25},
+          {id:'parcial',label:'Acceso parcial\n(sin perfil)',type:'company',x:60,y:55},
+          {id:'tecnico',label:'Acceso técnico\n(sin contenido)',type:'company',x:60,y:80},
+        ],
+        correctPairs:[['ibanez','completo'],['mora','completo'],['castellvi','parcial'],['esteve','completo']],
+        textq:'¿Quién queda automáticamente descartado como filtrador del perfil del cliente y por qué?',
+        ph:'Queda descartado ... porque ...'
+      }
     }
   ]
 },
 
-// ── MISIÓN 2 · OSINT ────────────────────────────────────────────────────────
-M2:{
+M2: {
   phase:'Fase 2 · Investigación OSINT',
   title:'Operación Huella Digital',
   code:'MFA-OP-002',
   color:'#0d2a4a',
+  tags:['Marco legal','InvestigaPro','Publicación eliminada','Niveles de sospecha'],
   steps:[
-    {
-      type:'quiz',
-      typeLabel:'Test legal antes de empezar',
-      title:'¿Qué podéis buscar legalmente?',
-      text:'Antes de abrir InvestigaPro, confirmad que sabéis qué está permitido. ¿Cuál de estas acciones NO puede hacer un detective privado en España sin orden judicial?',
-      opts:[
-        {t:'Buscar en el Registro Mercantil quién dirige Nexum Strategy Partners',correct:false},
-        {t:'Ver el perfil público de LinkedIn de los sospechosos',correct:false},
-        {t:'Acceder al correo personal de Sílvia Mora para ver si tiene archivos de Lucentia',correct:true},
-        {t:'Recuperar una publicación eliminada de LinkedIn desde la caché de Google',correct:false},
-      ],
-      fb:{ok:'Correcto. El correo personal es inviolable sin autorización judicial. Todo lo demás son fuentes abiertas y legalmente accesibles.',bad:'Incorrecto. Acceder a cuentas personales sin orden judicial es ilegal aunque tengáis sospecha fundada. El correo personal de cualquier persona está protegido.'}
-    },
-    {
-      type:'osint+text',
-      typeLabel:'Investigación activa · InvestigaPro',
-      title:'Abrid InvestigaPro y buscad',
-      text:'Usad el buscador para investigar a los cuatro sospechosos y las dos empresas. Hay conexiones que no son obvias. Cuando hayáis terminado, anotad aquí vuestros tres hallazgos más relevantes.',
-      hint:'Buscad: Marcos Ibáñez · Sílvia Mora · Andrés Castellví · Paula Esteve · Nexum Strategy · GC Talent Advisors. Hay una persona que aparece en dos empresas a la vez.',
-      osintUrl:OSINT_URL,
-      placeholder:'Hallazgo 1: ...\nHallazgo 2: ...\nHallazgo 3: ...'
-    },
-    {
-      type:'doc+quiz',
-      typeLabel:'Fuente abierta · Dilema legal',
-      title:'La publicación eliminada',
-      text:'InvestigaPro ha recuperado de la caché de Google una publicación de LinkedIn que uno de los sospechosos eliminó el 17 de marzo — dos días después del registro de descarga nocturna de Ibáñez.',
-      doc:{
-        id:'CACHÉ · 17/03/2026',title:'Publicación eliminada — recuperada por el despacho',
-        rows:[
-          {k:'USUARIO',v:'Marcos Ibáñez Solano — Senior Consultant'},
-          {k:'FECHA',v:'17 de marzo de 2026 · 19:32h (eliminada el mismo día a las 22:15h)'},
-          {k:'TEXTO',v:'"Grandes movimientos en el horizonte. A veces los mejores proyectos llegan cuando menos los esperas. Pronto más novedades 🚀"',alert:true},
-          {k:'REACCIONES',v:'3 likes — todos de perfiles de Nexum Strategy Partners'},
-          {k:'COMENTARIOS',v:'0 (la publicación fue eliminada antes de que se generaran comentarios)'},
-        ]
-      },
-      quiz:{
-        text:'¿Podéis incluir esta publicación eliminada en vuestro informe como indicio?',
-        opts:[
-          {t:'No — la eliminó y eso la convierte en información privada',correct:false},
-          {t:'Sí — la caché de Google es información que estuvo disponible públicamente',correct:true},
-          {t:'Solo si Ibáñez da su consentimiento',correct:false},
-          {t:'No — LinkedIn es una red privada y sus datos no son accesibles legalmente',correct:false},
-        ],
-        fb:{ok:'Correcto. Una publicación indexada por Google es información pública aunque el autor la elimine después. Podéis documentarla citando fecha y fuente de consulta.',bad:'Incorrecto. La caché de Google preserva información que fue pública. El detective puede documentarla. La eliminación posterior no la convierte en privada.'}
+
+    // ── PASO 1: Marco legal quiz ──
+    { id:'m2p1', stype:'⚖️ Marco legal', title:'Antes de investigar, confirmad que sabéis los límites',
+      text:'Un detective que investiga ilegalmente invalida toda la investigación y puede enfrentarse a consecuencias penales. Confirmed que conocéis la línea.',
+      activity:{
+        type:'quiz',
+        label:'Test legal obligatorio',
+        q:'¿Cuál de estas acciones NO puede hacer un detective privado en España sin orden judicial?',
+        opts:['Consultar el Registro Mercantil de Nexum Strategy Partners','Recuperar una publicación eliminada desde la caché de Google','Acceder al correo personal de Sílvia Mora para buscar archivos','Ver las conexiones públicas de LinkedIn de los sospechosos'],
+        correct:2,
+        fb:{ok:'Correcto. El correo personal es inviolable sin autorización judicial aunque tengáis motivos fundados. Todo lo demás son fuentes abiertas y legalmente accesibles.',bad:'Incorrecto. El acceso a cuentas personales sin orden judicial es ilegal. Las otras tres opciones son fuentes públicas que cualquier detective puede consultar.'}
       }
     },
-    {
-      type:'suspect_meter',
-      typeLabel:'Análisis · Niveles de sospecha',
-      title:'¿Cómo veis el caso ahora?',
-      text:'Con todo lo que habéis encontrado en fuentes abiertas — incluyendo lo que NO habéis encontrado — ajustad el nivel de sospecha de cada persona. Tened en cuenta que la ausencia de actividad también es información.',
-      hint:'Pista: Sílvia Mora tiene actividad muy sospechosa en fuentes abiertas. Paula Esteve tiene una conexión con Nexum que no esperabais. Ibáñez tiene la publicación eliminada. Castellví parece limpio... ¿o no?',
-      suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve']
+
+    // ── PASO 2: InvestigaPro activo + hallazgos ──
+    { id:'m2p2', stype:'🔍 Investigación OSINT activa', title:'InvestigaPro está disponible. Hay conexiones que no son obvias.',
+      text:'Investigad a los cuatro sospechosos y las dos empresas. Hay una persona que aparece en dos empresas a la vez. Hay un vínculo familiar no declarado. Hay rastros digitales que alguien intentó borrar.',
+      hint:'Buscad: Marcos Ibáñez · Sílvia Mora · Andrés Castellví · Paula Esteve · Nexum Strategy Partners · GC Talent Advisors. Buscad también los nombres de las personas DENTRO de cada empresa.',
+      osint:OSINT_URL,
+      activity:{
+        type:'text',
+        label:'Hallazgos OSINT — registrad lo que encontráis',
+        q:'Anotad los tres hallazgos más relevantes con su fuente:',
+        ph:'Hallazgo 1: [qué encontrasteis] — [fuente: LinkedIn / Registro Mercantil / etc.] — [por qué es relevante]\n\nHallazgo 2:\n\nHallazgo 3:'
+      }
+    },
+
+    // ── PASO 3: Publicación eliminada + dilema legal ──
+    { id:'m2p3', stype:'📱 Fuente digital · Dilema legal', title:'Alguien borró esto. Llegasteis a tiempo.',
+      text:'InvestigaPro ha recuperado una publicación de LinkedIn eliminada por uno de los sospechosos. La eliminó el mismo día. Antes de usarla, hay una pregunta legal crítica.',
+      doc:{id:'CACHÉ GOOGLE · 17/03 · 19:32h', name:'Publicación eliminada de LinkedIn — recuperada por el despacho',
+        rows:[
+          {k:'AUTOR',v:'Marcos Ibáñez Solano — Senior Consultant at Lucentia Consulting'},
+          {k:'PUBLICADO',v:'17 de marzo · 19:32h'},
+          {k:'ELIMINADO',v:'17 de marzo · 22:15h — 2h 43min después de publicar',cls:'amber'},
+          {k:'TEXTO',v:'"Grandes movimientos en el horizonte. A veces los mejores proyectos llegan cuando menos los esperas. Pronto más novedades 🚀"',cls:'amber'},
+          {k:'LIKES',v:'3 — los tres de perfiles vinculados a Nexum Strategy Partners',cls:'red'},
+          {k:'CONTEXTO',v:'Publicado 2 días después de la descarga nocturna del 15/03. Eliminado la misma tarde.',cls:'red'},
+        ]
+      },
+      activity:{
+        type:'quiz',
+        label:'Dilema legal',
+        q:'¿Podéis incluir esta publicación eliminada en vuestro informe de detective?',
+        opts:['No — la eliminó y eso la convierte automáticamente en información privada','Sí — estuvo disponible públicamente y fue indexada por Google','Solo si Ibáñez da su consentimiento por escrito','No — los datos de LinkedIn son privados por definición legal'],
+        correct:1,
+        fb:{ok:'Correcto. Una publicación indexada por Google era información pública cuando el detective la consultó. Podéis documentarla citando la fuente y la fecha de consulta.',bad:'Incorrecto. La caché de Google preserva información que fue pública. La eliminación posterior no la convierte en privada. El detective puede documentarla identificando la fuente.'}
+      }
+    },
+
+    // ── PASO 4: Sliders sospecha + tablero ──
+    { id:'m2p4', stype:'📊 Análisis · Mapa de sospecha', title:'¿Cómo veis el caso después del OSINT?',
+      text:'Mora tiene correos sospechosos. Paula tiene conexión con Nexum que no esperabais. Ibáñez tiene la publicación eliminada. Castellví parece limpio en fuentes abiertas. ¿O no?',
+      hint:'La ausencia de rastro digital también es información. Quien más cuidado tuvo en no dejar huellas puede haber actuado con más premeditación.',
+      activity:{
+        type:'sliders_text',
+        label:'Ajustad los niveles de sospecha',
+        suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve'],
+        textq:'¿Por qué ese nivel para cada uno? Justificadlo con datos del OSINT:',
+        ph:'Ibáñez: ...\nMora: ...\nCastellví: ...\nEsteve: ...'
+      }
     }
   ]
 },
 
-// ── MISIÓN 3 · ENTREVISTAS ──────────────────────────────────────────────────
-M3:{
+M3: {
   phase:'Fase 3 · Entrevistas voluntarias',
   title:'Operación Contradicción',
   code:'MFA-OP-003',
   color:'#3a1a1a',
+  tags:['Marco legal','Ibáñez','Mora','Castellví','Síntesis'],
   steps:[
-    {
-      type:'audio+quiz',
-      typeLabel:'Audio · Escucha activa',
-      title:'Entrevista voluntaria — Marcos Ibáñez',
-      text:'Escuchad la entrevista con Ibáñez. Hay tres momentos clave que no debéis perderos. Cuando terminéis, responded la pregunta.',
-      audioFile:'entrevista-Ibañez.wav',
-      quiz:{
-        text:'La pausa más larga de Ibáñez durante la entrevista se produce cuando le preguntan sobre:',
-        opts:[
-          {t:'Su paradero la noche del 15 de marzo',correct:false},
-          {t:'Qué archivos descargó esa noche',correct:false},
-          {t:'Si tiene contacto con personas de Nexum Strategy',correct:true},
-          {t:'Si está buscando trabajo',correct:false},
-        ],
-        fb:{ok:'Correcto. La pausa de 1.5 segundos antes de responder sobre Nexum es el momento más revelador. En psicología del interrogatorio, una pausa larga ante una pregunta directa indica procesamiento de respuesta — es decir, está decidiendo qué decir, no recordando.',bad:'Prestadlo de nuevo. La pausa más significativa — la más larga — ocurre cuando le mencionan a Nexum directamente. Es el momento donde más tarda en responder.'}
-      }
-    },
-    {
-      type:'doc+connect',
-      typeLabel:'Acta escrita · Cruza las contradicciones',
-      title:'Lo que dice Ibáñez vs. lo que sabemos',
-      text:'El acta escrita recoge declaraciones de los cuatro sospechosos. Cruzad lo que dice cada uno con los hechos que ya tenéis documentados.',
-      doc:{
-        id:'ACTA-03',title:'Fragmentos de declaraciones voluntarias',
-        rows:[
-          {k:'IBÁÑEZ',v:'"Solo consulté el documento de estrategia esa noche. No recuerdo haber descargado el perfil del cliente."'},
-          {k:'MORA',v:'"Envié archivos a mi correo personal por precaución, no por otra razón. Es un hábito de seguridad."'},
-          {k:'CASTELLVÍ',v:'"Mi relación con mi hermano es distante. No hablamos de trabajo. Apenas nos vemos."'},
-          {k:'ESTEVE',v:'[Sin declaración — rechazó la entrevista por consejo de su abogado]',alert:true},
+
+    // ── PASO 1: Audio Ibáñez + comparador ──
+    { id:'m3p1', stype:'🎧 Entrevista voluntaria · Ibáñez', title:'Ibáñez acepta hablar. Hay tres momentos clave.',
+      text:'Escuchad la entrevista. Prestadid atención especial a las pausas antes de responder y a lo que NO menciona cuando le preguntan qué descargó.',
+      hint:'En psicología del interrogatorio: una pausa larga antes de responder indica que la persona está procesando qué versión dar, no que esté recordando.',
+      audio:{file:'entrevista-Ibañez.wav', label:'Entrevista voluntaria — Marcos Ibáñez Solano S-01'},
+      activity:{
+        type:'comparator',
+        label:'Comparador — declaración vs. hechos documentados',
+        pairs:[
+          {
+            decl:{lbl:'Ibáñez declara',txt:'"Solo consulté el documento de estrategia esa noche. No recuerdo haber descargado el perfil del cliente."'},
+            fact:{lbl:'DOC-01 acredita',txt:'15/03 · 23:14h — M.IBANEZ — 3 archivos descargados: estrategia + anexos + perfil del cliente'},
+            ph:'La contradicción es...',verdicts:true
+          },
+          {
+            decl:{lbl:'Ibáñez declara',txt:'"Del sector se conoce todo el mundo. He coincidido con gente de Nexum en eventos. Es normal."'},
+            fact:{lbl:'InvestigaPro muestra',txt:'Ibáñez añadió 3 contactos de Nexum en LinkedIn en los días posteriores a la descarga. Sigue la página oficial de Nexum desde el 10/02.'},
+            ph:'La relevancia de esta diferencia es...',verdicts:true
+          },
         ]
-      },
-      connect:{
-        left:['Declaró no haber descargado el perfil del cliente — el log dice lo contrario','Admitió enviar archivos a correo personal — antes lo había negado a Lucentia','Describe relación distante con su hermano — LinkedIn muestra 14 conexiones comunes','Rechazó la entrevista — puede ser culpabilidad o simplemente prudencia legal'],
-        right:['Ibáñez','Mora','Castellví','Esteve'],
-        pairs:[[0,0],[1,1],[2,2],[3,3]]
       }
     },
-    {
-      type:'text',
-      typeLabel:'Redacción profesional',
-      title:'Redacta una contradicción como detective real',
-      text:'Elige la contradicción que te parece más relevante para el caso y redáctala en lenguaje de informe de detective. Recuerda: describes, no acusas.',
-      hint:'Usa: "El señor/la señora X manifestó... sin embargo, el documento DOC-0X acredita que..." — nunca "mintió" ni "es culpable".',
-      placeholder:'El/la señor/a ... manifestó en entrevista voluntaria celebrada el ... que ...\n\nSin embargo, el documento ... acredita que ...\n\nEsta discrepancia constituye un indicio relevante en tanto que...'
+
+    // ── PASO 2: Audio Mora dual + comparador ──
+    { id:'m3p2', stype:'🎧 Entrevista voluntaria · Mora', title:'Mora acepta hablar. Algo cambia a mitad.',
+      text:'Escuchad las preguntas primero, luego las respuestas. Hay un momento exacto donde Mora dice algo diferente a lo que había declarado previamente a Lucentia.',
+      hint:'El desliz ocurre cuando le preguntan sobre los correos. Lo reconoceréis porque contradice directamente lo que Lucentia nos había comunicado sobre su declaración inicial.',
+      audioA:{file:'detective-mora.mp3', label:'Detective — preguntas a Sílvia Mora', who:'detective'},
+      audioB:{file:'mora-respuestas.mp3', label:'Sílvia Mora — respuestas', who:'suspect'},
+      activity:{
+        type:'comparator',
+        label:'Comparador — versión a Lucentia vs. versión a la detective',
+        pairs:[
+          {
+            decl:{lbl:'Mora declaró a Lucentia',txt:'"No envié ningún archivo del proyecto a cuentas externas. Toda mi actividad fue dentro del sistema corporativo."'},
+            fact:{lbl:'Mora declara a la detective',txt:'"Puede ser que sí... Tengo la costumbre de hacerme copias de seguridad. No lo recuerdo con exactitud."'},
+            ph:'Esta discrepancia en el informe se redacta como...',verdicts:true
+          },
+        ],
+        textq:'¿Es este cambio de versión suficiente para señalar a Mora como culpable? ¿Por qué sí o por qué no?',
+        ph:'Este cambio de versión ... porque ...'
+      }
     },
-    {
-      type:'evidence+decision',
-      typeLabel:'Análisis · Hipótesis provisional',
-      title:'¿Qué indicios tenéis ya verificados?',
-      text:'Seleccionad todos los indicios que consideráis verificados documentalmente — solo los que podéis citar con una fuente concreta. Luego declarad vuestra hipótesis provisional.',
-      evidenceTags:[
-        'Ibáñez descargó 3 archivos el 15/03 (DOC-01)',
-        'Registro corrupto del 14/03 — autoría desconocida',
-        'Mora imprimió el documento completo (DOC-01)',
-        'Mora envió archivos a correo personal (declaración)',
-        'Castellví: acceso sin descarga el 18/03 (DOC-01)',
-        'Ibáñez: publicación eliminada el 17/03 (caché Google)',
-        'Nexum: 3 secciones idénticas al Proyecto Atenea (DOC-04)',
-        'Esteve rechazó entrevista (acta)',
-        'Castellví: hermano en Nexum no declarado (InvestigaPro)',
-        'Ibáñez: contactos en Nexum añadidos tras descarga (InvestigaPro)',
-      ],
-      decisionText:'Con los indicios seleccionados, ¿cuál es vuestra hipótesis ahora?',
-      decisionOpts:[
-        {t:'Ibáñez actuó solo',s:'La descarga y la publicación eliminada apuntan solo a él'},
-        {t:'Mora es la principal sospechosa',s:'Su actividad en fuentes abiertas es la más comprometedora'},
-        {t:'Ibáñez y Castellví actuaron juntos',s:'Uno filtró los archivos, el otro tenía el contacto en Nexum'},
-        {t:'Esteve lo sabe pero no fue ella',s:'El rechazo de entrevista es demasiado sospechoso para ignorarlo'},
-        {t:'Todavía no tenemos suficiente para señalar a nadie',s:'Necesitamos más información antes de comprometernos'},
-      ],
-      noCorrect:true,
-      fb:'Hipótesis registrada. En el Día 2 recibiréis información adicional que puede confirmarla o cambiarla completamente.'
+
+    // ── PASO 3: Audio Castellví dual + tablero conexiones ──
+    { id:'m3p3', stype:'🎧 Videollamada voluntaria · Castellví', title:'Castellví acepta hablar. Parece nervioso. ¿Por qué?',
+      text:'Escuchad primero las preguntas y luego las respuestas. Castellví no niega el vínculo con su hermano — no puede, es verificable. Pero sí minimiza la relación. ¿Qué esconde exactamente?',
+      hint:'La clave no es lo que dice, sino la combinación de tres cosas: lo que minimiza, lo que no declaró y lo que OSINT reveló sobre su hermano.',
+      audioA:{file:'detective-castellvi.mp3', label:'Detective — preguntas a Andrés Castellví', who:'detective'},
+      audioB:{file:'castellvi-respuestas.mp3', label:'Andrés Castellví — respuestas', who:'suspect'},
+      activity:{
+        type:'board',
+        label:'Tablero — construid el mapa de conexiones',
+        hint:'Conectad a las personas con las empresas y entre ellas. Buscad la cadena completa: ¿cómo podrían haber llegado los archivos de Lucentia a Nexum?',
+        nodes:[
+          {id:'ibanez',label:'Ibáñez\n(descargó archivos)',type:'suspect',x:5,y:10},
+          {id:'castellvi',label:'Castellví\n(datos financieros)',type:'suspect',x:5,y:55},
+          {id:'jordi',label:'Jordi Castellví\n(BDM en Nexum)',type:'person',x:55,y:35},
+          {id:'gct',label:'GC Talent\nAdvisors',type:'company',x:80,y:10},
+          {id:'nexum',label:'Nexum Strategy\nPartners',type:'company',x:80,y:60},
+          {id:'cristina',label:'Cristina Lluch\n(vinculada a ambas)',type:'person',x:55,y:78},
+        ],
+        correctPairs:[['ibanez','castellvi'],['castellvi','jordi'],['jordi','nexum'],['gct','nexum'],['cristina','gct'],['cristina','nexum']],
+        textq:'Describid la cadena completa que explica cómo llegaron los datos de Lucentia a Nexum:',
+        ph:'Los datos pasaron de ... a ... porque ... lo que explica que ...'
+      }
+    },
+
+    // ── PASO 4: Síntesis evidencias + hipótesis ──
+    { id:'m3p4', stype:'🧩 Síntesis · Hipótesis provisional', title:'Con todo lo investigado, ¿qué cuadra?',
+      text:'Seleccionad los indicios que podéis citar con fuente. Solo los verificados. Luego declarad vuestra hipótesis provisional.',
+      hint:'Un indicio verificado es el que podéis citar: "según DOC-01..." o "en declaración voluntaria del...". Si no tenéis fuente concreta, no es verificable y no puede ir en el informe.',
+      activity:{
+        type:'evidence_decision',
+        label:'Indicios verificados + hipótesis provisional',
+        tags:[
+          'Ibáñez descargó perfil del cliente el 15/03 (DOC-01)',
+          'Registro corrupto del 14/03 — autoría desconocida (DOC-01)',
+          'Mora imprimió documento completo de noche (DOC-01)',
+          'Mora cambió versión sobre correo personal (declaración)',
+          'Castellví accedió sin descargar tras registro corrupto (DOC-01)',
+          'Hermano de Castellví es BDM en Nexum — no declarado (InvestigaPro)',
+          'Ibáñez: publicación eliminada con likes de Nexum (caché Google)',
+          'Ibáñez: contactos Nexum añadidos tras descarga (InvestigaPro)',
+          'Cristina Lluch: vinculada a GC Talent y Nexum a la vez (InvestigaPro)',
+          'Esteve rechazó entrevista — sin más datos (acta)',
+        ],
+        decision:{
+          q:'¿Cuál es vuestra hipótesis provisional?',
+          opts:[
+            {t:'Ibáñez actuó solo',s:'Tiene la descarga más comprometedora y la publicación eliminada'},
+            {t:'Mora es la principal sospechosa',s:'Cambió su versión — la más activa y sospechosa en OSINT'},
+            {t:'Ibáñez + Castellví en conspiración',s:'Uno accedió a los archivos, el otro tenía el contacto directo en Nexum a través de su hermano'},
+            {t:'Paula Esteve lo sabe — rechazó la entrevista por eso',s:'El rechazo es demasiado estratégico para ser solo precaución legal'},
+            {t:'No tenemos suficiente todavía',s:'Los indicios apuntan en demasiadas direcciones'},
+          ],
+          noCorrect:true, fb:'Hipótesis provisional registrada. En el Día 2 recibiréis un elemento que puede confirmarlo o complicarlo todo.'
+        }
+      }
     }
   ]
 },
 
-// ── MISIÓN 4 · INFORME FINAL ────────────────────────────────────────────────
-M4:{
+M4: {
   phase:'Día 2 · Informe final',
   title:'Operación Veredicto',
   code:'MFA-OP-004',
   color:'#2a1a3a',
+  tags:['Sobre anónimo','Informe final','Veredicto','Recomendaciones'],
   steps:[
-    {
-      type:'doc+quiz',
-      typeLabel:'Nuevo elemento · El sobre anónimo',
-      title:'Ha llegado algo que no esperabais',
-      text:'Esta mañana encontrasteis en vuestra mesa un sobre sin remitente. Contiene una nota manuscrita. Antes de decidir si la usáis, hay una pregunta legal que debéis responder.',
-      doc:{
-        id:'SOBRE ANÓNIMO · Día 2',title:'Nota sin remitente — encontrada en la mesa al inicio del Día 2',
+
+    // ── PASO 1: Sobre anónimo + dilema ──
+    { id:'m4p1', stype:'📬 Elemento inesperado', title:'Encontrasteis esto en la mesa al entrar',
+      text:'Un sobre sin remitente. Una nota manuscrita. Antes de decidir qué hacéis con ella, debéis responder una pregunta legal. Vuestra respuesta determina cómo usáis este dato.',
+      doc:{id:'SOBRE ANÓNIMO · Día 2', name:'Nota sin firma — encontrada en mesa al inicio del Día 2',
         rows:[
-          {k:'CONTENIDO',v:'"No sé si esto sirve de algo. La noche del 15 de marzo vi a alguien salir del edificio con una carpeta grande. No era su día de guardia. No era quien pensáis. Buscad en el parking. Hay cámara. Un empleado de Lucentia."',alert:true},
-          {k:'ESTADO',v:'Sin firma · Sin remitente · Sin fecha · Papel sin características identificables'},
-          {k:'NOTA',v:'La cámara del parking de Lucentia fue revisada por el despacho. Las grabaciones del 15 de marzo han sido sobreescritas por el ciclo automático de 30 días.'},
+          {k:'CONTENIDO',v:'"La noche del 15 de marzo vi a alguien salir del edificio con una carpeta grande. No era su día de guardia. La persona que vi no era quien pensáis. Buscad en el parking. Hay cámara."',cls:'amber'},
+          {k:'REMITENTE',v:'Desconocido · Sin firma · Sin fecha · Sin características identificables'},
+          {k:'SEGUIMIENTO',v:'Cámara del parking revisada. Grabaciones del 15/03 sobreescritas por ciclo automático de 30 días.',cls:'red'},
+          {k:'IMPLICACIÓN',v:'Si la nota es veraz, ¿quién salió del edificio esa noche? ¿Castellví? ¿Alguien más?'},
         ]
       },
-      quiz:{
-        text:'¿Podéis incluir esta nota anónima en vuestro informe como prueba?',
-        opts:[
-          {t:'Sí, cualquier información es válida si apunta al culpable',correct:false},
-          {t:'No, las fuentes anónimas son completamente inadmisibles',correct:false},
-          {t:'Solo como indicio no verificado, identificando que la fuente es desconocida',correct:true},
-          {t:'Sí, si coincide con otros indicios ya documentados es suficiente',correct:false},
-        ],
-        fb:{ok:'Correcto. Una fuente anónima puede incluirse como indicio si se identifica como tal. No tiene el mismo valor que un hecho documentado, pero no es inútil. El informe debe ser transparente sobre su origen.',bad:'Cuidado. Las fuentes anónimas no son pruebas, pero tampoco son inútiles. Pueden incluirse si se identifican correctamente. La clave es la transparencia: el informe debe decir exactamente de dónde viene cada dato.'}
+      activity:{
+        type:'quiz',
+        label:'Dilema legal — ¿podéis usar esto?',
+        q:'¿Cómo podéis usar esta nota anónima en vuestro informe final?',
+        opts:['No podemos usarla — las fuentes anónimas son totalmente inadmisibles','Solo como indicio no verificado, identificando expresamente que la fuente es desconocida','Sí como prueba directa si coincide con otros indicios ya documentados','No podemos usarla porque no hemos podido verificar la cámara'],
+        correct:1,
+        fb:{ok:'Correcto. Una fuente anónima puede incluirse como indicio si se identifica como tal y se especifican sus limitaciones. No equivale a un hecho documentado, pero aporta contexto.',bad:'Incorrecto. Las fuentes anónimas no son pruebas pero tampoco son inútiles. Pueden incluirse como indicios si se identifican correctamente y se indica que no han podido verificarse.'}
       }
     },
-    {
-      type:'text',
-      typeLabel:'Redacción · Informe final',
-      title:'La hipótesis definitiva en 5 líneas',
-      text:'Con toda la información disponible, redactad vuestra hipótesis final. Máximo 5 líneas. Citad al menos 3 indicios concretos con su fuente. Escribid como detectives, no como acusadores.',
-      hint:'Estructura recomendada: "Los indicios disponibles apuntan a [nombre/s] como posible/s responsable/s de la filtración. El [fecha] se constató [hecho + fuente]. Asimismo, [hecho + fuente]. Por otra parte, [hecho + fuente]. En consecuencia, este despacho recomienda..."',
-      placeholder:'Los indicios disponibles apuntan a...'
+
+    // ── PASO 2: Informe real con plantilla ──
+    { id:'m4p2', stype:'📝 Redacción · Informe profesional', title:'El informe final. La prueba de fuego.',
+      text:'Usad la plantilla oficial de informe de detective privado. Cada campo tiene una función específica. No podéis dejar ninguno en blanco.',
+      hint:'Recordad: describís hechos, no imputáis. "El log acredita que..." es correcto. "Ibáñez robó..." no lo es. La culpabilidad la determina un juez.',
+      activity:{
+        type:'informe',
+        label:'Plantilla oficial de informe',
+        fields:[
+          {lbl:'OBJETO DE LA INVESTIGACIÓN',ph:'Descripción del encargo en una frase'},
+          {lbl:'METODOLOGÍA APLICADA',ph:'Qué técnicas legales habéis usado: análisis documental, OSINT, entrevistas voluntarias...'},
+          {lbl:'HECHOS VERIFICADOS CON FUENTE',ph:'Hecho 1 (fuente: DOC-0X):\nHecho 2 (fuente: InvestigaPro):\nHecho 3 (fuente: declaración voluntaria):'},
+          {lbl:'INDICIOS Y SU VALORACIÓN',ph:'Indicio 1 — nivel de relevancia — fuente:\nIndicio 2 — nivel de relevancia — fuente:'},
+          {lbl:'HIPÓTESIS PRINCIPAL DEL DESPACHO',ph:'Los indicios apuntan a... como posible/s responsable/s en tanto que...'},
+          {lbl:'RECOMENDACIONES AL CLIENTE',ph:'1. Acción legal:\n2. Medida interna:\n3. Línea pendiente:'},
+          {lbl:'FIRMADO POR',ph:'Equipo X — TIP: ... · Coordinador/a: ...'},
+        ]
+      }
     },
-    {
-      type:'suspect_meter',
-      typeLabel:'Análisis final · Niveles de sospecha',
-      title:'Vuestro criterio profesional definitivo',
-      text:'Ajustad los niveles de sospecha con todo lo que sabéis. Esta distribución debe reflejar vuestra hipótesis final — tiene que ser coherente con lo que escribisteis arriba.',
-      hint:'Recordad la conspiración que apunta el caso: un sospechoso tenía los archivos, otro tenía el contacto en Nexum. ¿Podría haber actuado alguno sin el otro?',
-      suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve']
+
+    // ── PASO 3: Sliders finales + coherencia ──
+    { id:'m4p3', stype:'📊 Análisis final · Coherencia', title:'¿Cuánto convencidos estáis?',
+      text:'Estos niveles tienen que ser coherentes con lo que escribisteis en el informe. Si ponéis a alguien muy alto aquí pero no aparece con indicios en el informe, hay una contradicción interna.',
+      hint:'Pensad en esto: ¿podría Ibáñez haber filtrado los archivos sin que hubiera alguien en Nexum que los recibiera? ¿Podría Castellví haber pasado datos sin los archivos que descargó Ibáñez?',
+      activity:{
+        type:'sliders_text',
+        label:'Niveles de sospecha finales',
+        suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve'],
+        textq:'¿Cambió vuestra hipótesis respecto al Día 1? ¿Qué os hizo cambiar o confirmó lo que pensabais?',
+        ph:'Nuestra hipótesis del Día 1 era... Ahora pensamos que... porque...'
+      }
     },
-    {
-      type:'text',
-      typeLabel:'Recomendaciones · Clausura',
-      title:'Tres recomendaciones al cliente',
-      text:'Como equipo investigador, ¿qué recomendáis a Lucentia Consulting? Pensad en medidas legales, medidas internas de seguridad y nuevas líneas de investigación que quedan abiertas.',
-      hint:'Una buena recomendación de detective es específica, accionable y legalmente viable. Evitad "mejorar la seguridad" — ¿qué seguridad exactamente y cómo?',
-      placeholder:'1. [Acción legal / administrativa]:\n\n2. [Medida interna de seguridad]:\n\n3. [Nueva línea de investigación pendiente]:'
+
+    // ── PASO 4: Veredicto público + firma ──
+    { id:'m4p4', stype:'⚖️ Veredicto · Clausura', title:'El momento de la verdad. En voz alta.',
+      text:'Este es el veredicto que presentaréis en la rueda de prensa. Tenéis 3 minutos para exponerlo ante todos los equipos y ante Laura Vidal, la directora de Lucentia.',
+      hint:'Preparad: quién filtró y cómo, tres indicios que lo sustentan, y una frase sobre qué pasaría si este caso llegara a juicio con las pruebas que tenéis.',
+      activity:{
+        type:'text',
+        label:'Veredicto para la rueda de prensa',
+        q:'Redactad aquí vuestro veredicto. Será lo que leáis en voz alta.',
+        ph:'Señora Vidal, tras la investigación realizada este despacho concluye que...\n\nLos indicios que sustentan esta hipótesis son:\n1. ...\n2. ...\n3. ...\n\nSi este caso llegara a juicio, la principal limitación probatoria sería...\n\nFirmado: Equipo ...'
+      }
     }
   ]
 }
 
 }; // end MISSIONS
 
-// ════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════════════════════════════════
-let teamId=null,coordinator='',currentMid=null,currentStep=0;
-let answers={},connectMatches={},sliderVals={},selectedTags={},selectedDecision={};
-let connectSel=null,connectSide=null;
+// ════════════════════════════════════════════════════════════════
+let tid=null,coord='',cMid=null,cStep=0;
+let ans={},lupaFlags={},boardConn={},comparVerdicts={},compTexts={},svals={},stags={},sdec={},informeFields={};
+let boardSel=null;
 
-// ════════════════════════════════════════════════════════════════════════════
-// SETUP
-// ════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// SETUP & POLL
+// ════════════════════════════════════════════════════════════════
 function startApp(){
-  const t=document.getElementById('team-sel').value;
-  const c=document.getElementById('coord-inp').value.trim();
+  const t=document.getElementById('tsel').value, c=document.getElementById('cinp').value.trim();
   if(!t||!c) return;
-  teamId=t; coordinator=c;
-  document.getElementById('team-badge').textContent='Equipo '+t;
-  document.getElementById('team-badge').style.display='block';
+  tid=t; coord=c;
+  document.getElementById('tbadge').textContent='E'+t; document.getElementById('tbadge').style.display='block';
   document.getElementById('setup-view').style.display='none';
-  document.getElementById('waiting-view').style.display='block';
-  registerTeam();
-  setInterval(pollMission,3500);
-  pollMission();
+  document.getElementById('wait-view').style.display='block';
+  regTeam(); poll(); setInterval(poll,4000);
 }
-
-async function registerTeam(){
-  try{ await fetch(`${FB}/misiones-equipos/equipo${teamId}.json`,{method:'PUT',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({teamId,coordinator,ts:Date.now()})}); }catch(e){}
-}
-
-async function pollMission(){
+async function regTeam(){try{await fetch(`${FB}/misiones-equipos/equipo${tid}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tid,coord,ts:Date.now()})});}catch(e){}}
+async function poll(){
   try{
-    const r=await fetch(`${FB}/mision-activa.json`);
-    const d=await r.json();
-    if(d&&d.id&&d.id!==currentMid){
-      currentMid=d.id; currentStep=0;
-      answers={}; connectMatches={}; sliderVals={}; selectedTags={}; selectedDecision={};
-      showMission(d.id);
-    } else if((!d||!d.id)&&currentMid){
-      currentMid=null;
-      document.getElementById('waiting-view').style.display='block';
-      document.getElementById('mission-view').style.display='none';
-      document.getElementById('done-view').style.display='none';
+    const r=await fetch(`${FB}/mision-activa.json`); const d=await r.json();
+    if(d&&d.id&&d.id!==cMid){
+      cMid=d.id; cStep=0; ans={}; lupaFlags={}; boardConn={}; comparVerdicts={}; compTexts={}; svals={}; stags={}; sdec={}; informeFields={};
+      document.getElementById('wait-view').style.display='none'; document.getElementById('done-view').style.display='none';
+      document.getElementById('mission-view').style.display='block'; render();
+    } else if((!d||!d.id)&&cMid){
+      cMid=null; document.getElementById('mission-view').style.display='none'; document.getElementById('done-view').style.display='none';
+      document.getElementById('wait-view').style.display='block';
     }
   }catch(e){}
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// MISSION RENDER
-// ════════════════════════════════════════════════════════════════════════════
-function showMission(id){
-  document.getElementById('waiting-view').style.display='none';
-  document.getElementById('done-view').style.display='none';
-  document.getElementById('mission-view').style.display='block';
-  renderMission(id);
-}
+// ════════════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════════════
+function render(){
+  const m=MISSIONS[cMid]; if(!m) return;
+  const s=m.steps[cStep], tot=m.steps.length, isLast=cStep===tot-1;
+  document.getElementById('pfill').style.width=Math.round((cStep/tot)*100)+'%';
 
-function renderMission(id){
-  const m=MISSIONS[id];
-  if(!m) return;
-  const step=m.steps[currentStep];
-  const total=m.steps.length;
-  document.getElementById('prog-strip').style.width=Math.round(currentStep/total*100)+'%';
-
-  const isLast=currentStep===total-1;
-  const canGo=canProceed(step);
-
-  document.getElementById('mission-view').innerHTML=`
-  <div class="mission-wrap">
-    <div class="mission-header" style="background:${m.color}33;border:1px solid ${m.color}55;border-radius:10px 10px 0 0;padding:1.25rem 1.125rem">
-      <div class="m-phase">${m.phase}</div>
-      <div class="m-title">${m.title}</div>
-      <div class="m-code">${m.code} · Equipo ${teamId}</div>
+  let html=`<div class="mwrap">
+    <div class="exp-header">
+      <div class="exp-class">Expediente clasificado · ${m.code}</div>
+      <div class="exp-title">${m.title}</div>
+      <div class="exp-code">${m.phase} · Equipo ${tid} · ${coord}</div>
+      <div class="exp-meta">${m.tags.map((t,i)=>`<span class="exp-tag ${i<=cStep?'active':''}">${t}</span>`).join('')}</div>
     </div>
-    <div class="mission-card">
-      <div class="step-nav">
-        ${m.steps.map((_,i)=>`<div class="sdot ${i<currentStep?'done':i===currentStep?'active':''}" onclick="jumpTo(${i})"></div>`).join('')}
-        <div class="slabel">${currentStep+1} / ${total}</div>
-      </div>
-      <div class="step-body">
-        <div class="step-type-label">${step.typeLabel||''}</div>
-        <div class="step-title">${step.title}</div>
-        <div class="step-text">${step.text}</div>
-        ${step.hint?`<div class="step-hint">${step.hint}</div>`:''}
-        ${renderActivity(step, currentStep)}
-      </div>
-      <div class="step-controls">
-        ${currentStep>0?`<button class="s-btn" onclick="prevStep()">← Atrás</button>`:''}
-        <button class="s-btn primary" id="next-btn" onclick="nextStep()" ${canGo?'':'disabled'}>
-          ${isLast?'Enviar respuestas →':'Continuar →'}
-        </button>
+    <div class="step-ind">
+      ${m.steps.map((_,i)=>`<div class="sind ${i<cStep?'done':i===cStep?'active':''}" onclick="jumpTo(${i})"></div>`).join('')}
+      <div class="sind-lbl">${cStep+1}/${tot}</div>
+    </div>
+    <div class="step-card">
+      <div class="step-type">${s.stype||''}</div>
+      <div class="step-title">${s.title}</div>
+      <div class="step-text">${s.text}</div>
+      ${s.hint?`<div class="step-hint">${s.hint}</div>`:''}
+      ${renderDoc(s)}
+      ${renderAudio(s)}
+      ${renderOsint(s)}
+      ${renderActivity(s)}
+      <div class="nav">
+        ${cStep>0?`<button class="nbtn" onclick="prev()">← Atrás</button>`:''}
+        <button class="nbtn p" id="nbtn" onclick="next()" ${canGo(s)?'':'disabled'}>${isLast?'Enviar informe →':'Siguiente →'}</button>
       </div>
     </div>
   </div>`;
 
-  if(step.type==='doc+order'||step.type==='order') initDrag(currentStep);
+  document.getElementById('mission-view').innerHTML=html;
+  postRender(s);
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// RENDER ACTIVITY
-// ════════════════════════════════════════════════════════════════════════════
-function renderActivity(step, idx){
-  let html='';
-
-  // Render document if present
-  if(step.doc){
-    html+=`<div class="doc-viewer">
-      <div class="doc-header"><span class="doc-id">${step.doc.id}</span><span class="doc-title">${step.doc.title}</span></div>
-      <div class="doc-content">`;
-    if(step.doc.rows){
-      html+=step.doc.rows.map(r=>`<div class="doc-row">
-        <span class="doc-key">${r.k}</span>
-        <span class="doc-val ${r.alert?'alert':r.ok?'ok':''}">${r.v}</span>
-      </div>`).join('');
-    }
-    html+='</div></div>';
+// ── Render helpers ──────────────────────────────────────────────
+function renderDoc(s){
+  if(!s.doc) return '';
+  const id=`doc-${cStep}`, opened=ans['doc_open_'+cStep];
+  let inner='';
+  if(s.doc.rows) inner+=s.doc.rows.map(r=>`<div class="drow"><span class="dk">${r.k}</span><span class="dv ${r.cls||''}">${r.v}</span></div>`).join('');
+  if(s.doc.table){
+    inner+=`<table class="ctable"><thead><tr>${s.doc.table.headers.filter((_,i)=>i<4).map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+    inner+=s.doc.table.rows.map(r=>`<tr class="${r[4]||''}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+    inner+='</tbody></table>';
   }
-
-  // OSINT link
-  if(step.osintUrl){
-    html+=`<a class="osint-link" href="${step.osintUrl}" target="_blank">
-      <div class="osint-icon">🔍</div>
-      <div class="osint-info">
-        <div class="osint-title">Abrir InvestigaPro</div>
-        <div class="osint-sub">Buscador de fuentes abiertas · Caso Lucentia</div>
+  return `<div class="doc-envelope">
+    <div class="doc-closed ${opened?'open':''}" id="${id}" onclick="toggleDoc(${cStep})">
+      <div class="doc-seal">${opened?'📂':'📁'}</div>
+      <div class="doc-info">
+        <div class="doc-ref">${s.doc.id}</div>
+        <div class="doc-name">${s.doc.name}</div>
+        <div class="doc-status">${opened?'Documento abierto — pulsa para cerrar':'Pulsa para abrir el documento'}</div>
       </div>
-      <div class="osint-arrow">→</div>
-    </a>`;
-  }
+      <div class="doc-arrow">›</div>
+    </div>
+    <div class="doc-content ${opened?'open':''}" id="${id}-content">
+      <div class="doc-inner">${inner}</div>
+    </div>
+  </div>`;
+}
 
-  // Audio
-  if(step.audioFile){
-    html+=`<div class="audio-card">
-      <div class="audio-title">🎧 ${step.audioFile.replace('.wav','').replace('.mp3','').replace('-',' ').replace('Iba','Ibá')}</div>
-      <audio class="audio-player" controls controlsList="nodownload" preload="none"
-        src="${AUDIO_BASE}${encodeURIComponent(step.audioFile)}">
-        Tu navegador no soporta audio HTML5.
+function renderAudio(s){
+  if(!s.audio&&!s.audioA) return '';
+  if(s.audio) return `<div class="audio-block">
+    <div class="audio-tag">🎧 Escucha activa</div>
+    <div class="audio-name">${s.audio.label}</div>
+    <audio controls controlsList="nodownload" preload="none" style="width:100%">
+      <source src="${BASE}${encodeURIComponent(s.audio.file)}" type="audio/${s.audio.file.endsWith('.wav')?'wav':'mpeg'}">
+    </audio>
+  </div>`;
+  return `<div class="dual-audio">
+    <div class="daudio">
+      <div class="daudio-who det">🎙️ ${s.audioA.label}</div>
+      <div class="daudio-note">Escuchad primero las preguntas</div>
+      <audio controls controlsList="nodownload" preload="none" style="width:100%">
+        <source src="${BASE}${encodeURIComponent(s.audioA.file)}" type="audio/mpeg">
       </audio>
-    </div>`;
-  }
-
-  const type=step.type;
-
-  // DRAG ORDER
-  if(type==='doc+order'||type==='order'){
-    const items=answers[idx]||[...step.dragItems];
-    html+=`<div class="drag-list" id="dlist-${idx}">
-      ${items.map((item,i)=>`<div class="drag-item" draggable="true" data-i="${i}">
-        <span class="drag-handle">⠿</span>
-        <span class="drag-num">${i+1}</span>
-        <span class="drag-text">${item}</span>
-      </div>`).join('')}
-    </div>`;
-  }
-
-  // CONNECT
-  const connectData=step.connect||step;
-  if(type==='connect'||type==='doc+connect'){
-    const cm=connectMatches[idx]||{};
-    html+=`<div class="connect-wrap">
-      <div>
-        <div class="connect-col-lbl">Contradicción</div>
-        ${connectData.left.map((l,i)=>`<div class="connect-item ${cm[i]!==undefined?'matched':''}" data-side="left" data-i="${i}" onclick="doConnect('left',${i},${idx})">${l}</div>`).join('')}
-      </div>
-      <div>
-        <div class="connect-col-lbl">Sospechoso/a</div>
-        ${connectData.right.map((r,i)=>`<div class="connect-item ${Object.values(cm).includes(i)?'matched':''}" data-side="right" data-i="${i}" onclick="doConnect('right',${i},${idx})">${r}</div>`).join('')}
-      </div>
-    </div>`;
-  }
-
-  // QUIZ
-  const quizData=step.quiz||step;
-  if(type==='quiz'||type==='doc+quiz'||type==='audio+quiz'){
-    const ans=answers[idx];
-    html+=`<div class="quiz-opts">
-      ${quizData.opts.map((o,i)=>`
-        <div class="quiz-opt ${ans!==undefined?i===quizData.opts.findIndex(x=>x.correct)?'correct':i===ans&&!o.correct?'wrong':'disabled':''}"
-          onclick="doQuiz(${i},${idx})">${o.t}</div>`).join('')}
     </div>
-    <div class="feedback ${ans!==undefined?'show':''} ${ans!==undefined&&quizData.opts[ans]?.correct?'ok':'bad'}" id="fb-${idx}">
-      ${ans!==undefined?(quizData.opts[ans]?.correct?quizData.fb.ok:quizData.fb.bad):''}
-    </div>`;
-  }
+    <div class="daudio">
+      <div class="daudio-who sus">👤 ${s.audioB.label}</div>
+      <div class="daudio-note">Luego escuchad las respuestas</div>
+      <audio controls controlsList="nodownload" preload="none" style="width:100%">
+        <source src="${BASE}${encodeURIComponent(s.audioB.file)}" type="audio/mpeg">
+      </audio>
+    </div>
+  </div>`;
+}
 
-  // TEXT
-  if(type==='text'||type==='osint+text'){
-    html+=`<textarea class="txt-area" id="txt-${idx}" placeholder="${step.placeholder||''}"
-      oninput="doText(${idx},this.value)">${answers[idx]||''}</textarea>
-    <div class="char-hint"><span id="cc-${idx}">${(answers[idx]||'').length}</span> caracteres</div>`;
-  }
+function renderOsint(s){
+  if(!s.osint) return '';
+  return `<a class="osint-btn" href="${s.osint}" target="_blank">
+    <div class="osint-ico">🔍</div>
+    <div class="osint-txt"><div class="ot">Abrir InvestigaPro</div><div class="os">Buscador de fuentes abiertas · Caso Lucentia</div></div>
+    <div class="osint-arr">→</div>
+  </a>`;
+}
 
-  // SUSPECT METER
-  if(type==='suspect_meter'){
-    const sv=sliderVals[idx]||{};
-    html+=`<div class="sliders">
-      ${step.suspects.map((s,i)=>`<div class="slider-row">
-        <span class="slider-name">${s}</span>
-        <input type="range" class="slider-input" min="0" max="100" value="${sv[i]||0}"
-          oninput="doSlider(${idx},${i},this.value);document.getElementById('sv-${idx}-${i}').textContent=this.value+'%'">
-        <span class="slider-val" id="sv-${idx}-${i}">${sv[i]||0}%</span>
-      </div>`).join('')}
-    </div>`;
-  }
+function renderActivity(s){
+  const a=s.activity; if(!a) return '';
+  const idx=cStep;
+  let h=`<div class="activity"><div class="act-label">${a.label}</div>`;
 
-  // DECISION
-  const decOpts=step.decisionOpts||step.opts;
-  if(type==='decision'||type==='evidence+decision'){
-    // Evidence tags first
-    if(step.evidenceTags){
-      const st=selectedTags[idx]||{};
-      html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:.5rem">Selecciona los indicios verificados:</div>
-      <div class="evidence-tags">
-        ${step.evidenceTags.map((tag,i)=>`<div class="etag ${st[i]?'selected':''}" onclick="doTag(${idx},${i})">${tag}</div>`).join('')}
+  if(a.q&&a.type!=='decision'&&a.type!=='evidence_decision') h+=`<div class="act-q">${a.q}</div>`;
+  if(a.sub) h+=`<div class="act-sub">${a.sub}</div>`;
+
+  switch(a.type){
+    case 'quiz':{
+      const qa=ans[idx];
+      h+=`<div class="qopts">${a.opts.map((o,i)=>`
+        <div class="qopt ${qa!==undefined?i===a.correct?'correct':i===qa?'wrong':'dim':''}" onclick="doQuiz(${i},${idx},${a.correct})">
+          <div class="ql">${'ABCD'[i]}</div><div>${o}</div>
+        </div>`).join('')}</div>
+      <div class="feedback ${qa!==undefined?'show':''} ${qa===a.correct?'ok':'bad'}">
+        ${qa!==undefined?(qa===a.correct?a.fb.ok:a.fb.bad):''}
       </div>`;
+      break;
     }
-    if(step.decisionText) html+=`<div class="step-text" style="margin-bottom:.75rem">${step.decisionText}</div>`;
-    const sd=selectedDecision[idx];
-    html+=`<div class="decision-list">
-      ${(decOpts||[]).map((o,i)=>`<div class="decision-opt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})">
-        <div class="d-title">${o.t}</div>
-        <div class="d-sub">${o.s}</div>
-      </div>`).join('')}
-    </div>
-    ${sd!==undefined&&step.fb?`<div class="feedback show ok">${step.fb}</div>`:''}`;
-  }
-
-  return html;
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// ACTIVITY HANDLERS
-// ════════════════════════════════════════════════════════════════════════════
-function initDrag(idx){
-  const list=document.getElementById('dlist-'+idx);
-  if(!list) return;
-  let src=null;
-  list.querySelectorAll('.drag-item').forEach(el=>{
-    el.addEventListener('dragstart',e=>{src=el;el.style.opacity='.4';});
-    el.addEventListener('dragend',()=>{el.style.opacity='';list.querySelectorAll('.drag-item').forEach(i=>i.classList.remove('drag-over'));});
-    el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');});
-    el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
-    el.addEventListener('drop',e=>{
-      e.preventDefault();
-      if(src&&src!==el){
-        const items=[...list.querySelectorAll('.drag-item')];
-        const si=items.indexOf(src),di=items.indexOf(el);
-        if(si<di) list.insertBefore(src,el.nextSibling); else list.insertBefore(src,el);
-        list.querySelectorAll('.drag-num').forEach((n,i)=>n.textContent=i+1);
-        answers[idx]=[...list.querySelectorAll('.drag-text')].map(t=>t.textContent);
-        checkBtn();
-      }
-    });
-  });
-}
-
-function doConnect(side,i,idx){
-  const m=MISSIONS[currentMid];
-  const step=m.steps[idx];
-  const cData=step.connect||step;
-  if(!connectMatches[idx]) connectMatches[idx]={};
-  const cm=connectMatches[idx];
-  if(side==='left'&&cm[i]!==undefined) return;
-  if(side==='right'&&Object.values(cm).includes(i)) return;
-  if(connectSel===null){
-    connectSel=i; connectSide=side;
-    document.querySelectorAll(`.connect-item[data-side="${side}"][data-i="${i}"]`).forEach(el=>el.classList.add('sel'));
-  } else {
-    if(connectSide===side){
-      document.querySelectorAll('.connect-item.sel').forEach(el=>el.classList.remove('sel'));
-      connectSel=i; connectSide=side;
-      document.querySelectorAll(`.connect-item[data-side="${side}"][data-i="${i}"]`).forEach(el=>el.classList.add('sel'));
-      return;
+    case 'decision':{
+      const sd=sdec[idx];
+      h+=`<div class="act-q">${a.q}</div><div class="dopts">
+        ${a.opts.map((o,i)=>`<div class="dopt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})">
+          <div class="dts">${o.t}</div><div class="dss">${o.s}</div>
+        </div>`).join('')}
+      </div>${sd!==undefined&&a.fb?`<div class="feedback show ok">${a.fb}</div>`:''}`;
+      break;
     }
-    const li=side==='right'?connectSel:i, ri=side==='right'?i:connectSel;
-    const ok=cData.pairs.some(p=>p[0]===li&&p[1]===ri);
-    if(ok){
-      cm[li]=ri;
-      document.querySelectorAll('.connect-item.sel').forEach(el=>el.classList.remove('sel'));
-      answers[idx]=cm;
-      renderMission(currentMid);
-    } else {
-      document.querySelectorAll('.connect-item.sel').forEach(el=>{el.classList.remove('sel');el.classList.add('wrong');setTimeout(()=>el.classList.remove('wrong'),500);});
+    case 'text':{
+      h+=`<div class="act-q">${a.q||''}</div>
+        <textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans[idx]||''}</textarea>
+        <div class="cc"><span id="cc-${idx}">${(ans[idx]||'').length}</span> car.</div>`;
+      break;
     }
-    connectSel=null; connectSide=null;
-    if(Object.keys(cm).length===cData.left.length) checkBtn();
+    case 'lupa':{
+      const flags=lupaFlags[idx]||{};
+      h+=`<div class="lupa-instructions">👆 Pulsa cada línea para marcarla como sospechosa. Pulsa de nuevo para desmarcar.</div>
+        <div class="lupa-doc">${a.lines.map((line,i)=>`<span class="lupa-line ${flags[i]?'flagged':''}" onclick="doLupa(${idx},${i})">${line}</span>`).join('')}</div>
+        <div class="lupa-count">Líneas marcadas: <span>${Object.values(flags).filter(Boolean).length}</span> de ${a.lines.length}</div>`;
+      if(a.textq) h+=`<div class="act-q" style="margin-top:.75rem">${a.textq}</div>
+        <textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans['t_'+idx]||''}</textarea>
+        <div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;
+      break;
+    }
+    case 'board':{
+      const conn=boardConn[idx]||[];
+      h+=`<div class="board-hint">${a.hint}</div>
+        <div class="board-legend">
+          <div class="bl"><div class="bl-dot" style="background:var(--red)"></div>Sospechoso</div>
+          <div class="bl"><div class="bl-dot" style="background:var(--accent)"></div>Persona externa</div>
+          <div class="bl"><div class="bl-dot" style="background:var(--blue)"></div>Empresa</div>
+        </div>
+        <div class="board" id="board-${idx}">
+          <svg class="board-svg" id="svg-${idx}"></svg>
+          ${a.nodes.map(n=>`<div class="board-node ${n.type}" 
+            style="left:${n.x}%;top:${n.y}%;transform:translate(-50%,-50%)"
+            id="bn-${idx}-${n.id}" onclick="doBoard(${idx},'${n.id}')">${n.label}</div>`).join('')}
+        </div>
+        <div class="board-connections">Conexiones establecidas: <span id="bc-${idx}">${conn.length}</span> de ${a.correctPairs.length}</div>`;
+      if(a.textq) h+=`<div class="act-q" style="margin-top:.75rem">${a.textq}</div>
+        <textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans['t_'+idx]||''}</textarea>
+        <div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;
+      break;
+    }
+    case 'comparator':{
+      h+=`<div class="comparator">
+        ${a.pairs.map((pair,pi)=>`
+          <div class="comp-pair">
+            <div class="comp-side decl"><div class="comp-lbl">${pair.decl.lbl}</div><div class="comp-text">${pair.decl.txt}</div></div>
+            <div class="comp-side fact"><div class="comp-lbl">${pair.fact.lbl}</div><div class="comp-text">${pair.fact.txt}</div></div>
+          </div>
+          <textarea class="comp-mark" placeholder="${pair.ph||''}" oninput="doCompText(${idx},${pi},this.value)">${(compTexts[idx]||{})[pi]||''}</textarea>
+          ${pair.verdicts?`<div class="comp-verdict">
+            <button class="cvbtn ${(comparVerdicts[idx]||{})[pi]==='ok'?'sel-ok':''}" onclick="doVerdict(${idx},${pi},'ok')">✓ Contradice el hecho</button>
+            <button class="cvbtn ${(comparVerdicts[idx]||{})[pi]==='bad'?'sel-bad':''}" onclick="doVerdict(${idx},${pi},'bad')">✗ No es conclusivo</button>
+          </div>`:''}
+        `).join('')}
+      </div>`;
+      if(a.textq) h+=`<div class="act-q">${a.textq}</div>
+        <textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans[idx]||''}</textarea>
+        <div class="cc"><span id="cc-${idx}">${(ans[idx]||'').length}</span> car.</div>`;
+      break;
+    }
+    case 'sliders_text':{
+      h+=`<div class="sliders">${a.suspects.map((sus,i)=>`
+        <div class="srow">
+          <span class="sn">${sus}</span>
+          <input type="range" class="si" min="0" max="100" value="${(svals[idx]||{})[i]||0}"
+            oninput="doSlider(${idx},${i},this.value);document.getElementById('sv${idx}${i}').textContent=this.value+'%'">
+          <span class="sv" id="sv${idx}${i}">${(svals[idx]||{})[i]||0}%</span>
+        </div>`).join('')}</div>`;
+      if(a.textq) h+=`<div class="act-q">${a.textq}</div>
+        <textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans['t_'+idx]||''}</textarea>
+        <div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;
+      break;
+    }
+    case 'evidence_decision':{
+      const st=stags[idx]||{}, sd=sdec[idx];
+      h+=`<div class="act-sub">Selecciona los indicios verificados con fuente documental:</div>
+        <div class="etags">${a.tags.map((tag,i)=>`<div class="etag ${st[i]?'on':''}" onclick="doTag(${idx},${i})">${tag}</div>`).join('')}</div>`;
+      h+=`<div class="act-q">${a.decision.q}</div><div class="dopts">
+        ${a.decision.opts.map((o,i)=>`<div class="dopt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})">
+          <div class="dts">${o.t}</div><div class="dss">${o.s}</div>
+        </div>`).join('')}
+      </div>${sd!==undefined&&a.decision.fb?`<div class="feedback show ok">${a.decision.fb}</div>`:''}`;
+      break;
+    }
+    case 'informe':{
+      h+=`<div class="informe">
+        <div class="informe-header">
+          <div class="informe-header-title">Informe de Investigación Privada</div>
+          <div class="informe-header-sub">MFA-2026-LC-001 · Mulier Fortis Association · TIP 7293</div>
+        </div>
+        ${a.fields.map((f,fi)=>`<div class="informe-section">
+          <div class="informe-lbl">${f.lbl}</div>
+          <textarea class="informe-field" placeholder="${f.ph}" 
+            oninput="doInforme(${idx},${fi},this.value)">${(informeFields[idx]||{})[fi]||''}</textarea>
+        </div>`).join('')}
+      </div>`;
+      break;
+    }
+  }
+  h+='</div>';
+  return h;
+}
+
+function postRender(s){
+  const idx=cStep;
+  if(s.activity?.type==='board') drawBoardLines(idx, s.activity);
+}
+
+// ════════════════════════════════════════════════════════════════
+// HANDLERS
+// ════════════════════════════════════════════════════════════════
+function toggleDoc(idx){ ans['doc_open_'+idx]=!ans['doc_open_'+idx]; render(); }
+function doQuiz(i,idx,c){ if(ans[idx]!==undefined) return; ans[idx]=i; render(); checkBtn(); }
+function doText(idx,v){ ans[idx]=v; const cc=document.getElementById('cc-'+idx); if(cc)cc.textContent=v.length; checkBtn(); }
+function doDecision(idx,i){ sdec[idx]=i; ans['dec_'+idx]=i; render(); checkBtn(); }
+function doSlider(idx,si,v){ if(!svals[idx])svals[idx]={}; svals[idx][si]=parseInt(v); ans['s_'+idx]=svals[idx]; }
+function doTag(idx,i){ if(!stags[idx])stags[idx]={}; stags[idx][i]=!stags[idx][i]; const el=document.querySelectorAll('.etag')[i]; if(el)el.classList.toggle('on',!!stags[idx][i]); ans['tags_'+idx]=stags[idx]; }
+function doLupa(idx,i){ if(!lupaFlags[idx])lupaFlags[idx]={}; lupaFlags[idx][i]=!lupaFlags[idx][i]; const el=document.querySelectorAll('.lupa-line')[i]; if(el)el.classList.toggle('flagged',!!lupaFlags[idx][i]); const cnt=document.querySelector('.lupa-count span'); if(cnt)cnt.textContent=Object.values(lupaFlags[idx]).filter(Boolean).length; ans['lupa_'+idx]=lupaFlags[idx]; checkBtn(); }
+function doCompText(idx,pi,v){ if(!compTexts[idx])compTexts[idx]={}; compTexts[idx][pi]=v; ans['ct_'+idx]=compTexts[idx]; checkBtn(); }
+function doVerdict(idx,pi,v){ if(!comparVerdicts[idx])comparVerdicts[idx]={}; comparVerdicts[idx][pi]=v; ans['cv_'+idx]=comparVerdicts[idx]; const btns=document.querySelectorAll('.comp-verdict')[pi]?.querySelectorAll('.cvbtn'); if(btns){btns.forEach(b=>b.classList.remove('sel-ok','sel-bad')); btns[v==='ok'?0:1]?.classList.add(v==='ok'?'sel-ok':'sel-bad');} checkBtn(); }
+function doInforme(idx,fi,v){ if(!informeFields[idx])informeFields[idx]={}; informeFields[idx][fi]=v; ans['inf_'+idx]=informeFields[idx]; checkBtn(); }
+
+// ── BOARD ──────────────────────────────────────────────────────
+function doBoard(idx,nid){
+  if(!boardConn[idx]) boardConn[idx]=[];
+  const a=MISSIONS[cMid].steps[idx].activity;
+  if(!boardSel){ boardSel=nid; document.getElementById(`bn-${idx}-${nid}`)?.classList.add('selected'); }
+  else {
+    if(boardSel===nid){ document.getElementById(`bn-${idx}-${nid}`)?.classList.remove('selected'); boardSel=null; return; }
+    const pair=[boardSel,nid].sort();
+    const pairStr=pair.join('-');
+    const exists=boardConn[idx].some(c=>c.join('-')===pairStr);
+    if(exists){ boardConn[idx]=boardConn[idx].filter(c=>c.join('-')!==pairStr); }
+    else { boardConn[idx].push(pair); }
+    document.getElementById(`bn-${idx}-${boardSel}`)?.classList.remove('selected');
+    boardSel=null;
+    ans['board_'+idx]=boardConn[idx];
+    drawBoardLines(idx,a);
+    const cc=document.getElementById('bc-'+idx); if(cc)cc.textContent=boardConn[idx].length;
+    checkBtn();
   }
 }
 
-function doQuiz(i,idx){
-  const m=MISSIONS[currentMid];
-  const step=m.steps[idx];
-  const qData=step.quiz||step;
-  if(answers[idx]!==undefined) return;
-  answers[idx]=i;
-  renderMission(currentMid);
-  checkBtn();
+function drawBoardLines(idx,a){
+  const svg=document.getElementById(`svg-${idx}`); if(!svg) return;
+  const board=document.getElementById(`board-${idx}`); if(!board) return;
+  const conn=boardConn[idx]||[];
+  const br=board.getBoundingClientRect();
+  const correctStrs=(a.correctPairs||[]).map(p=>[...p].sort().join('-'));
+  svg.innerHTML=conn.map(pair=>{
+    const n1=document.getElementById(`bn-${idx}-${pair[0]}`);
+    const n2=document.getElementById(`bn-${idx}-${pair[1]}`);
+    if(!n1||!n2) return '';
+    const r1=n1.getBoundingClientRect(), r2=n2.getBoundingClientRect();
+    const x1=r1.left+r1.width/2-br.left, y1=r1.top+r1.height/2-br.top;
+    const x2=r2.left+r2.width/2-br.left, y2=r2.top+r2.height/2-br.top;
+    const isVerified=correctStrs.includes([...pair].sort().join('-'));
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="board-line ${isVerified?'verified':''}"/>`;
+  }).join('');
 }
 
-function doText(idx,val){
-  answers[idx]=val;
-  const cc=document.getElementById('cc-'+idx);
-  if(cc) cc.textContent=val.length;
-  checkBtn();
-}
-
-function doSlider(idx,si,val){
-  if(!sliderVals[idx]) sliderVals[idx]={};
-  sliderVals[idx][si]=parseInt(val);
-  answers[idx]=sliderVals[idx];
-}
-
-function doTag(idx,i){
-  if(!selectedTags[idx]) selectedTags[idx]={};
-  selectedTags[idx][i]=!selectedTags[idx][i];
-  answers['tags_'+idx]=selectedTags[idx];
-  const el=document.querySelectorAll('.etag')[i];
-  if(el) el.classList.toggle('selected',!!selectedTags[idx][i]);
-}
-
-function doDecision(idx,i){
-  selectedDecision[idx]=i;
-  answers['dec_'+idx]=i;
-  renderMission(currentMid);
-  checkBtn();
-}
-
-function canProceed(step){
-  const idx=currentStep;
-  const type=step.type;
-  if(type==='doc+order'||type==='order') return true;
-  if(type==='connect'||type==='doc+connect'){
-    const cData=step.connect||step;
-    return Object.keys(connectMatches[idx]||{}).length===cData.left.length;
-  }
-  if(type==='quiz'||type==='doc+quiz'||type==='audio+quiz') return answers[idx]!==undefined;
-  if(type==='text'||type==='osint+text') return (answers[idx]||'').length>15;
-  if(type==='suspect_meter') return true;
-  if(type==='decision') return selectedDecision[idx]!==undefined;
-  if(type==='evidence+decision') return selectedDecision[idx]!==undefined;
-  return true;
-}
-
-function checkBtn(){
-  const btn=document.getElementById('next-btn');
-  if(btn&&MISSIONS[currentMid]){
-    const step=MISSIONS[currentMid].steps[currentStep];
-    btn.disabled=!canProceed(step);
+// ════════════════════════════════════════════════════════════════
+// CAN PROCEED
+// ════════════════════════════════════════════════════════════════
+function canGo(s){
+  const a=s.activity, idx=cStep;
+  if(!a) return true;
+  switch(a.type){
+    case 'quiz': return ans[idx]!==undefined;
+    case 'decision': return sdec[idx]!==undefined;
+    case 'text': return (ans[idx]||'').length>20;
+    case 'lupa': return Object.values(lupaFlags[idx]||{}).filter(Boolean).length>=a.minFlags;
+    case 'board': return (boardConn[idx]||[]).length>=Math.ceil((a.correctPairs||[]).length*0.5);
+    case 'comparator': return Object.keys(comparVerdicts[idx]||{}).length===a.pairs.length;
+    case 'sliders_text': return (ans['t_'+idx]||'').length>15;
+    case 'evidence_decision': return sdec[idx]!==undefined;
+    case 'informe': return Object.values(informeFields[idx]||{}).every(v=>v.length>5);
+    default: return true;
   }
 }
+function checkBtn(){ const b=document.getElementById('nbtn'); if(b&&MISSIONS[cMid]) b.disabled=!canGo(MISSIONS[cMid].steps[cStep]); }
 
-// ════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 // NAVIGATION
-// ════════════════════════════════════════════════════════════════════════════
-function jumpTo(i){ if(i<=currentStep){currentStep=i;renderMission(currentMid);} }
-function prevStep(){ if(currentStep>0){currentStep--;renderMission(currentMid);} }
-
-async function nextStep(){
-  const m=MISSIONS[currentMid];
-  if(currentStep<m.steps.length-1){
-    currentStep++; renderMission(currentMid);
-  } else {
-    await submit();
-  }
+// ════════════════════════════════════════════════════════════════
+function jumpTo(i){ if(i<=cStep){cStep=i; render();} }
+function prev(){ if(cStep>0){cStep--; render();} }
+async function next(){
+  const m=MISSIONS[cMid];
+  if(cStep<m.steps.length-1){ cStep++; render(); }
+  else { await submit(); }
 }
-
 async function submit(){
-  const m=MISSIONS[currentMid];
-  const payload={teamId,coordinator,missionId:currentMid,
-    missionTitle:m.title,phase:m.phase,answers,ts:Date.now()};
-  try{
-    await fetch(`${FB}/misiones-respuestas/equipo${teamId}/${currentMid}.json`,
-      {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  }catch(e){}
+  const m=MISSIONS[cMid];
+  try{ await fetch(`${FB}/misiones-respuestas/equipo${tid}/${cMid}.json`,{method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({tid,coord,missionId:cMid,missionTitle:m.title,phase:m.phase,
+      answers:ans,lupaFlags,boardConn,comparVerdicts,compTexts,svals,stags,sdec,informeFields,ts:Date.now()})});}catch(e){}
   document.getElementById('mission-view').style.display='none';
   document.getElementById('done-view').style.display='block';
-  document.getElementById('prog-strip').style.width='100%';
+  document.getElementById('pfill').style.width='100%';
 }
 </script>
 </body>
