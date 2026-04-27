@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFA · Control de Misiones</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0908;--bg2:#131211;--bg3:#1a1917;
+  --paper:#f5f0e8;--muted:#6a6560;--border:rgba(245,240,232,0.08);--border2:rgba(245,240,232,0.15);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;
+  --mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:var(--mono)}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--serif);font-size:17px}
+.sub{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blink 2s ease infinite;display:inline-block;margin-right:5px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 52px)}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:1.25rem;overflow-y:auto}
+.sidebar-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.mission-btn{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.875rem;margin-bottom:8px;cursor:pointer;transition:all .15s;font-family:var(--mono)}
+.mission-btn:hover{border-color:var(--border2)}
+.mission-btn.active{border-color:var(--accent);background:rgba(200,169,110,.06)}
+.mission-btn.sent{border-color:rgba(45,122,95,.3)}
+.mb-phase{font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.mb-title{font-size:12px;color:var(--paper)}
+.mb-status{font-size:9px;margin-top:5px;display:flex;align-items:center;gap:4px}
+
+.activate-section{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.activate-btn{width:100%;background:var(--accent);color:#0a0908;border:none;border-radius:4px;padding:11px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
+.activate-btn:hover{opacity:.85}
+.activate-btn:disabled{opacity:.3;cursor:not-allowed}
+.deactivate-btn{width:100%;background:transparent;color:var(--red);border:1px solid rgba(192,80,64,.3);border-radius:4px;padding:9px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.deactivate-btn:hover{background:rgba(192,80,64,.1)}
+
+/* MAIN */
+.content{padding:1.5rem;overflow-y:auto}
+
+.active-banner{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2);border-radius:6px;padding:.875rem 1rem;margin-bottom:1.5rem;display:none}
+.active-banner.show{display:block}
+.ab-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.ab-title{font-size:14px;color:var(--paper)}
+.ab-teams{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* TEAMS GRID */
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:1.5rem}
+.team-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.tc-header{background:var(--bg3);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.tc-name{font-size:12px;font-weight:500}
+.tc-status{font-size:10px;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
+.status-waiting{background:rgba(245,240,232,.06);color:var(--muted)}
+.status-active{background:rgba(200,169,110,.12);color:var(--accent);animation:blink 2s ease infinite}
+.status-done{background:rgba(45,122,95,.15);color:#5dcaa5}
+.tc-body{padding:.875rem 1rem}
+.tc-coord{font-size:10px;color:var(--muted);margin-bottom:.5rem}
+.tc-step{font-size:12px;color:var(--paper)}
+.tc-progress{height:2px;background:rgba(245,240,232,.08);border-radius:1px;overflow:hidden;margin-top:.625rem}
+.tc-progress-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .3s}
+
+/* ANSWERS */
+.answers-section{margin-top:1.5rem}
+.as-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.answer-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:.875rem 1rem;margin-bottom:.75rem}
+.ac-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem}
+.ac-team{font-size:11px;font-weight:500;color:var(--accent)}
+.ac-time{font-size:10px;color:var(--muted)}
+.ac-mission{font-size:10px;color:var(--muted);margin-bottom:.5rem;font-style:italic}
+.ac-steps{display:flex;flex-direction:column;gap:.5rem}
+.ac-step{font-size:11px;color:var(--paper);line-height:1.5;padding:.5rem .75rem;background:var(--bg3);border-radius:4px}
+.ac-step-label{font-size:9px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+
+.no-data{text-align:center;padding:3rem;color:var(--muted);font-size:12px;line-height:1.7}
+.refresh-btn{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:7px 14px;border:1px solid var(--border2);border-radius:3px;background:transparent;color:var(--paper);cursor:pointer;transition:all .15s}
+.refresh-btn:hover{background:rgba(245,240,232,.08)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="logo">MFA · Control de Misiones</div>
+    <div class="sub">Panel instructor · Caso Lucentia Consulting</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <div class="live-dot"></div>
+    <span style="font-size:10px;color:var(--muted)">En directo</span>
+    <button class="refresh-btn" onclick="loadAll()">↻ Actualizar</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Misiones disponibles</div>
+
+    <div class="mission-btn" id="mb-M1" onclick="selectMission('M1')">
+      <div class="mb-phase">Fase 1 · Sobre 1</div>
+      <div class="mb-title">Operación Archivo</div>
+      <div class="mb-status" id="mbs-M1"><span style="color:var(--muted)">Sin activar</span></div>
+    </div>
+    <div class="mission-btn" id="mb-M2" onclick="selectMission('M2')">
+      <div class="mb-phase">Fase 2 · OSINT</div>
+      <div class="mb-title">Operación Huella Digital</div>
+      <div class="mb-status" id="mbs-M2"><span style="color:var(--muted)">Sin activar</span></div>
+    </div>
+    <div class="mission-btn" id="mb-M3" onclick="selectMission('M3')">
+      <div class="mb-phase">Fase 3 · Entrevistas</div>
+      <div class="mb-title">Operación Contradicción</div>
+      <div class="mb-status" id="mbs-M3"><span style="color:var(--muted)">Sin activar</span></div>
+    </div>
+    <div class="mission-btn" id="mb-M4" onclick="selectMission('M4')">
+      <div class="mb-phase">Día 2 · Informe final</div>
+      <div class="mb-title">Operación Veredicto</div>
+      <div class="mb-status" id="mbs-M4"><span style="color:var(--muted)">Sin activar</span></div>
+    </div>
+
+    <div class="activate-section">
+      <div id="selected-preview" style="font-size:11px;color:var(--muted);margin-bottom:.875rem;display:none"></div>
+      <button class="activate-btn" id="activate-btn" onclick="activateMission()" disabled>Activar en todos los móviles →</button>
+      <button class="deactivate-btn" onclick="deactivateMission()">Desactivar misión actual</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="active-banner" id="active-banner">
+      <div class="ab-label">Misión activa ahora</div>
+      <div class="ab-title" id="ab-title">—</div>
+      <div class="ab-teams" id="ab-teams">0 equipos han completado</div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div style="font-family:var(--serif);font-size:18px">Estado de los equipos</div>
+      <div style="font-size:11px;color:var(--muted)" id="teams-meta">—</div>
+    </div>
+
+    <div class="teams-grid" id="teams-grid"></div>
+
+    <div class="answers-section">
+      <div class="as-title">Respuestas recibidas</div>
+      <div id="answers-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const FB='https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
+const MISSIONS_META={
+  M1:{title:'Operación Archivo',phase:'Fase 1',steps:4},
+  M2:{title:'Operación Huella Digital',phase:'Fase 2',steps:4},
+  M3:{title:'Operación Contradicción',phase:'Fase 3',steps:4},
+  M4:{title:'Operación Veredicto',phase:'Día 2',steps:4}
+};
+let selectedMission=null, activeMission=null, sentMissions=new Set();
+
+function selectMission(id){
+  selectedMission=id;
+  document.querySelectorAll('.mission-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mb-'+id).classList.add('active');
+  const m=MISSIONS_META[id];
+  const preview=document.getElementById('selected-preview');
+  preview.style.display='block';
+  preview.textContent=m.phase+' · '+m.title+' · '+m.steps+' actividades';
+  document.getElementById('activate-btn').disabled=false;
+}
+
+async function activateMission(){
+  if(!selectedMission) return;
+  const m=MISSIONS_META[selectedMission];
+  await fetch(`${FB}/mision-activa.json`,{
+    method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:selectedMission,title:m.title,phase:m.phase,ts:Date.now()})
+  });
+  sentMissions.add(selectedMission);
+  activeMission=selectedMission;
+  document.getElementById('mb-'+selectedMission).classList.add('sent');
+  document.getElementById('mbs-'+selectedMission).innerHTML=`<span style="color:var(--accent)">● Activa ahora</span>`;
+  document.getElementById('active-banner').classList.add('show');
+  document.getElementById('ab-title').textContent=m.phase+' · '+m.title;
+  loadAll();
+}
+
+async function deactivateMission(){
+  await fetch(`${FB}/mision-activa.json`,{method:'DELETE'});
+  activeMission=null;
+  document.getElementById('active-banner').classList.remove('show');
+  if(selectedMission) document.getElementById('mbs-'+selectedMission).innerHTML=`<span style="color:var(--teal)">✓ Enviada</span>`;
+}
+
+async function loadAll(){
+  let teams={},answers={};
+  try{const r=await fetch(`${FB}/misiones-equipos.json`);teams=await r.json()||{};}catch(e){}
+  try{const r=await fetch(`${FB}/misiones-respuestas.json`);answers=await r.json()||{};}catch(e){}
+  renderTeams(teams,answers);
+  renderAnswers(answers);
+  updateBanner(answers);
+}
+
+function renderTeams(teams,answers){
+  const grid=document.getElementById('teams-grid');
+  const ids=['1','2','3','4'];
+  let connectedCount=0;
+  grid.innerHTML=ids.map(tid=>{
+    const t=teams['equipo'+tid];
+    const ta=answers['equipo'+tid]||{};
+    const completedMissions=Object.keys(ta).length;
+    const currentM=activeMission?ta[activeMission]:null;
+    let status='waiting', statusText='Sin conectar';
+    if(t){ connectedCount++; status='active'; statusText='Conectado'; }
+    if(currentM){ status='done'; statusText='Completado'; }
+    const pct=activeMission?MISSIONS_META[activeMission]?Math.round(completedMissions/Object.keys(MISSIONS_META).length*100):0:0;
+    return `<div class="team-card">
+      <div class="tc-header">
+        <div class="tc-name">Equipo ${tid}</div>
+        <div class="tc-status status-${status}">${statusText}</div>
+      </div>
+      <div class="tc-body">
+        ${t?`<div class="tc-coord">${t.coordinator}</div>`:'<div class="tc-coord" style="color:var(--muted)">Sin registrar</div>'}
+        <div class="tc-step">${completedMissions} misión${completedMissions!==1?'es':''} completada${completedMissions!==1?'s':''}</div>
+        <div class="tc-progress"><div class="tc-progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('teams-meta').textContent=connectedCount+' equipo'+( connectedCount!==1?'s':'')+' conectado'+(connectedCount!==1?'s':'');
+}
+
+function renderAnswers(answers){
+  const list=document.getElementById('answers-list');
+  const all=[];
+  Object.entries(answers).forEach(([teamKey,missions])=>{
+    Object.entries(missions).forEach(([mId,data])=>{
+      all.push({teamKey,mId,...data});
+    });
+  });
+  all.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(!all.length){list.innerHTML='<div class="no-data">Las respuestas aparecerán aquí cuando los equipos completen las misiones.</div>';return;}
+  list.innerHTML=all.map(a=>`
+    <div class="answer-card">
+      <div class="ac-header">
+        <span class="ac-team">${a.teamName||'Equipo '+a.teamId} · ${a.coordinator}</span>
+        <span class="ac-time">${new Date(a.ts).toLocaleTimeString('es-ES')}</span>
+      </div>
+      <div class="ac-mission">${a.phase||''} · ${a.missionTitle||a.mId}</div>
+      <div class="ac-steps">
+        ${Object.entries(a.answers||{}).map(([step,ans])=>`
+          <div class="ac-step">
+            <div class="ac-step-label">Actividad ${parseInt(step)+1}</div>
+            ${formatAnswer(ans)}
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function formatAnswer(ans){
+  if(typeof ans==='string') return ans;
+  if(typeof ans==='number') return 'Opción '+ans;
+  if(typeof ans==='object'&&ans!==null){
+    if(Object.values(ans).every(v=>typeof v==='number'))
+      return Object.entries(ans).map(([k,v])=>`${k}: ${v}%`).join(' · ');
+    return JSON.stringify(ans).substring(0,100)+'...';
+  }
+  return String(ans);
+}
+
+function updateBanner(answers){
+  if(!activeMission) return;
+  const completed=Object.values(answers).filter(ta=>ta[activeMission]).length;
+  document.getElementById('ab-teams').textContent=completed+' equipo'+(completed!==1?'s':'')+' ha'+(completed!==1?'n':'')+' completado la misión';
+}
+
+loadAll();
+setInterval(loadAll,5000);
+</script>
+</body>
+</html>

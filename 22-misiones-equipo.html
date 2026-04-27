@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MFA · Misiones del Caso</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0908;--bg2:#141210;--bg3:#1e1b18;--bg4:#252220;
+  --paper:#f5f0e8;--muted:#7a7570;--border:rgba(245,240,232,0.08);--border2:rgba(245,240,232,0.18);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;--gold:#7a5c10;
+  --mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:var(--mono)}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top-logo{font-family:var(--serif);font-size:15px}
+.top-sub{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+.top-right{display:flex;align-items:center;gap:8px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.team-badge{font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--accent)}
+.progress-strip{height:2px;background:var(--border);position:fixed;top:52px;left:0;right:0;z-index:99}
+.progress-fill{height:100%;background:var(--accent);transition:width .4s ease}
+
+.main{max-width:500px;margin:0 auto;padding:1.25rem 1.125rem 6rem}
+
+/* ── SETUP ── */
+.setup-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:1.5rem}
+.setup-logo{font-family:var(--serif);font-size:26px;margin-bottom:4px}
+.setup-sub{font-size:11px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6}
+.setup-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.setup-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:11px;font-family:var(--mono);font-size:13px;color:var(--paper);outline:none;margin-bottom:.875rem;appearance:none}
+.setup-btn{width:100%;background:var(--accent);color:#0a0908;border:none;border-radius:4px;padding:13px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+
+/* ── WAITING ── */
+.waiting-view{text-align:center;padding:3.5rem 1rem}
+.waiting-icon{font-size:44px;margin-bottom:1rem}
+.waiting-title{font-family:var(--serif);font-size:22px;margin-bottom:.5rem}
+.waiting-sub{font-size:12px;color:var(--muted);line-height:1.7}
+.pulse{width:48px;height:48px;border-radius:50%;border:2px solid var(--accent);margin:1.5rem auto 0;animation:ring 2s ease-out infinite;opacity:.4}
+@keyframes ring{0%{transform:scale(1);opacity:.4}100%{transform:scale(1.7);opacity:0}}
+
+/* ── MISSION WRAPPER ── */
+.mission-wrap{animation:up .4s ease}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.mission-header{border-radius:10px 10px 0 0;padding:1.25rem 1.125rem}
+.m-phase{font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.65;margin-bottom:.4rem}
+.m-title{font-family:var(--serif);font-size:21px;line-height:1.25;margin-bottom:.3rem}
+.m-code{font-size:10px;letter-spacing:.08em;opacity:.5}
+
+.mission-card{background:var(--bg2);border:1px solid var(--border);border-radius:0 0 10px 10px;margin-bottom:1rem;overflow:hidden}
+
+/* step nav */
+.step-nav{display:flex;align-items:center;padding:.875rem 1rem .5rem;gap:5px;border-bottom:1px solid var(--border)}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;transition:all .2s;flex-shrink:0}
+.sdot.active{background:var(--accent);transform:scale(1.3)}
+.sdot.done{background:var(--teal)}
+.slabel{font-size:10px;color:var(--muted);margin-left:auto}
+
+.step-body{padding:1.125rem;min-height:180px}
+.step-type-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:500}
+.step-title{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:.75rem;line-height:1.4}
+.step-text{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:1rem}
+.step-hint{font-size:11px;color:var(--muted);line-height:1.6;font-style:italic;padding:.625rem .875rem;border-left:2px solid var(--border2);margin-bottom:1rem}
+
+/* ── DOCUMENT VIEWER ── */
+.doc-viewer{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;margin-bottom:1rem;overflow:hidden}
+.doc-header{background:var(--bg4);padding:.625rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.doc-id{font-size:10px;letter-spacing:.08em;color:var(--accent)}
+.doc-title{font-size:11px;color:var(--paper);font-weight:500}
+.doc-content{padding:.875rem 1rem;max-height:260px;overflow-y:auto}
+.doc-content::-webkit-scrollbar{width:3px}
+.doc-content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.doc-row{display:flex;gap:.75rem;padding:.4rem 0;border-bottom:.5px solid var(--border);font-size:11px}
+.doc-row:last-child{border-bottom:none}
+.doc-key{color:var(--muted);min-width:90px;flex-shrink:0}
+.doc-val{color:var(--paper);line-height:1.5}
+.doc-val.alert{color:var(--red)}
+.doc-val.ok{color:#5dcaa5}
+.doc-table{width:100%;border-collapse:collapse;font-size:11px}
+.doc-table th{background:var(--bg);color:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:.4rem .5rem;text-align:left;border-bottom:1px solid var(--border2)}
+.doc-table td{padding:.5rem;border-bottom:.5px solid var(--border);color:var(--paper);vertical-align:top;line-height:1.4}
+.doc-table tr:last-child td{border-bottom:none}
+.doc-table tr.highlight td{background:rgba(192,80,64,.08);color:var(--paper)}
+.doc-table tr.suspicious td{background:rgba(200,169,110,.06)}
+
+/* ── ACTIVITIES ── */
+
+/* Drag & Drop */
+.drag-list{display:flex;flex-direction:column;gap:7px;margin-bottom:1rem}
+.drag-item{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:.75rem 1rem;display:flex;align-items:flex-start;gap:.75rem;cursor:grab;user-select:none;transition:border-color .15s}
+.drag-item.drag-over{border-color:var(--accent);background:rgba(200,169,110,.06)}
+.drag-handle{color:var(--muted);font-size:13px;flex-shrink:0;margin-top:1px}
+.drag-num{font-size:10px;font-weight:500;color:var(--accent);min-width:18px;flex-shrink:0;margin-top:2px}
+.drag-text{font-size:12px;line-height:1.5;color:var(--paper)}
+
+/* Connect */
+.connect-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.connect-col-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;text-align:center}
+.connect-item{background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:.5rem .625rem;font-size:11px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.4;margin-bottom:5px}
+.connect-item:hover{border-color:var(--border2)}
+.connect-item.sel{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
+.connect-item.matched{border-color:var(--teal);background:rgba(45,122,95,.1);color:#5dcaa5;cursor:default}
+.connect-item.wrong{border-color:var(--red);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}70%{transform:translateX(5px)}}
+
+/* Quiz */
+.quiz-opts{display:flex;flex-direction:column;gap:7px;margin-bottom:.75rem}
+.quiz-opt{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:.875rem 1rem;font-size:12px;cursor:pointer;transition:all .15s;line-height:1.5}
+.quiz-opt:hover{background:var(--bg4)}
+.quiz-opt.correct{border-color:var(--teal);background:rgba(45,122,95,.1);color:#5dcaa5;pointer-events:none}
+.quiz-opt.wrong{border-color:var(--red);background:rgba(192,80,64,.08);color:var(--red);pointer-events:none}
+.quiz-opt.disabled{pointer-events:none;opacity:.4}
+.feedback{font-size:11px;padding:.75rem 1rem;border-radius:6px;line-height:1.65;margin-bottom:.75rem;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:rgba(45,122,95,.08);border:1px solid rgba(45,122,95,.2);color:#5dcaa5}
+.feedback.bad{background:rgba(192,80,64,.06);border:1px solid rgba(192,80,64,.2);color:var(--paper)}
+
+/* Textarea */
+.txt-area{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:.875rem;font-family:var(--mono);font-size:12px;color:var(--paper);outline:none;resize:vertical;min-height:80px;line-height:1.6;margin-bottom:.5rem}
+.txt-area:focus{border-color:var(--accent)}
+.txt-area::placeholder{color:var(--muted)}
+.char-hint{font-size:10px;color:var(--muted);text-align:right;margin-bottom:.75rem}
+
+/* Decision */
+.decision-list{display:flex;flex-direction:column;gap:.75rem;margin-bottom:.75rem}
+.decision-opt{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1rem;cursor:pointer;transition:all .15s}
+.decision-opt:hover{background:var(--bg4)}
+.decision-opt.sel{border-color:var(--accent);background:rgba(200,169,110,.06)}
+.d-title{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:3px}
+.d-sub{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* Suspect sliders */
+.sliders{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem}
+.slider-row{display:flex;align-items:center;gap:.75rem}
+.slider-name{font-size:11px;color:var(--muted);min-width:85px;flex-shrink:0}
+.slider-input{flex:1;-webkit-appearance:none;height:4px;background:var(--border2);border-radius:2px;outline:none}
+.slider-input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+.slider-val{font-size:11px;color:var(--accent);min-width:32px;text-align:right}
+
+/* Evidence tags */
+.evidence-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.etag{font-size:10px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--muted);transition:all .15s}
+.etag.selected{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
+
+/* OSINT link */
+.osint-link{display:flex;align-items:center;gap:.875rem;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1rem;margin-bottom:1rem;text-decoration:none;transition:border-color .15s}
+.osint-link:hover{border-color:var(--accent)}
+.osint-icon{font-size:24px;flex-shrink:0}
+.osint-info{flex:1}
+.osint-title{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:2px}
+.osint-sub{font-size:11px;color:var(--muted)}
+.osint-arrow{color:var(--accent);font-size:16px}
+
+/* Audio player */
+.audio-card{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.audio-title{font-size:11px;font-weight:500;color:var(--paper);margin-bottom:.625rem}
+.audio-player{width:100%;height:36px;border-radius:4px;background:var(--bg4)}
+.audio-player::-webkit-media-controls-panel{background:var(--bg4)}
+
+/* Navigation */
+.step-controls{display:flex;gap:.75rem;padding:1rem;border-top:1px solid var(--border)}
+.s-btn{flex:1;padding:11px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--paper);transition:all .15s}
+.s-btn:hover{background:rgba(245,240,232,.05)}
+.s-btn.primary{background:var(--accent);color:#0a0908;border-color:var(--accent)}
+.s-btn.primary:hover{opacity:.85}
+.s-btn:disabled{opacity:.25;cursor:not-allowed}
+
+/* Completed */
+.done-card{background:rgba(45,122,95,.07);border:1px solid rgba(45,122,95,.22);border-radius:10px;padding:1.5rem;text-align:center;animation:up .3s ease}
+.done-icon{font-size:36px;margin-bottom:.75rem}
+.done-title{font-family:var(--serif);font-size:20px;margin-bottom:.375rem}
+.done-sub{font-size:12px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="top-logo">MFA · Caso Lucentia</div>
+    <div class="top-sub">Misiones de investigación</div>
+  </div>
+  <div class="top-right">
+    <div class="live-dot"></div>
+    <div class="team-badge" id="team-badge" style="display:none">—</div>
+  </div>
+</div>
+<div class="progress-strip"><div class="progress-fill" id="prog-strip" style="width:0%"></div></div>
+
+<div class="main">
+  <div id="setup-view">
+    <div class="setup-card">
+      <div class="setup-logo">Mulier Fortis</div>
+      <div class="setup-sub">Sistema de misiones — Caso Lucentia Consulting S.L.<br>Identifica tu equipo para empezar.</div>
+      <label class="setup-label">Equipo</label>
+      <select class="setup-input" id="team-sel">
+        <option value="">Selecciona tu equipo</option>
+        <option value="1">Equipo 1</option>
+        <option value="2">Equipo 2</option>
+        <option value="3">Equipo 3</option>
+        <option value="4">Equipo 4</option>
+      </select>
+      <label class="setup-label">Coordinador/a</label>
+      <input class="setup-input" type="text" id="coord-inp" placeholder="Nombre completo">
+      <button class="setup-btn" onclick="startApp()">Entrar al caso →</button>
+    </div>
+  </div>
+  <div id="waiting-view" style="display:none">
+    <div class="waiting-view">
+      <div class="waiting-icon">🔍</div>
+      <div class="waiting-title">Preparaos...</div>
+      <div class="waiting-sub">La instructora activará la siguiente misión en breve.<br>Tened el expediente a mano.</div>
+      <div class="pulse"></div>
+    </div>
+  </div>
+  <div id="mission-view" style="display:none"></div>
+  <div id="done-view" style="display:none">
+    <div class="done-card">
+      <div class="done-icon">✓</div>
+      <div class="done-title">Misión completada</div>
+      <div class="done-sub">Respuestas enviadas. Esperad la siguiente misión.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FB='https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
+// GitHub Pages base URL for audio files
+const AUDIO_BASE='https://claudialozanosans-ctrl.github.io/mfa-taller/';
+const OSINT_URL='https://claudialozanosans-ctrl.github.io/mfa-taller/osint-investigapro.html';
+
+// ════════════════════════════════════════════════════════════════════════════
+// MISSION DATA — conspiración Ibáñez + Castellví
+// Confusión: Mora parece culpable en OSINT, Paula sospechosa en entrevistas
+// Solo cruzando los 3 niveles se ve la conspiración de los dos hombres
+// ════════════════════════════════════════════════════════════════════════════
+const MISSIONS={
+
+// ── MISIÓN 1 · ANÁLISIS DOCUMENTAL ──────────────────────────────────────────
+M1:{
+  phase:'Fase 1 · Análisis documental',
+  title:'Operación Archivo',
+  code:'MFA-OP-001',
+  color:'#1a3a2a',
+  steps:[
+    {
+      type:'doc+order',
+      typeLabel:'Documento + Actividad',
+      title:'El log del servidor — algo no cuadra',
+      text:'Lucentia os ha facilitado el registro de accesos al servidor del Proyecto Atenea durante marzo. Antes de analizarlo, hay algo que el sistema de seguridad detectó: los registros del 14 al 16 de marzo aparecen con datos incompletos — parece que alguien modificó el log después. Analizad lo que queda y reconstruid la cronología.',
+      hint:'Fijáos no solo en quién accede, sino en cuándo, cuántas veces y desde dónde. Un acceso legítimo y uno sospechoso pueden parecerse mucho.',
+      doc:{
+        id:'DOC-01',title:'Registro de accesos — datos recuperados',
+        rows:[
+          {k:'08/03 · 07:12',v:'A.CASTELLVI — Módulo financiero — 1 archivo — IP corporativa'},
+          {k:'12/03 · 21:47',v:'S.MORA — Documento completo — impresión 47 págs — IP corporativa',alert:true},
+          {k:'14/03 · 23:??',v:'REGISTRO CORRUPTO — IP externa desconocida — archivos: dato no recuperado',alert:true},
+          {k:'15/03 · 23:14',v:'M.IBANEZ — 3 archivos (estrategia + anexos + perfil cliente) — IP corporativa VPN',alert:true},
+          {k:'18/03 · 07:12',v:'A.CASTELLVI — Acceso sin descarga — IP corporativa'},
+          {k:'21/03 · 10:15',v:'M.IBANEZ — 12 págs módulo estratégico — IP corporativa'},
+          {k:'22/03 · 08:47',v:'P.ESTEVE — Acceso sin descarga — IP corporativa'},
+        ]
+      },
+      dragItems:[
+        'Nexum recibe datos del Proyecto Atenea',
+        'Se detecta registro corrupto del 14 de marzo',
+        'Ibáñez descarga 3 archivos incluyendo perfil del cliente',
+        'Lucentia inicia el Proyecto Atenea — acceso restringido a 4 personas',
+        'El cliente alerta a Lucentia sobre propuesta idéntica de Nexum',
+        'Castellví accede sin descargar nada — dos días después del registro corrupto',
+      ],
+      correctOrder:[3,1,2,5,0,4]
+    },
+    {
+      type:'connect',
+      typeLabel:'Conecta · Acceso real',
+      title:'¿Quién vio exactamente qué?',
+      text:'El organigrama de accesos es clave. Conecta cada persona con lo que realmente podía ver en el sistema — no con lo que dice que vio.',
+      hint:'Hay una diferencia importante entre acceso completo y acceso parcial. Alguien con acceso parcial no puede filtrar el perfil del cliente aunque quiera.',
+      left:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve'],
+      right:['Acceso completo incl. perfil del cliente','Acceso completo incl. perfil del cliente','Solo módulo financiero — sin perfil cliente','Acceso completo incl. perfil del cliente'],
+      pairs:[[0,0],[1,1],[2,2],[3,3]]
+    },
+    {
+      type:'quiz',
+      typeLabel:'Test legal',
+      title:'¿Qué dice exactamente el log del 15 de marzo?',
+      text:'El log muestra que M.IBANEZ descargó el archivo de perfil del cliente a las 23:14h. ¿Cuál de estas conclusiones es la ÚNICA que podéis incluir en vuestro informe?',
+      opts:[
+        {t:'Ibáñez robó el perfil del cliente para entregárselo a Nexum',correct:false},
+        {t:'El usuario M.IBANEZ descargó el archivo de perfil del cliente el 15/03 a las 23:14h desde IP corporativa VPN',correct:true},
+        {t:'Ibáñez es el principal sospechoso de la filtración',correct:false},
+        {t:'La descarga nocturna prueba que Ibáñez tenía intención de filtrar los documentos',correct:false},
+      ],
+      fb:{ok:'Exacto. El log es un hecho: quién, cuándo, qué. La intención y la culpabilidad las determina un juez. Vuestro informe solo puede afirmar lo que el documento acredita.',bad:'Cuidado. Un informe de detective solo describe hechos verificables. "Robó", "entregó" o "es culpable" son conclusiones que no podéis afirmar. Solo podéis decir lo que el log demuestra.'}
+    },
+    {
+      type:'decision',
+      typeLabel:'Decisión táctica',
+      title:'¿Cuál es vuestro siguiente paso?',
+      text:'Tenéis el log, el organigrama y el análisis comparativo de Nexum. El registro corrupto del 14 de marzo os preocupa — no sabéis quién accedió esa noche. ¿Qué hacéis ahora?',
+      opts:[
+        {t:'Investigar a Ibáñez en fuentes abiertas — ya tenemos suficiente para señalarle',s:'Tiene la descarga más sospechosa. Podemos centrarnos en él y olvidar el registro corrupto.'},
+        {t:'Investigar a todos en fuentes abiertas antes de descartar a nadie',s:'El registro corrupto podría ser de cualquiera. Las fuentes abiertas pueden revelar conexiones que el log no muestra.'},
+        {t:'Pedir a Lucentia que recupere el registro corrupto del 14 de marzo',s:'Si alguien modificó el log, esa noche podría ser la más importante del caso.'},
+        {t:'Entrevistar a Ibáñez directamente — es el más sospechoso del log',s:'Las entrevistas son más efectivas cuando ya tenemos más información. ¿Estamos seguros de que es él?'},
+      ],
+      noCorrect:true,
+      fb:'Decisión registrada. Recordad: en investigación privada, descartar un sospechoso demasiado pronto es el error más frecuente. El registro corrupto del 14 de marzo todavía no tiene explicación.'
+    }
+  ]
+},
+
+// ── MISIÓN 2 · OSINT ────────────────────────────────────────────────────────
+M2:{
+  phase:'Fase 2 · Investigación OSINT',
+  title:'Operación Huella Digital',
+  code:'MFA-OP-002',
+  color:'#0d2a4a',
+  steps:[
+    {
+      type:'quiz',
+      typeLabel:'Test legal antes de empezar',
+      title:'¿Qué podéis buscar legalmente?',
+      text:'Antes de abrir InvestigaPro, confirmad que sabéis qué está permitido. ¿Cuál de estas acciones NO puede hacer un detective privado en España sin orden judicial?',
+      opts:[
+        {t:'Buscar en el Registro Mercantil quién dirige Nexum Strategy Partners',correct:false},
+        {t:'Ver el perfil público de LinkedIn de los sospechosos',correct:false},
+        {t:'Acceder al correo personal de Sílvia Mora para ver si tiene archivos de Lucentia',correct:true},
+        {t:'Recuperar una publicación eliminada de LinkedIn desde la caché de Google',correct:false},
+      ],
+      fb:{ok:'Correcto. El correo personal es inviolable sin autorización judicial. Todo lo demás son fuentes abiertas y legalmente accesibles.',bad:'Incorrecto. Acceder a cuentas personales sin orden judicial es ilegal aunque tengáis sospecha fundada. El correo personal de cualquier persona está protegido.'}
+    },
+    {
+      type:'osint+text',
+      typeLabel:'Investigación activa · InvestigaPro',
+      title:'Abrid InvestigaPro y buscad',
+      text:'Usad el buscador para investigar a los cuatro sospechosos y las dos empresas. Hay conexiones que no son obvias. Cuando hayáis terminado, anotad aquí vuestros tres hallazgos más relevantes.',
+      hint:'Buscad: Marcos Ibáñez · Sílvia Mora · Andrés Castellví · Paula Esteve · Nexum Strategy · GC Talent Advisors. Hay una persona que aparece en dos empresas a la vez.',
+      osintUrl:OSINT_URL,
+      placeholder:'Hallazgo 1: ...\nHallazgo 2: ...\nHallazgo 3: ...'
+    },
+    {
+      type:'doc+quiz',
+      typeLabel:'Fuente abierta · Dilema legal',
+      title:'La publicación eliminada',
+      text:'InvestigaPro ha recuperado de la caché de Google una publicación de LinkedIn que uno de los sospechosos eliminó el 17 de marzo — dos días después del registro de descarga nocturna de Ibáñez.',
+      doc:{
+        id:'CACHÉ · 17/03/2026',title:'Publicación eliminada — recuperada por el despacho',
+        rows:[
+          {k:'USUARIO',v:'Marcos Ibáñez Solano — Senior Consultant'},
+          {k:'FECHA',v:'17 de marzo de 2026 · 19:32h (eliminada el mismo día a las 22:15h)'},
+          {k:'TEXTO',v:'"Grandes movimientos en el horizonte. A veces los mejores proyectos llegan cuando menos los esperas. Pronto más novedades 🚀"',alert:true},
+          {k:'REACCIONES',v:'3 likes — todos de perfiles de Nexum Strategy Partners'},
+          {k:'COMENTARIOS',v:'0 (la publicación fue eliminada antes de que se generaran comentarios)'},
+        ]
+      },
+      quiz:{
+        text:'¿Podéis incluir esta publicación eliminada en vuestro informe como indicio?',
+        opts:[
+          {t:'No — la eliminó y eso la convierte en información privada',correct:false},
+          {t:'Sí — la caché de Google es información que estuvo disponible públicamente',correct:true},
+          {t:'Solo si Ibáñez da su consentimiento',correct:false},
+          {t:'No — LinkedIn es una red privada y sus datos no son accesibles legalmente',correct:false},
+        ],
+        fb:{ok:'Correcto. Una publicación indexada por Google es información pública aunque el autor la elimine después. Podéis documentarla citando fecha y fuente de consulta.',bad:'Incorrecto. La caché de Google preserva información que fue pública. El detective puede documentarla. La eliminación posterior no la convierte en privada.'}
+      }
+    },
+    {
+      type:'suspect_meter',
+      typeLabel:'Análisis · Niveles de sospecha',
+      title:'¿Cómo veis el caso ahora?',
+      text:'Con todo lo que habéis encontrado en fuentes abiertas — incluyendo lo que NO habéis encontrado — ajustad el nivel de sospecha de cada persona. Tened en cuenta que la ausencia de actividad también es información.',
+      hint:'Pista: Sílvia Mora tiene actividad muy sospechosa en fuentes abiertas. Paula Esteve tiene una conexión con Nexum que no esperabais. Ibáñez tiene la publicación eliminada. Castellví parece limpio... ¿o no?',
+      suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve']
+    }
+  ]
+},
+
+// ── MISIÓN 3 · ENTREVISTAS ──────────────────────────────────────────────────
+M3:{
+  phase:'Fase 3 · Entrevistas voluntarias',
+  title:'Operación Contradicción',
+  code:'MFA-OP-003',
+  color:'#3a1a1a',
+  steps:[
+    {
+      type:'audio+quiz',
+      typeLabel:'Audio · Escucha activa',
+      title:'Entrevista voluntaria — Marcos Ibáñez',
+      text:'Escuchad la entrevista con Ibáñez. Hay tres momentos clave que no debéis perderos. Cuando terminéis, responded la pregunta.',
+      audioFile:'entrevista-Ibañez.wav',
+      quiz:{
+        text:'La pausa más larga de Ibáñez durante la entrevista se produce cuando le preguntan sobre:',
+        opts:[
+          {t:'Su paradero la noche del 15 de marzo',correct:false},
+          {t:'Qué archivos descargó esa noche',correct:false},
+          {t:'Si tiene contacto con personas de Nexum Strategy',correct:true},
+          {t:'Si está buscando trabajo',correct:false},
+        ],
+        fb:{ok:'Correcto. La pausa de 1.5 segundos antes de responder sobre Nexum es el momento más revelador. En psicología del interrogatorio, una pausa larga ante una pregunta directa indica procesamiento de respuesta — es decir, está decidiendo qué decir, no recordando.',bad:'Prestadlo de nuevo. La pausa más significativa — la más larga — ocurre cuando le mencionan a Nexum directamente. Es el momento donde más tarda en responder.'}
+      }
+    },
+    {
+      type:'doc+connect',
+      typeLabel:'Acta escrita · Cruza las contradicciones',
+      title:'Lo que dice Ibáñez vs. lo que sabemos',
+      text:'El acta escrita recoge declaraciones de los cuatro sospechosos. Cruzad lo que dice cada uno con los hechos que ya tenéis documentados.',
+      doc:{
+        id:'ACTA-03',title:'Fragmentos de declaraciones voluntarias',
+        rows:[
+          {k:'IBÁÑEZ',v:'"Solo consulté el documento de estrategia esa noche. No recuerdo haber descargado el perfil del cliente."'},
+          {k:'MORA',v:'"Envié archivos a mi correo personal por precaución, no por otra razón. Es un hábito de seguridad."'},
+          {k:'CASTELLVÍ',v:'"Mi relación con mi hermano es distante. No hablamos de trabajo. Apenas nos vemos."'},
+          {k:'ESTEVE',v:'[Sin declaración — rechazó la entrevista por consejo de su abogado]',alert:true},
+        ]
+      },
+      connect:{
+        left:['Declaró no haber descargado el perfil del cliente — el log dice lo contrario','Admitió enviar archivos a correo personal — antes lo había negado a Lucentia','Describe relación distante con su hermano — LinkedIn muestra 14 conexiones comunes','Rechazó la entrevista — puede ser culpabilidad o simplemente prudencia legal'],
+        right:['Ibáñez','Mora','Castellví','Esteve'],
+        pairs:[[0,0],[1,1],[2,2],[3,3]]
+      }
+    },
+    {
+      type:'text',
+      typeLabel:'Redacción profesional',
+      title:'Redacta una contradicción como detective real',
+      text:'Elige la contradicción que te parece más relevante para el caso y redáctala en lenguaje de informe de detective. Recuerda: describes, no acusas.',
+      hint:'Usa: "El señor/la señora X manifestó... sin embargo, el documento DOC-0X acredita que..." — nunca "mintió" ni "es culpable".',
+      placeholder:'El/la señor/a ... manifestó en entrevista voluntaria celebrada el ... que ...\n\nSin embargo, el documento ... acredita que ...\n\nEsta discrepancia constituye un indicio relevante en tanto que...'
+    },
+    {
+      type:'evidence+decision',
+      typeLabel:'Análisis · Hipótesis provisional',
+      title:'¿Qué indicios tenéis ya verificados?',
+      text:'Seleccionad todos los indicios que consideráis verificados documentalmente — solo los que podéis citar con una fuente concreta. Luego declarad vuestra hipótesis provisional.',
+      evidenceTags:[
+        'Ibáñez descargó 3 archivos el 15/03 (DOC-01)',
+        'Registro corrupto del 14/03 — autoría desconocida',
+        'Mora imprimió el documento completo (DOC-01)',
+        'Mora envió archivos a correo personal (declaración)',
+        'Castellví: acceso sin descarga el 18/03 (DOC-01)',
+        'Ibáñez: publicación eliminada el 17/03 (caché Google)',
+        'Nexum: 3 secciones idénticas al Proyecto Atenea (DOC-04)',
+        'Esteve rechazó entrevista (acta)',
+        'Castellví: hermano en Nexum no declarado (InvestigaPro)',
+        'Ibáñez: contactos en Nexum añadidos tras descarga (InvestigaPro)',
+      ],
+      decisionText:'Con los indicios seleccionados, ¿cuál es vuestra hipótesis ahora?',
+      decisionOpts:[
+        {t:'Ibáñez actuó solo',s:'La descarga y la publicación eliminada apuntan solo a él'},
+        {t:'Mora es la principal sospechosa',s:'Su actividad en fuentes abiertas es la más comprometedora'},
+        {t:'Ibáñez y Castellví actuaron juntos',s:'Uno filtró los archivos, el otro tenía el contacto en Nexum'},
+        {t:'Esteve lo sabe pero no fue ella',s:'El rechazo de entrevista es demasiado sospechoso para ignorarlo'},
+        {t:'Todavía no tenemos suficiente para señalar a nadie',s:'Necesitamos más información antes de comprometernos'},
+      ],
+      noCorrect:true,
+      fb:'Hipótesis registrada. En el Día 2 recibiréis información adicional que puede confirmarla o cambiarla completamente.'
+    }
+  ]
+},
+
+// ── MISIÓN 4 · INFORME FINAL ────────────────────────────────────────────────
+M4:{
+  phase:'Día 2 · Informe final',
+  title:'Operación Veredicto',
+  code:'MFA-OP-004',
+  color:'#2a1a3a',
+  steps:[
+    {
+      type:'doc+quiz',
+      typeLabel:'Nuevo elemento · El sobre anónimo',
+      title:'Ha llegado algo que no esperabais',
+      text:'Esta mañana encontrasteis en vuestra mesa un sobre sin remitente. Contiene una nota manuscrita. Antes de decidir si la usáis, hay una pregunta legal que debéis responder.',
+      doc:{
+        id:'SOBRE ANÓNIMO · Día 2',title:'Nota sin remitente — encontrada en la mesa al inicio del Día 2',
+        rows:[
+          {k:'CONTENIDO',v:'"No sé si esto sirve de algo. La noche del 15 de marzo vi a alguien salir del edificio con una carpeta grande. No era su día de guardia. No era quien pensáis. Buscad en el parking. Hay cámara. Un empleado de Lucentia."',alert:true},
+          {k:'ESTADO',v:'Sin firma · Sin remitente · Sin fecha · Papel sin características identificables'},
+          {k:'NOTA',v:'La cámara del parking de Lucentia fue revisada por el despacho. Las grabaciones del 15 de marzo han sido sobreescritas por el ciclo automático de 30 días.'},
+        ]
+      },
+      quiz:{
+        text:'¿Podéis incluir esta nota anónima en vuestro informe como prueba?',
+        opts:[
+          {t:'Sí, cualquier información es válida si apunta al culpable',correct:false},
+          {t:'No, las fuentes anónimas son completamente inadmisibles',correct:false},
+          {t:'Solo como indicio no verificado, identificando que la fuente es desconocida',correct:true},
+          {t:'Sí, si coincide con otros indicios ya documentados es suficiente',correct:false},
+        ],
+        fb:{ok:'Correcto. Una fuente anónima puede incluirse como indicio si se identifica como tal. No tiene el mismo valor que un hecho documentado, pero no es inútil. El informe debe ser transparente sobre su origen.',bad:'Cuidado. Las fuentes anónimas no son pruebas, pero tampoco son inútiles. Pueden incluirse si se identifican correctamente. La clave es la transparencia: el informe debe decir exactamente de dónde viene cada dato.'}
+      }
+    },
+    {
+      type:'text',
+      typeLabel:'Redacción · Informe final',
+      title:'La hipótesis definitiva en 5 líneas',
+      text:'Con toda la información disponible, redactad vuestra hipótesis final. Máximo 5 líneas. Citad al menos 3 indicios concretos con su fuente. Escribid como detectives, no como acusadores.',
+      hint:'Estructura recomendada: "Los indicios disponibles apuntan a [nombre/s] como posible/s responsable/s de la filtración. El [fecha] se constató [hecho + fuente]. Asimismo, [hecho + fuente]. Por otra parte, [hecho + fuente]. En consecuencia, este despacho recomienda..."',
+      placeholder:'Los indicios disponibles apuntan a...'
+    },
+    {
+      type:'suspect_meter',
+      typeLabel:'Análisis final · Niveles de sospecha',
+      title:'Vuestro criterio profesional definitivo',
+      text:'Ajustad los niveles de sospecha con todo lo que sabéis. Esta distribución debe reflejar vuestra hipótesis final — tiene que ser coherente con lo que escribisteis arriba.',
+      hint:'Recordad la conspiración que apunta el caso: un sospechoso tenía los archivos, otro tenía el contacto en Nexum. ¿Podría haber actuado alguno sin el otro?',
+      suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve']
+    },
+    {
+      type:'text',
+      typeLabel:'Recomendaciones · Clausura',
+      title:'Tres recomendaciones al cliente',
+      text:'Como equipo investigador, ¿qué recomendáis a Lucentia Consulting? Pensad en medidas legales, medidas internas de seguridad y nuevas líneas de investigación que quedan abiertas.',
+      hint:'Una buena recomendación de detective es específica, accionable y legalmente viable. Evitad "mejorar la seguridad" — ¿qué seguridad exactamente y cómo?',
+      placeholder:'1. [Acción legal / administrativa]:\n\n2. [Medida interna de seguridad]:\n\n3. [Nueva línea de investigación pendiente]:'
+    }
+  ]
+}
+
+}; // end MISSIONS
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+let teamId=null,coordinator='',currentMid=null,currentStep=0;
+let answers={},connectMatches={},sliderVals={},selectedTags={},selectedDecision={};
+let connectSel=null,connectSide=null;
+
+// ════════════════════════════════════════════════════════════════════════════
+// SETUP
+// ════════════════════════════════════════════════════════════════════════════
+function startApp(){
+  const t=document.getElementById('team-sel').value;
+  const c=document.getElementById('coord-inp').value.trim();
+  if(!t||!c) return;
+  teamId=t; coordinator=c;
+  document.getElementById('team-badge').textContent='Equipo '+t;
+  document.getElementById('team-badge').style.display='block';
+  document.getElementById('setup-view').style.display='none';
+  document.getElementById('waiting-view').style.display='block';
+  registerTeam();
+  setInterval(pollMission,3500);
+  pollMission();
+}
+
+async function registerTeam(){
+  try{ await fetch(`${FB}/misiones-equipos/equipo${teamId}.json`,{method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({teamId,coordinator,ts:Date.now()})}); }catch(e){}
+}
+
+async function pollMission(){
+  try{
+    const r=await fetch(`${FB}/mision-activa.json`);
+    const d=await r.json();
+    if(d&&d.id&&d.id!==currentMid){
+      currentMid=d.id; currentStep=0;
+      answers={}; connectMatches={}; sliderVals={}; selectedTags={}; selectedDecision={};
+      showMission(d.id);
+    } else if((!d||!d.id)&&currentMid){
+      currentMid=null;
+      document.getElementById('waiting-view').style.display='block';
+      document.getElementById('mission-view').style.display='none';
+      document.getElementById('done-view').style.display='none';
+    }
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MISSION RENDER
+// ════════════════════════════════════════════════════════════════════════════
+function showMission(id){
+  document.getElementById('waiting-view').style.display='none';
+  document.getElementById('done-view').style.display='none';
+  document.getElementById('mission-view').style.display='block';
+  renderMission(id);
+}
+
+function renderMission(id){
+  const m=MISSIONS[id];
+  if(!m) return;
+  const step=m.steps[currentStep];
+  const total=m.steps.length;
+  document.getElementById('prog-strip').style.width=Math.round(currentStep/total*100)+'%';
+
+  const isLast=currentStep===total-1;
+  const canGo=canProceed(step);
+
+  document.getElementById('mission-view').innerHTML=`
+  <div class="mission-wrap">
+    <div class="mission-header" style="background:${m.color}33;border:1px solid ${m.color}55;border-radius:10px 10px 0 0;padding:1.25rem 1.125rem">
+      <div class="m-phase">${m.phase}</div>
+      <div class="m-title">${m.title}</div>
+      <div class="m-code">${m.code} · Equipo ${teamId}</div>
+    </div>
+    <div class="mission-card">
+      <div class="step-nav">
+        ${m.steps.map((_,i)=>`<div class="sdot ${i<currentStep?'done':i===currentStep?'active':''}" onclick="jumpTo(${i})"></div>`).join('')}
+        <div class="slabel">${currentStep+1} / ${total}</div>
+      </div>
+      <div class="step-body">
+        <div class="step-type-label">${step.typeLabel||''}</div>
+        <div class="step-title">${step.title}</div>
+        <div class="step-text">${step.text}</div>
+        ${step.hint?`<div class="step-hint">${step.hint}</div>`:''}
+        ${renderActivity(step, currentStep)}
+      </div>
+      <div class="step-controls">
+        ${currentStep>0?`<button class="s-btn" onclick="prevStep()">← Atrás</button>`:''}
+        <button class="s-btn primary" id="next-btn" onclick="nextStep()" ${canGo?'':'disabled'}>
+          ${isLast?'Enviar respuestas →':'Continuar →'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+
+  if(step.type==='doc+order'||step.type==='order') initDrag(currentStep);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER ACTIVITY
+// ════════════════════════════════════════════════════════════════════════════
+function renderActivity(step, idx){
+  let html='';
+
+  // Render document if present
+  if(step.doc){
+    html+=`<div class="doc-viewer">
+      <div class="doc-header"><span class="doc-id">${step.doc.id}</span><span class="doc-title">${step.doc.title}</span></div>
+      <div class="doc-content">`;
+    if(step.doc.rows){
+      html+=step.doc.rows.map(r=>`<div class="doc-row">
+        <span class="doc-key">${r.k}</span>
+        <span class="doc-val ${r.alert?'alert':r.ok?'ok':''}">${r.v}</span>
+      </div>`).join('');
+    }
+    html+='</div></div>';
+  }
+
+  // OSINT link
+  if(step.osintUrl){
+    html+=`<a class="osint-link" href="${step.osintUrl}" target="_blank">
+      <div class="osint-icon">🔍</div>
+      <div class="osint-info">
+        <div class="osint-title">Abrir InvestigaPro</div>
+        <div class="osint-sub">Buscador de fuentes abiertas · Caso Lucentia</div>
+      </div>
+      <div class="osint-arrow">→</div>
+    </a>`;
+  }
+
+  // Audio
+  if(step.audioFile){
+    html+=`<div class="audio-card">
+      <div class="audio-title">🎧 ${step.audioFile.replace('.wav','').replace('.mp3','').replace('-',' ').replace('Iba','Ibá')}</div>
+      <audio class="audio-player" controls controlsList="nodownload" preload="none"
+        src="${AUDIO_BASE}${encodeURIComponent(step.audioFile)}">
+        Tu navegador no soporta audio HTML5.
+      </audio>
+    </div>`;
+  }
+
+  const type=step.type;
+
+  // DRAG ORDER
+  if(type==='doc+order'||type==='order'){
+    const items=answers[idx]||[...step.dragItems];
+    html+=`<div class="drag-list" id="dlist-${idx}">
+      ${items.map((item,i)=>`<div class="drag-item" draggable="true" data-i="${i}">
+        <span class="drag-handle">⠿</span>
+        <span class="drag-num">${i+1}</span>
+        <span class="drag-text">${item}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // CONNECT
+  const connectData=step.connect||step;
+  if(type==='connect'||type==='doc+connect'){
+    const cm=connectMatches[idx]||{};
+    html+=`<div class="connect-wrap">
+      <div>
+        <div class="connect-col-lbl">Contradicción</div>
+        ${connectData.left.map((l,i)=>`<div class="connect-item ${cm[i]!==undefined?'matched':''}" data-side="left" data-i="${i}" onclick="doConnect('left',${i},${idx})">${l}</div>`).join('')}
+      </div>
+      <div>
+        <div class="connect-col-lbl">Sospechoso/a</div>
+        ${connectData.right.map((r,i)=>`<div class="connect-item ${Object.values(cm).includes(i)?'matched':''}" data-side="right" data-i="${i}" onclick="doConnect('right',${i},${idx})">${r}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // QUIZ
+  const quizData=step.quiz||step;
+  if(type==='quiz'||type==='doc+quiz'||type==='audio+quiz'){
+    const ans=answers[idx];
+    html+=`<div class="quiz-opts">
+      ${quizData.opts.map((o,i)=>`
+        <div class="quiz-opt ${ans!==undefined?i===quizData.opts.findIndex(x=>x.correct)?'correct':i===ans&&!o.correct?'wrong':'disabled':''}"
+          onclick="doQuiz(${i},${idx})">${o.t}</div>`).join('')}
+    </div>
+    <div class="feedback ${ans!==undefined?'show':''} ${ans!==undefined&&quizData.opts[ans]?.correct?'ok':'bad'}" id="fb-${idx}">
+      ${ans!==undefined?(quizData.opts[ans]?.correct?quizData.fb.ok:quizData.fb.bad):''}
+    </div>`;
+  }
+
+  // TEXT
+  if(type==='text'||type==='osint+text'){
+    html+=`<textarea class="txt-area" id="txt-${idx}" placeholder="${step.placeholder||''}"
+      oninput="doText(${idx},this.value)">${answers[idx]||''}</textarea>
+    <div class="char-hint"><span id="cc-${idx}">${(answers[idx]||'').length}</span> caracteres</div>`;
+  }
+
+  // SUSPECT METER
+  if(type==='suspect_meter'){
+    const sv=sliderVals[idx]||{};
+    html+=`<div class="sliders">
+      ${step.suspects.map((s,i)=>`<div class="slider-row">
+        <span class="slider-name">${s}</span>
+        <input type="range" class="slider-input" min="0" max="100" value="${sv[i]||0}"
+          oninput="doSlider(${idx},${i},this.value);document.getElementById('sv-${idx}-${i}').textContent=this.value+'%'">
+        <span class="slider-val" id="sv-${idx}-${i}">${sv[i]||0}%</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // DECISION
+  const decOpts=step.decisionOpts||step.opts;
+  if(type==='decision'||type==='evidence+decision'){
+    // Evidence tags first
+    if(step.evidenceTags){
+      const st=selectedTags[idx]||{};
+      html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:.5rem">Selecciona los indicios verificados:</div>
+      <div class="evidence-tags">
+        ${step.evidenceTags.map((tag,i)=>`<div class="etag ${st[i]?'selected':''}" onclick="doTag(${idx},${i})">${tag}</div>`).join('')}
+      </div>`;
+    }
+    if(step.decisionText) html+=`<div class="step-text" style="margin-bottom:.75rem">${step.decisionText}</div>`;
+    const sd=selectedDecision[idx];
+    html+=`<div class="decision-list">
+      ${(decOpts||[]).map((o,i)=>`<div class="decision-opt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})">
+        <div class="d-title">${o.t}</div>
+        <div class="d-sub">${o.s}</div>
+      </div>`).join('')}
+    </div>
+    ${sd!==undefined&&step.fb?`<div class="feedback show ok">${step.fb}</div>`:''}`;
+  }
+
+  return html;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ACTIVITY HANDLERS
+// ════════════════════════════════════════════════════════════════════════════
+function initDrag(idx){
+  const list=document.getElementById('dlist-'+idx);
+  if(!list) return;
+  let src=null;
+  list.querySelectorAll('.drag-item').forEach(el=>{
+    el.addEventListener('dragstart',e=>{src=el;el.style.opacity='.4';});
+    el.addEventListener('dragend',()=>{el.style.opacity='';list.querySelectorAll('.drag-item').forEach(i=>i.classList.remove('drag-over'));});
+    el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');});
+    el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
+    el.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(src&&src!==el){
+        const items=[...list.querySelectorAll('.drag-item')];
+        const si=items.indexOf(src),di=items.indexOf(el);
+        if(si<di) list.insertBefore(src,el.nextSibling); else list.insertBefore(src,el);
+        list.querySelectorAll('.drag-num').forEach((n,i)=>n.textContent=i+1);
+        answers[idx]=[...list.querySelectorAll('.drag-text')].map(t=>t.textContent);
+        checkBtn();
+      }
+    });
+  });
+}
+
+function doConnect(side,i,idx){
+  const m=MISSIONS[currentMid];
+  const step=m.steps[idx];
+  const cData=step.connect||step;
+  if(!connectMatches[idx]) connectMatches[idx]={};
+  const cm=connectMatches[idx];
+  if(side==='left'&&cm[i]!==undefined) return;
+  if(side==='right'&&Object.values(cm).includes(i)) return;
+  if(connectSel===null){
+    connectSel=i; connectSide=side;
+    document.querySelectorAll(`.connect-item[data-side="${side}"][data-i="${i}"]`).forEach(el=>el.classList.add('sel'));
+  } else {
+    if(connectSide===side){
+      document.querySelectorAll('.connect-item.sel').forEach(el=>el.classList.remove('sel'));
+      connectSel=i; connectSide=side;
+      document.querySelectorAll(`.connect-item[data-side="${side}"][data-i="${i}"]`).forEach(el=>el.classList.add('sel'));
+      return;
+    }
+    const li=side==='right'?connectSel:i, ri=side==='right'?i:connectSel;
+    const ok=cData.pairs.some(p=>p[0]===li&&p[1]===ri);
+    if(ok){
+      cm[li]=ri;
+      document.querySelectorAll('.connect-item.sel').forEach(el=>el.classList.remove('sel'));
+      answers[idx]=cm;
+      renderMission(currentMid);
+    } else {
+      document.querySelectorAll('.connect-item.sel').forEach(el=>{el.classList.remove('sel');el.classList.add('wrong');setTimeout(()=>el.classList.remove('wrong'),500);});
+    }
+    connectSel=null; connectSide=null;
+    if(Object.keys(cm).length===cData.left.length) checkBtn();
+  }
+}
+
+function doQuiz(i,idx){
+  const m=MISSIONS[currentMid];
+  const step=m.steps[idx];
+  const qData=step.quiz||step;
+  if(answers[idx]!==undefined) return;
+  answers[idx]=i;
+  renderMission(currentMid);
+  checkBtn();
+}
+
+function doText(idx,val){
+  answers[idx]=val;
+  const cc=document.getElementById('cc-'+idx);
+  if(cc) cc.textContent=val.length;
+  checkBtn();
+}
+
+function doSlider(idx,si,val){
+  if(!sliderVals[idx]) sliderVals[idx]={};
+  sliderVals[idx][si]=parseInt(val);
+  answers[idx]=sliderVals[idx];
+}
+
+function doTag(idx,i){
+  if(!selectedTags[idx]) selectedTags[idx]={};
+  selectedTags[idx][i]=!selectedTags[idx][i];
+  answers['tags_'+idx]=selectedTags[idx];
+  const el=document.querySelectorAll('.etag')[i];
+  if(el) el.classList.toggle('selected',!!selectedTags[idx][i]);
+}
+
+function doDecision(idx,i){
+  selectedDecision[idx]=i;
+  answers['dec_'+idx]=i;
+  renderMission(currentMid);
+  checkBtn();
+}
+
+function canProceed(step){
+  const idx=currentStep;
+  const type=step.type;
+  if(type==='doc+order'||type==='order') return true;
+  if(type==='connect'||type==='doc+connect'){
+    const cData=step.connect||step;
+    return Object.keys(connectMatches[idx]||{}).length===cData.left.length;
+  }
+  if(type==='quiz'||type==='doc+quiz'||type==='audio+quiz') return answers[idx]!==undefined;
+  if(type==='text'||type==='osint+text') return (answers[idx]||'').length>15;
+  if(type==='suspect_meter') return true;
+  if(type==='decision') return selectedDecision[idx]!==undefined;
+  if(type==='evidence+decision') return selectedDecision[idx]!==undefined;
+  return true;
+}
+
+function checkBtn(){
+  const btn=document.getElementById('next-btn');
+  if(btn&&MISSIONS[currentMid]){
+    const step=MISSIONS[currentMid].steps[currentStep];
+    btn.disabled=!canProceed(step);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════════════════════
+function jumpTo(i){ if(i<=currentStep){currentStep=i;renderMission(currentMid);} }
+function prevStep(){ if(currentStep>0){currentStep--;renderMission(currentMid);} }
+
+async function nextStep(){
+  const m=MISSIONS[currentMid];
+  if(currentStep<m.steps.length-1){
+    currentStep++; renderMission(currentMid);
+  } else {
+    await submit();
+  }
+}
+
+async function submit(){
+  const m=MISSIONS[currentMid];
+  const payload={teamId,coordinator,missionId:currentMid,
+    missionTitle:m.title,phase:m.phase,answers,ts:Date.now()};
+  try{
+    await fetch(`${FB}/misiones-respuestas/equipo${teamId}/${currentMid}.json`,
+      {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  }catch(e){}
+  document.getElementById('mission-view').style.display='none';
+  document.getElementById('done-view').style.display='block';
+  document.getElementById('prog-strip').style.width='100%';
+}
+</script>
+</body>
+</html>
