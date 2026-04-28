@@ -549,7 +549,7 @@ function renderAct(s){
     case 'sliders_text':{
       const sv=svals[idx]||{};
       h+=`<div class="sliders">${a.suspects.map((sus,i)=>`<div class="srow"><span class="sn">${sus}</span><input type="range" class="si" min="0" max="100" value="${sv[i]||0}" oninput="doSlider(${idx},${i},this.value);document.getElementById('sv${idx}${i}').textContent=this.value+'%'"><span class="sv" id="sv${idx}${i}">${sv[i]||0}%</span></div>`).join('')}</div>`;
-      if(a.textq)h+=`<div class="act-q">${a.textq}</div><textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans['t_'+idx]||''}</textarea><div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;break;}
+      if(a.textq)h+=`<div class="act-q">${a.textq}</div><textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doSliderText(${idx},this.value)">${ans['t_'+idx]||''}</textarea><div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;break;}
     case 'evidence_decision':{
       const st=stags[idx]||{},sd=sdec[idx];
       h+=`<div class="act-sub">Selecciona los indicios que podéis citar con fuente:</div><div class="etags">${a.tags.map((tag,i)=>`<div class="etag ${st[i]?'on':''}" onclick="doTag(${idx},${i})">${tag}</div>`).join('')}</div><div class="act-q">${a.decision.q}</div><div class="dopts">${a.decision.opts.map((o,i)=>`<div class="dopt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})"><div class="dt2">${o.t}</div><div class="ds2">${o.s}</div></div>`).join('')}</div>${sd!==undefined&&a.decision.fb?`<div class="fb show ok">${a.decision.fb}</div>`:''}`;break;}
@@ -587,6 +587,7 @@ function doLupa(idx,i){if(!lupaF[idx])lupaF[idx]={};lupaF[idx][i]=!lupaF[idx][i]
 function doCompT(idx,pi,v){if(!compT[idx])compT[idx]={};compT[idx][pi]=v;ans['ct_'+idx]=compT[idx];checkBtn();}
 function doVerdict(idx,pi,v){if(!compV[idx])compV[idx]={};compV[idx][pi]=v;ans['cv_'+idx]=compV[idx];const btns=document.querySelectorAll('.comp-verdict')[pi]?.querySelectorAll('.cvbtn');if(btns){btns.forEach(b=>b.classList.remove('ok','bad'));btns[v==='ok'?0:1]?.classList.add(v);}checkBtn();}
 function doInforme(idx,fi,v){if(!informeF[idx])informeF[idx]={};informeF[idx][fi]=v;ans['inf_'+idx]=informeF[idx];checkBtn();}
+function doSliderText(idx,v){ans['t_'+idx]=v;const cc=document.getElementById('cc-'+idx);if(cc)cc.textContent=v.length;checkBtn();}
 function doVote(s){voteSelected[s]=!voteSelected[s];render();checkBtn();}
 
 function doConnect(side,i,idx){
@@ -650,7 +651,7 @@ function canGo(s){
     case 'connect':return Object.keys(cmatch[idx]||{}).length===a.left.length;
     case 'board':return(boardC[idx]||[]).length>=Math.ceil((a.correctPairs||[]).length*0.5);
     case 'comparator':{const allV=a.pairs.every((_,pi)=>!_.verdicts||(compV[idx]||{})[pi]);const hasT=a.pairs.some((_,pi)=>(compT[idx]||{})[pi]?.length>10);return allV&&hasT&&(!a.textq||(ans[idx]||'').length>15);}
-    case 'sliders_text':return!a.textq||(ans['t_'+idx]||'').length>10;
+    case 'sliders_text':return!a.textq||(ans['t_'+idx]||'').length>=1;
     case 'evidence_decision':return sdec[idx]!==undefined;
     case 'informe':return Object.values(informeF[idx]||{}).filter(v=>v.length>5).length>=4;
     case 'vote':return voteSent||Object.values(voteSelected).some(Boolean);
