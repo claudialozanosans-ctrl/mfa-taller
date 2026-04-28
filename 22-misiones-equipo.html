@@ -557,13 +557,15 @@ let voteSelected={},voteSent=false;
 // ═══ SETUP ═══════════════════════════════════════════════════
 function startApp(){
   const t=document.getElementById('tsel').value,c=document.getElementById('cinp').value.trim();
-  if(!t||!c) return;
+  if(!t||!c){alert('Selecciona tu equipo y escribe el nombre del coordinador/a');return;}
   tid=t; coord=c;
   document.getElementById('tbadge').textContent='E'+t;
   document.getElementById('tbadge').style.display='block';
   document.getElementById('setup-view').style.display='none';
   document.getElementById('wait-view').style.display='block';
-  regTeam(); poll(); setInterval(poll,4000);
+  try{regTeam();}catch(e){}
+  try{poll();}catch(e){}
+  setInterval(()=>{try{poll();}catch(e){}},4000);
 }
 async function regTeam(){
   try{await fetch(`${FB}/misiones-equipos/equipo${tid}.json`,{method:'PUT',
@@ -572,10 +574,12 @@ async function regTeam(){
 }
 async function poll(){
   try{
-    const r=await fetch(`${FB}/mision-activa.json`);const d=await r.json();
+    const r=await fetch(`${FB}/mision-activa.json`,{cache:'no-store'});
+    if(!r.ok) return;
+    const d=await r.json();
     if(d&&d.id&&d.id!==cMid){
       cMid=d.id;cStep=0;
-      ans={};cmatch={};svals={};stags={};sdec={};informeF={};lupaF={};boardC={};compV={};compT={};pdfOpened={};
+      ans={};cmatch={};svals={};stags={};sdec={};informeF={};lupaF={};boardC={};compV={};compT={};pdfOpened={};voteSent=false;voteSelected={};
       document.getElementById('wait-view').style.display='none';
       document.getElementById('done-view').style.display='none';
       document.getElementById('mission-view').style.display='block';
@@ -586,7 +590,7 @@ async function poll(){
       document.getElementById('done-view').style.display='none';
       document.getElementById('wait-view').style.display='block';
     }
-  }catch(e){}
+  }catch(e){console.log('Firebase poll error:',e);}
 }
 
 // ═══ RENDER ══════════════════════════════════════════════════
