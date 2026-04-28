@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFA · Panel Instructor</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0908;--bg2:#131211;--bg3:#1a1917;--bg4:#222019;
+  --paper:#f5f0e8;--muted:#6a6560;--b1:rgba(245,240,232,0.07);--b2:rgba(245,240,232,0.15);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;--gold:#8a6c1a;
+  --mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:var(--mono)}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--serif);font-size:17px}.sub{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.tr{display:flex;align-items:center;gap:.75rem}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blink 2s ease infinite;display:inline-block}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.ltxt{font-size:10px;color:var(--muted)}
+.tbtn{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--b2);border-radius:3px;background:transparent;color:var(--paper);cursor:pointer;transition:all .15s}
+.tbtn:hover{background:rgba(245,240,232,.06)}
+.tbtn.danger{border-color:rgba(192,80,64,.4);color:var(--red)}
+.tbtn.danger:hover{background:rgba(192,80,64,.08)}
+
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 52px)}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--b1);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:.5rem}
+.sb-title{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;padding-bottom:6px;border-bottom:1px solid var(--b1)}
+
+.mbtn{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--b1);border-radius:6px;padding:.875rem;cursor:pointer;font-family:var(--mono);transition:all .15s}
+.mbtn:hover{border-color:var(--b2)}
+.mbtn.sel{border-color:var(--accent)}
+.mbtn.active{border-color:var(--teal);background:rgba(45,122,95,.06)}
+.mb-phase{font-size:9px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.mb-title{font-size:12px;color:var(--paper);margin-bottom:4px}
+.mb-status{font-size:9px;display:flex;align-items:center;gap:4px;color:var(--muted)}
+.mb-dot{width:5px;height:5px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.mb-dot.active{background:var(--teal);animation:blink 1.5s ease infinite}
+
+.act-section{padding-top:.75rem;border-top:1px solid var(--b1);display:flex;flex-direction:column;gap:.5rem}
+.prev-box{background:var(--bg3);border:1px solid var(--b1);border-radius:4px;padding:.625rem .875rem;font-size:11px;color:var(--muted);line-height:1.6;display:none}
+.prev-box.show{display:block}
+.act-btn{width:100%;background:var(--accent);color:#0a0908;border:none;border-radius:4px;padding:11px;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
+.act-btn:hover{opacity:.85}.act-btn:disabled{opacity:.25;cursor:not-allowed}
+.deact-btn{width:100%;background:transparent;color:var(--red);border:1px solid rgba(192,80,64,.3);border-radius:4px;padding:9px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.deact-btn:hover{background:rgba(192,80,64,.08)}
+
+/* MAIN */
+.content{padding:1.5rem;overflow-y:auto;display:flex;flex-direction:column;gap:1.5rem}
+
+/* Active banner */
+.active-banner{background:rgba(45,122,95,.07);border:1px solid rgba(45,122,95,.2);border-radius:8px;padding:.875rem 1rem;display:none}
+.active-banner.show{display:block}
+.ab-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+.ab-title{font-size:14px;color:var(--paper);margin-bottom:4px}
+.ab-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.ab-stat{display:flex;align-items:center;gap:.375rem}
+.ab-stat-num{font-size:16px;font-weight:500;color:var(--paper)}
+.ab-stat-lbl{font-size:10px;color:var(--muted)}
+
+/* Section */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sec-meta{font-size:11px;font-weight:500;color:var(--paper)}
+
+/* Teams grid */
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.tc{background:var(--bg2);border:1px solid var(--b1);border-radius:8px;overflow:hidden}
+.tc-hdr{background:var(--bg3);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.tc-name{font-size:12px;font-weight:500}
+.tc-status{font-size:9px;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
+.s-wait{background:rgba(245,240,232,.06);color:var(--muted)}
+.s-on{background:rgba(200,169,110,.12);color:var(--accent);animation:blink 2s ease infinite}
+.s-done{background:rgba(45,122,95,.15);color:#5dcaa5}
+.s-off{background:rgba(245,240,232,.04);color:var(--muted);opacity:.5}
+.tc-body{padding:.875rem 1rem}
+.tc-coord{font-size:10px;color:var(--muted);margin-bottom:.375rem}
+.tc-progress{font-size:12px;color:var(--paper);margin-bottom:.375rem}
+.tc-missions{font-size:10px;color:var(--muted);margin-bottom:.5rem;line-height:1.5}
+.tc-bar{height:3px;background:rgba(245,240,232,.06);border-radius:2px;overflow:hidden}
+.tc-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.tc-pdf{font-size:10px;color:var(--muted);margin-top:.375rem}
+.tc-pdf span{color:#5dcaa5}
+
+/* Answers */
+.answers-list{display:flex;flex-direction:column;gap:.75rem}
+.ac{background:var(--bg2);border:1px solid var(--b1);border-radius:8px;overflow:hidden}
+.ac-hdr{background:var(--bg3);padding:.625rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:.75rem}
+.ac-hdr:hover{background:var(--bg4)}
+.ac-left{flex:1;min-width:0}
+.ac-team{font-size:11px;font-weight:500;color:var(--accent)}
+.ac-mission{font-size:10px;color:var(--muted);margin-top:1px}
+.ac-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.ac-time{font-size:10px;color:var(--muted)}
+.ac-del{background:transparent;border:1px solid rgba(192,80,64,.3);border-radius:3px;color:var(--red);font-size:9px;padding:2px 7px;cursor:pointer;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}
+.ac-del:hover{background:rgba(192,80,64,.1)}
+.ac-body{padding:.875rem 1rem;display:none}
+.ac-body.open{display:block}
+.ac-section{margin-bottom:.875rem}
+.ac-sec-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.375rem}
+.ac-content{font-size:11px;color:var(--paper);line-height:1.6;background:var(--bg3);border-radius:4px;padding:.5rem .75rem;white-space:pre-wrap;word-break:break-word}
+.ac-content.hl{border-left:2px solid var(--accent)}
+.ac-content.teal{border-left:2px solid var(--teal)}
+.suspect-bars{display:flex;flex-direction:column;gap:.375rem;margin-top:.375rem}
+.sb-row{display:flex;align-items:center;gap:.625rem;font-size:10px}
+.sb-name{min-width:85px;color:var(--muted)}
+.sb-track{flex:1;height:4px;background:var(--b1);border-radius:2px;overflow:hidden}
+.sb-fill{height:100%;background:var(--accent);border-radius:2px}
+.sb-val{min-width:30px;text-align:right;color:var(--muted)}
+.lupa-flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:.375rem}
+.lupa-flag{font-size:10px;padding:2px 7px;border-radius:3px;background:rgba(192,80,64,.1);border:1px solid rgba(192,80,64,.25);color:var(--red)}
+.board-conns{display:flex;flex-wrap:wrap;gap:4px;margin-top:.375rem}
+.board-conn{font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(45,122,95,.08);border:1px solid rgba(45,122,95,.2);color:#5dcaa5}
+.pdf-badge{display:flex;gap:5px;flex-wrap:wrap;margin-top:.375rem}
+.pdf-b{font-size:9px;padding:2px 8px;border-radius:3px;background:rgba(45,122,95,.1);color:#5dcaa5;border:1px solid rgba(45,122,95,.2)}
+
+/* No data */
+.no-data{text-align:center;padding:3rem;color:var(--muted);font-size:12px;line-height:1.7}
+
+/* Confirm modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:1.5rem;max-width:360px;width:90%;text-align:center}
+.modal-title{font-family:var(--serif);font-size:18px;margin-bottom:.5rem}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6}
+.modal-btns{display:flex;gap:.75rem}
+.modal-cancel{flex:1;background:transparent;border:1px solid var(--b2);border-radius:4px;padding:10px;font-family:var(--mono);font-size:11px;color:var(--paper);cursor:pointer}
+.modal-confirm{flex:1;background:var(--red);border:none;border-radius:4px;padding:10px;font-family:var(--mono);font-size:11px;font-weight:500;color:#fff;cursor:pointer;letter-spacing:.06em;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><div class="logo">MFA · Panel Instructor</div><div class="sub">Control de misiones · Caso Lucentia Consulting</div></div>
+  <div class="tr">
+    <div class="ldot"></div><div class="ltxt">En directo</div>
+    <button class="tbtn" onclick="loadAll()">↻ Actualizar</button>
+    <button class="tbtn danger" onclick="confirmDeleteAll()">Borrar todo</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-title">Operaciones disponibles</div>
+    <div class="mbtn" id="mb-M1" onclick="selectM('M1')">
+      <div class="mb-phase">Apertura</div>
+      <div class="mb-title">Operación Expediente</div>
+      <div class="mb-status"><div class="mb-dot" id="dot-M1"></div><span id="st-M1">Sin activar</span></div>
+    </div>
+    <div class="mbtn" id="mb-M2" onclick="selectM('M2')">
+      <div class="mb-phase">Fase 1 · Análisis documental</div>
+      <div class="mb-title">Operación Archivo</div>
+      <div class="mb-status"><div class="mb-dot" id="dot-M2"></div><span id="st-M2">Sin activar</span></div>
+    </div>
+    <div class="mbtn" id="mb-M3" onclick="selectM('M3')">
+      <div class="mb-phase">Fase 2 · Fuentes abiertas</div>
+      <div class="mb-title">Operación Huella Digital</div>
+      <div class="mb-status"><div class="mb-dot" id="dot-M3"></div><span id="st-M3">Sin activar</span></div>
+    </div>
+    <div class="mbtn" id="mb-M4" onclick="selectM('M4')">
+      <div class="mb-phase">Fase 3 · Entrevistas</div>
+      <div class="mb-title">Operación Contradicción</div>
+      <div class="mb-status"><div class="mb-dot" id="dot-M4"></div><span id="st-M4">Sin activar</span></div>
+    </div>
+    <div class="mbtn" id="mb-M5" onclick="selectM('M5')">
+      <div class="mb-phase">Día 2 · Informe final</div>
+      <div class="mb-title">Operación Veredicto</div>
+      <div class="mb-status"><div class="mb-dot" id="dot-M5"></div><span id="st-M5">Sin activar</span></div>
+    </div>
+    <div class="act-section">
+      <div class="prev-box" id="prev-box"></div>
+      <button class="act-btn" id="act-btn" onclick="activateM()" disabled>Activar en todos los móviles →</button>
+      <button class="deact-btn" onclick="deactivateM()">Desactivar misión actual</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="active-banner" id="active-banner">
+      <div class="ab-label">Operación activa ahora</div>
+      <div class="ab-title" id="ab-title">—</div>
+      <div class="ab-meta">
+        <div class="ab-stat"><div class="ab-stat-num" id="ab-connected">0</div><div class="ab-stat-lbl">equipos conectados</div></div>
+        <div class="ab-stat"><div class="ab-stat-num" id="ab-completed">0</div><div class="ab-stat-lbl">han completado</div></div>
+        <div class="ab-stat"><div class="ab-stat-num" id="ab-inprogress">0</div><div class="ab-stat-lbl">en progreso</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-hdr">
+        <div class="sec-title">Estado de los equipos</div>
+        <div class="sec-meta" id="teams-meta">—</div>
+      </div>
+      <div class="teams-grid" id="teams-grid"></div>
+    </div>
+
+    <div>
+      <div class="sec-hdr">
+        <div class="sec-title">Respuestas recibidas</div>
+        <div class="sec-meta" id="answers-meta">—</div>
+      </div>
+      <div class="answers-list" id="answers-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Confirmar</div>
+    <div class="modal-sub" id="modal-sub">Esta acción no se puede deshacer.</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-confirm" id="modal-confirm-btn">Borrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FB='https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
+const MISSIONS_META={
+  M1:{title:'Operación Expediente',phase:'Apertura',steps:4},
+  M2:{title:'Operación Archivo',phase:'Fase 1',steps:4},
+  M3:{title:'Operación Huella Digital',phase:'Fase 2',steps:4},
+  M4:{title:'Operación Contradicción',phase:'Fase 3',steps:5},
+  M5:{title:'Operación Veredicto',phase:'Día 2',steps:4},
+};
+const SUSPECTS=['Ibáñez','Mora','Castellví','Esteve'];
+let selMid=null,activeMid=null,expanded={};
+
+// ─── SIDEBAR ──────────────────────────────────────────────────
+function selectM(id){
+  selMid=id;
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('mb-'+id)?.classList.add('sel');
+  const m=MISSIONS_META[id];
+  const pb=document.getElementById('prev-box');
+  pb.textContent=m.phase+' · '+m.title+' · '+m.steps+' actividades';
+  pb.classList.add('show');
+  document.getElementById('act-btn').disabled=false;
+}
+
+async function activateM(){
+  if(!selMid)return;
+  const m=MISSIONS_META[selMid];
+  await fetch(`${FB}/mision-activa.json`,{method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:selMid,title:m.title,phase:m.phase,ts:Date.now()})});
+  activeMid=selMid;
+  document.getElementById('mb-'+selMid)?.classList.add('active');
+  document.getElementById('dot-'+selMid)?.classList.add('active');
+  document.getElementById('st-'+selMid).textContent='● Activa ahora';
+  document.getElementById('active-banner').classList.add('show');
+  document.getElementById('ab-title').textContent=m.phase+' · '+m.title;
+  loadAll();
+}
+
+async function deactivateM(){
+  await fetch(`${FB}/mision-activa.json`,{method:'DELETE'});
+  activeMid=null;
+  document.getElementById('active-banner').classList.remove('show');
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.mb-dot').forEach(d=>d.classList.remove('active'));
+}
+
+// ─── DATA ─────────────────────────────────────────────────────
+async function loadAll(){
+  let teams={},answers={},progress={},active=null;
+  try{const r=await fetch(`${FB}/misiones-equipos.json`);teams=await r.json()||{};}catch(e){}
+  try{const r=await fetch(`${FB}/misiones-respuestas.json`);answers=await r.json()||{};}catch(e){}
+  try{const r=await fetch(`${FB}/misiones-progreso.json`);progress=await r.json()||{};}catch(e){}
+  try{const r=await fetch(`${FB}/mision-activa.json`);active=await r.json();}catch(e){}
+  if(active?.id&&active.id!==activeMid){
+    activeMid=active.id;
+    document.getElementById('active-banner').classList.add('show');
+    document.getElementById('ab-title').textContent=(MISSIONS_META[active.id]?.phase||'')+' · '+(MISSIONS_META[active.id]?.title||'');
+  }
+  renderTeams(teams,answers,progress,active);
+  renderAnswers(answers,active);
+}
+
+// ─── TEAMS ────────────────────────────────────────────────────
+function renderTeams(teams,answers,progress,active){
+  const ids=['1','2','3','4'];let connected=0,completed=0,inprogress=0;
+  document.getElementById('teams-grid').innerHTML=ids.map(tid=>{
+    const t=teams['equipo'+tid],ta=answers['equipo'+tid]||{},tp=progress['equipo'+tid]||{};
+    const done=activeMid?!!ta[activeMid]:false;
+    const prog=activeMid?tp[activeMid]:null;
+    const completedM=Object.keys(ta).length;
+    const pct=Math.round(completedM/Object.keys(MISSIONS_META).length*100);
+    let status='off',stxt='Sin conectar',scls='s-off';
+    if(t){connected++;status='on';stxt='Conectado';scls='s-on';}
+    if(done){completed++;status='done';stxt='✓ Completado';scls='s-done';}
+    else if(prog&&t){inprogress++;}
+    const pdfsOpened=ta[activeMid]?.pdfOpened||{};
+    const pdfCount=Object.values(pdfsOpened).filter(Boolean).length;
+    return `<div class="tc">
+      <div class="tc-hdr"><div class="tc-name">Equipo ${tid}</div><div class="tc-status ${scls}">${stxt}</div></div>
+      <div class="tc-body">
+        ${t?`<div class="tc-coord">${t.coord||'—'}</div>`:'<div class="tc-coord" style="opacity:.4">No registrado</div>'}
+        ${prog?`<div class="tc-progress">Paso ${prog.step+1} de ${prog.total}</div>`:''}
+        <div class="tc-missions">${Object.keys(MISSIONS_META).map(mid=>`<span style="color:${ta[mid]?'#5dcaa5':'var(--muted)'}">${MISSIONS_META[mid].title.split(' ')[1]||mid} ${ta[mid]?'✓':'○'}</span>`).join(' ')}</div>
+        ${pdfCount>0?`<div class="tc-pdf">PDFs abiertos: <span>${pdfCount}</span></div>`:''}
+        <div class="tc-bar"><div class="tc-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('teams-meta').textContent=connected+' equipo'+(connected!==1?'s':'')+' conectado'+(connected!==1?'s':'');
+  document.getElementById('ab-connected').textContent=connected;
+  document.getElementById('ab-completed').textContent=completed;
+  document.getElementById('ab-inprogress').textContent=inprogress;
+}
+
+// ─── ANSWERS ──────────────────────────────────────────────────
+function renderAnswers(answers,active){
+  const list=document.getElementById('answers-list');
+  const all=[];
+  Object.entries(answers).forEach(([teamKey,missions])=>{
+    const tidNum=teamKey.replace('equipo','');
+    Object.entries(missions).forEach(([mid,data])=>{all.push({teamKey,tidNum,mid,...data});});
+  });
+  all.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  document.getElementById('answers-meta').textContent=all.length+' respuesta'+(all.length!==1?'s':'');
+  if(!all.length){list.innerHTML='<div class="no-data">Las respuestas aparecerán aquí cuando los equipos completen las misiones.</div>';return;}
+  list.innerHTML=all.map((a,idx)=>`
+    <div class="ac">
+      <div class="ac-hdr" onclick="toggleAc(${idx})">
+        <div class="ac-left">
+          <div class="ac-team">Equipo ${a.tidNum} · ${a.coord||'—'}</div>
+          <div class="ac-mission">${a.phase||''} · ${a.missionTitle||a.mid}</div>
+        </div>
+        <div class="ac-right">
+          <div class="ac-time">${new Date(a.ts||0).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div>
+          <button class="ac-del" onclick="event.stopPropagation();confirmDeleteAnswer(${idx},'${a.teamKey}','${a.mid}')" title="Borrar esta respuesta">✕</button>
+        </div>
+      </div>
+      <div class="ac-body" id="ac-body-${idx}">
+        ${renderAnswerBody(a)}
+      </div>
+    </div>`).join('');
+}
+
+function toggleAc(idx){
+  expanded[idx]=!expanded[idx];
+  const b=document.getElementById('ac-body-'+idx);
+  if(b)b.classList.toggle('open',!!expanded[idx]);
+}
+
+function renderAnswerBody(a){
+  const ans=a.answers||{},lupaF=a.lupaF||{},boardC=a.boardC||{},svals=a.svals||{};
+  const compT=a.compT||{},informeF=a.informeF||{},pdfOpened=a.pdfOpened||{};
+  let h='';
+
+  // PDFs abiertos
+  const pdfs=Object.entries(pdfOpened).filter(([,v])=>v).map(([k])=>'Paso '+(parseInt(k)+1));
+  if(pdfs.length) h+=`<div class="ac-section"><div class="ac-sec-lbl">Documentos leídos</div><div class="pdf-badge">${pdfs.map(p=>`<span class="pdf-b">📂 ${p}</span>`).join('')}</div></div>`;
+
+  // Text answers
+  Object.entries(ans).forEach(([k,v])=>{
+    if(typeof v==='string'&&v.length>5) h+=`<div class="ac-section"><div class="ac-sec-lbl">Respuesta · ${k}</div><div class="ac-content hl">${v}</div></div>`;
+    if(typeof v==='number') h+=`<div class="ac-section"><div class="ac-sec-lbl">Elección · ${k}</div><div class="ac-content">Opción ${v+1}</div></div>`;
+  });
+
+  // Comp texts
+  Object.entries(compT).forEach(([si,pairs])=>{
+    if(typeof pairs==='object') Object.entries(pairs).forEach(([pi,txt])=>{
+      if(txt?.length>5) h+=`<div class="ac-section"><div class="ac-sec-lbl">Comparador · paso ${parseInt(si)+1}</div><div class="ac-content hl">${txt}</div></div>`;
+    });
+  });
+
+  // Informe
+  const labels=['Objeto','Metodología','Hechos','Indicios','Hipótesis','Recomendaciones','Firmado'];
+  Object.entries(informeF).forEach(([si,fields])=>{
+    if(typeof fields==='object') Object.entries(fields).filter(([,v])=>v?.length>3).forEach(([fi,v])=>{
+      h+=`<div class="ac-section"><div class="ac-sec-lbl">Informe · ${labels[fi]||'Campo '+fi}</div><div class="ac-content teal">${v}</div></div>`;
+    });
+  });
+
+  // Sliders
+  Object.entries(svals).forEach(([si,vals])=>{
+    if(typeof vals==='object'&&Object.keys(vals).length){
+      h+=`<div class="ac-section"><div class="ac-sec-lbl">Niveles de sospecha</div><div class="suspect-bars">${Object.entries(vals).map(([i,v])=>`<div class="sb-row"><span class="sb-name">${SUSPECTS[i]||'S-'+i}</span><div class="sb-track"><div class="sb-fill" style="width:${v}%"></div></div><span class="sb-val">${v}%</span></div>`).join('')}</div></div>`;
+    }
+  });
+
+  // Lupa flags
+  Object.entries(lupaF).forEach(([si,flags])=>{
+    const flagged=Object.entries(flags).filter(([,v])=>v).map(([i])=>'Línea '+(parseInt(i)+1));
+    if(flagged.length) h+=`<div class="ac-section"><div class="ac-sec-lbl">Lupa forense · paso ${parseInt(si)+1}</div><div class="lupa-flags">${flagged.map(f=>`<span class="lupa-flag">⚑ ${f}</span>`).join('')}</div></div>`;
+  });
+
+  // Board connections
+  Object.entries(boardC).forEach(([si,conns])=>{
+    if(Array.isArray(conns)&&conns.length) h+=`<div class="ac-section"><div class="ac-sec-lbl">Tablero · ${conns.length} conexiones</div><div class="board-conns">${conns.map(c=>`<span class="board-conn">${c.join(' ↔ ')}</span>`).join('')}</div></div>`;
+  });
+
+  if(!h) h='<div style="font-size:11px;color:var(--muted);padding:.5rem 0">Respuestas en proceso...</div>';
+  return h;
+}
+
+// ─── DELETE ───────────────────────────────────────────────────
+let pendingDeleteFn=null;
+
+function openModal(title,sub,fn){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-sub').textContent=sub;
+  document.getElementById('modal-confirm-btn').onclick=()=>{fn();closeModal();};
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');pendingDeleteFn=null;}
+
+function confirmDeleteAnswer(idx,teamKey,mid){
+  openModal('Borrar respuesta','Se eliminará la respuesta de este equipo para esta misión. No se puede deshacer.',async()=>{
+    try{await fetch(`${FB}/misiones-respuestas/${teamKey}/${mid}.json`,{method:'DELETE'});}catch(e){}
+    loadAll();
+  });
+}
+
+function confirmDeleteAll(){
+  openModal('Borrar todos los datos','Se eliminarán TODOS los datos: equipos registrados, respuestas y progreso. Útil para reiniciar antes del taller.',async()=>{
+    try{
+      await fetch(`${FB}/misiones-equipos.json`,{method:'DELETE'});
+      await fetch(`${FB}/misiones-respuestas.json`,{method:'DELETE'});
+      await fetch(`${FB}/misiones-progreso.json`,{method:'DELETE'});
+    }catch(e){}
+    loadAll();
+  });
+}
+
+async function confirmDeleteTeam(teamKey){
+  openModal('Borrar equipo','Se eliminará el registro y todas las respuestas de este equipo.',async()=>{
+    try{
+      await fetch(`${FB}/misiones-equipos/${teamKey}.json`,{method:'DELETE'});
+      await fetch(`${FB}/misiones-respuestas/${teamKey}.json`,{method:'DELETE'});
+      await fetch(`${FB}/misiones-progreso/${teamKey}.json`,{method:'DELETE'});
+    }catch(e){}
+    loadAll();
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+loadAll();
+setInterval(loadAll,5000);
+</script>
+</body>
+</html>
