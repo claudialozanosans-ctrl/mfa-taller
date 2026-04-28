@@ -131,6 +131,22 @@ html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:v
 .modal-btns{display:flex;gap:.75rem}
 .modal-cancel{flex:1;background:transparent;border:1px solid var(--b2);border-radius:4px;padding:10px;font-family:var(--mono);font-size:11px;color:var(--paper);cursor:pointer}
 .modal-confirm{flex:1;background:var(--red);border:none;border-radius:4px;padding:10px;font-family:var(--mono);font-size:11px;font-weight:500;color:#fff;cursor:pointer;letter-spacing:.06em;text-transform:uppercase}
+
+/* VOTE DISPLAY */
+.vote-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.vr-card{background:var(--bg2);border:1px solid var(--b1);border-radius:8px;padding:1rem;text-align:center}
+.vr-suspect{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:4px}
+.vr-count{font-size:32px;font-weight:500;color:var(--accent);margin-bottom:4px}
+.vr-teams{font-size:10px;color:var(--muted);margin-bottom:.625rem;line-height:1.5}
+.vr-bar{height:6px;background:var(--b1);border-radius:3px;overflow:hidden}
+.vr-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.vr-card.winner{border-color:var(--accent);background:rgba(200,169,110,.06)}
+.vr-card.winner .vr-suspect{color:var(--accent)}
+.vote-teams-list{margin-top:1rem;display:flex;flex-direction:column;gap:.375rem}
+.vt-row{display:flex;align-items:center;gap:.75rem;font-size:11px;padding:.375rem .625rem;background:var(--bg3);border-radius:4px}
+.vt-team{color:var(--accent);min-width:60px}
+.vt-votes{color:var(--paper);flex:1}
+.vt-time{color:var(--muted);font-size:10px}
 </style>
 </head>
 <body>
@@ -210,6 +226,14 @@ html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:v
   </div>
 </div>
 
+    <div>
+      <div class="sec-hdr">
+        <div class="sec-title">🗳️ Votación final en tiempo real</div>
+        <div class="sec-meta" id="vote-meta">—</div>
+      </div>
+      <div id="vote-display"></div>
+    </div>
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -270,11 +294,56 @@ async function deactivateM(){
 }
 
 // ─── DATA ─────────────────────────────────────────────────────
+function renderVotes(votes){
+  const suspects={
+    ibanez:{name:'Marcos Ibáñez',role:'Senior Consultant'},
+    mora:{name:'Sílvia Mora',role:'Project Manager'},
+    castellvi:{name:'Andrés Castellví',role:'Financial Analyst'},
+    esteve:{name:'Paula Esteve',role:'Strategy Director'},
+    conspiracion:{name:'Conspiración múltiple',role:'Dos o más personas'},
+  };
+  const all=Object.values(votes);
+  const total=all.length;
+  document.getElementById('vote-meta').textContent=total+' equipo'+(total!==1?'s':'')+' ha'+(total!==1?'n':'')+' votado';
+
+  if(!total){
+    document.getElementById('vote-display').innerHTML='<div class="no-data" style="padding:1.5rem">Las votaciones aparecerán aquí cuando los equipos voten.</div>';
+    return;
+  }
+
+  // Count votes per suspect
+  const counts={};
+  Object.keys(suspects).forEach(k=>counts[k]=0);
+  all.forEach(v=>(v.votes||[]).forEach(s=>{if(counts[s]!==undefined)counts[s]++;}));
+  const maxCount=Math.max(...Object.values(counts));
+
+  const resultsHtml=`<div class="vote-results">
+    ${Object.entries(suspects).map(([k,s])=>`
+      <div class="vr-card ${counts[k]===maxCount&&maxCount>0?'winner':''}">
+        <div class="vr-suspect">${counts[k]===maxCount&&maxCount>0?'🏆 ':''} ${s.name}</div>
+        <div class="vr-count">${counts[k]}</div>
+        <div class="vr-bar"><div class="vr-fill" style="width:${total>0?Math.round(counts[k]/total*100):0}%"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">${total>0?Math.round(counts[k]/total*100):0}% de equipos</div>
+      </div>`).join('')}
+  </div>
+  <div class="vote-teams-list">
+    ${all.map(v=>`<div class="vt-row">
+      <span class="vt-team">Equipo ${v.tid} · ${v.coord||'—'}</span>
+      <span class="vt-votes">${(v.votes||[]).map(s=>suspects[s]?.name||s).join(', ')||'Sin votos'}</span>
+      <span class="vt-time">${new Date(v.ts||0).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</span>
+    </div>`).join('')}
+  </div>`;
+  document.getElementById('vote-display').innerHTML=resultsHtml;
+}
+
 async function loadAll(){
   let teams={},answers={},progress={},active=null;
   try{const r=await fetch(`${FB}/misiones-equipos.json`);teams=await r.json()||{};}catch(e){}
   try{const r=await fetch(`${FB}/misiones-respuestas.json`);answers=await r.json()||{};}catch(e){}
   try{const r=await fetch(`${FB}/misiones-progreso.json`);progress=await r.json()||{};}catch(e){}
+  let votes={};
+  try{const r=await fetch(`${FB}/votacion-final.json`);votes=await r.json()||{};}catch(e){}
+  renderVotes(votes);
   try{const r=await fetch(`${FB}/mision-activa.json`);active=await r.json();}catch(e){}
   if(active?.id&&active.id!==activeMid){
     activeMid=active.id;
@@ -428,6 +497,7 @@ function confirmDeleteAll(){
       await fetch(`${FB}/misiones-equipos.json`,{method:'DELETE'});
       await fetch(`${FB}/misiones-respuestas.json`,{method:'DELETE'});
       await fetch(`${FB}/misiones-progreso.json`,{method:'DELETE'});
+      await fetch(`${FB}/votacion-final.json`,{method:'DELETE'});
     }catch(e){}
     loadAll();
   });

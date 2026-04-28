@@ -214,6 +214,28 @@ audio{width:100%;height:34px;border-radius:4px;outline:none}
 .nbtn{flex:1;padding:10px;border-radius:4px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--b2);background:transparent;color:var(--paper);transition:all .15s}
 .nbtn:hover{background:rgba(245,240,232,.04)}.nbtn.p{background:var(--accent);color:#0a0908;border-color:var(--accent)}.nbtn.p:hover{opacity:.85}.nbtn:disabled{opacity:.2;cursor:not-allowed}
 
+/* VOTE */
+.vote-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.vote-card{background:var(--bg3);border:2px solid var(--b2);border-radius:8px;padding:1rem;cursor:pointer;transition:all .2s;text-align:center;position:relative}
+.vote-card:hover{border-color:var(--b2);background:var(--bg4)}
+.vote-card.selected{border-color:var(--accent);background:rgba(200,169,110,.08)}
+.vote-card.selected::after{content:'✓';position:absolute;top:6px;right:8px;font-size:12px;color:var(--accent);font-weight:500}
+.vote-suspect{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:3px}
+.vote-role{font-size:10px;color:var(--muted);line-height:1.4}
+.vote-icon{font-size:28px;margin-bottom:.5rem}
+.vote-conspiracy{width:100%;background:var(--bg3);border:2px solid var(--b2);border-radius:8px;padding:.875rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.875rem;margin-bottom:1rem}
+.vote-conspiracy:hover{background:var(--bg4)}
+.vote-conspiracy.selected{border-color:var(--red);background:rgba(192,80,64,.06)}
+.vote-conspiracy.selected::after{content:'✓';color:var(--red);font-weight:500;margin-left:auto}
+.vc-icon{font-size:22px;flex-shrink:0}
+.vc-info .vt{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:2px}
+.vc-info .vs{font-size:10px;color:var(--muted);line-height:1.4}
+.vote-sent{background:rgba(45,122,95,.08);border:1px solid rgba(45,122,95,.2);border-radius:8px;padding:1.25rem;text-align:center}
+.vote-sent-icon{font-size:32px;margin-bottom:.5rem}
+.vote-sent-title{font-size:14px;font-weight:500;color:#5dcaa5;margin-bottom:.375rem}
+.vote-sent-sub{font-size:11px;color:var(--muted)}
+.vote-count{font-size:10px;color:var(--muted);margin-bottom:.75rem;font-style:italic}
+
 /* DONE */
 .done{background:rgba(45,122,95,.07);border:1px solid rgba(45,122,95,.22);border-radius:10px;padding:1.5rem;text-align:center;animation:cardIn .3s ease}
 .done-icon{font-size:32px;margin-bottom:.75rem}.done-title{font-family:var(--serif);font-size:19px;margin-bottom:.375rem}
@@ -517,7 +539,12 @@ steps:[
    hint:'Estructura de un buen veredicto: (1) "Los indicios apuntan a..." — nunca "el culpable es...", (2) tres indicios con fuente, (3) reconocer las limitaciones probatorias.',
    act:{type:'text',label:'Veredicto para la rueda de prensa',
      q:'Redactad el veredicto que leeréis en voz alta:',
-     ph:'Señora Vidal, tras la investigación realizada, este despacho concluye que...\n\nLos indicios que sustentan esta hipótesis son:\n1. ... (fuente: ...)\n2. ... (fuente: ...)\n3. ... (fuente: ...)\n\nSi este caso llegara a juicio, la principal limitación probatoria sería...\n\nFirmado: Equipo ...'}}
+     ph:'Señora Vidal, tras la investigación realizada, este despacho concluye que...\n\nLos indicios que sustentan esta hipótesis son:\n1. ... (fuente: ...)\n2. ... (fuente: ...)\n3. ... (fuente: ...)\n\nSi este caso llegara a juicio, la principal limitación probatoria sería...\n\nFirmado: Equipo ...'}},
+  {id:'m5p5',stype:'🗳️ Votación final · Veredicto del equipo',
+   title:'Después de escuchar a todos los equipos — ¿quién filtró el Proyecto Atenea?',
+   text:'Podéis votar a una o más personas. Si creéis que fue una conspiración, marcad a todos los implicados. Esta votación es definitiva — se ve en tiempo real en la pantalla de la sala.',
+   hint:'Votad según los indicios documentados, no según la intuición. Un detective fundamenta cada decisión.',
+   act:{type:'vote',label:'Votación final del caso'}}
 ]}
 };
 
@@ -525,6 +552,7 @@ steps:[
 let tid=null,coord='',cMid=null,cStep=0;
 let ans={},cmatch={},svals={},stags={},sdec={},informeF={},lupaF={},boardC={},compV={},compT={},pdfOpened={};
 let csel=null,cside=null,bdSel=null;
+let voteSelected={},voteSent=false;
 
 // ═══ SETUP ═══════════════════════════════════════════════════
 function startApp(){
@@ -586,7 +614,7 @@ function render(){
       ${renderPdf(s)}${renderAudio(s)}${renderOsint(s)}${renderAct(s)}
       <div class="sctrl">
         ${cStep>0?`<button class="nbtn" onclick="prev()">← Atrás</button>`:''}
-        <button class="nbtn p" id="nbtn" onclick="next()" ${canGo(s)?'':'disabled'}>${isLast?'Enviar informe →':'Siguiente →'}</button>
+        <button class="nbtn p" id="nbtn" onclick="next()" ${canGo(s)?'':'disabled'}>${s?.act?.type==='vote'&&!voteSent?'Enviar voto →':isLast?'Enviar informe →':'Siguiente →'}</button>
       </div>
     </div>
   </div>`;
@@ -701,6 +729,46 @@ function renderAct(s){
       <div class="act-q">${a.decision.q}</div>
       <div class="dopts">${a.decision.opts.map((o,i)=>`<div class="dopt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})"><div class="dt2">${o.t}</div><div class="ds2">${o.s}</div></div>`).join('')}</div>
       ${sd!==undefined&&a.decision.fb?`<div class="fb show ok">${a.decision.fb}</div>`:''}`;break;}
+    case 'vote':{
+      if(voteSent){
+        h+=`<div class="vote-sent">
+          <div class="vote-sent-icon">🗳️</div>
+          <div class="vote-sent-title">Voto enviado</div>
+          <div class="vote-sent-sub">Vuestro veredicto ha llegado al despacho.<br>La instructora revelará el resultado.</div>
+        </div>`;
+      } else {
+        h+=`<div class="vote-count">Podéis seleccionar uno o varios sospechosos</div>
+        <div class="vote-grid">
+          <div class="vote-card ${voteSelected['ibanez']?'selected':''}" onclick="doVote('ibanez')">
+            <div class="vote-icon">👔</div>
+            <div class="vote-suspect">Marcos Ibáñez</div>
+            <div class="vote-role">Senior Consultant<br>Acceso completo</div>
+          </div>
+          <div class="vote-card ${voteSelected['mora']?'selected':''}" onclick="doVote('mora')">
+            <div class="vote-icon">📋</div>
+            <div class="vote-suspect">Sílvia Mora</div>
+            <div class="vote-role">Project Manager<br>Acceso completo</div>
+          </div>
+          <div class="vote-card ${voteSelected['castellvi']?'selected':''}" onclick="doVote('castellvi')">
+            <div class="vote-icon">💰</div>
+            <div class="vote-suspect">Andrés Castellví</div>
+            <div class="vote-role">Financial Analyst<br>Acceso parcial</div>
+          </div>
+          <div class="vote-card ${voteSelected['esteve']?'selected':''}" onclick="doVote('esteve')">
+            <div class="vote-icon">🎯</div>
+            <div class="vote-suspect">Paula Esteve</div>
+            <div class="vote-role">Strategy Director<br>Acceso completo</div>
+          </div>
+        </div>
+        <div class="vote-conspiracy ${voteSelected['conspiracion']?'selected':''}" onclick="doVote('conspiracion')">
+          <div class="vc-icon">🕵️</div>
+          <div class="vc-info">
+            <div class="vt">Conspiración entre dos o más personas</div>
+            <div class="vs">Actuaron de forma coordinada con roles distintos</div>
+          </div>
+        </div>`;
+      }
+      break;}
     case 'informe':{
       h+=`<div class="informe"><div class="inf-hdr"><div class="inf-hdr-t">Informe de Investigación Privada</div><div class="inf-hdr-s">MFA-2026-LC-001 · Mulier Fortis Association · TIP 7293</div></div>
       ${a.fields.map((f,fi)=>`<div class="inf-sec"><div class="inf-lbl">${f.lbl}</div><textarea class="inf-field" placeholder="${f.ph}" oninput="doInforme(${idx},${fi},this.value)">${(informeF[idx]||{})[fi]||''}</textarea></div>`).join('')}
@@ -720,6 +788,27 @@ function doTag(idx,i){if(!stags[idx])stags[idx]={};stags[idx][i]=!stags[idx][i];
 function doLupa(idx,i){if(!lupaF[idx])lupaF[idx]={};lupaF[idx][i]=!lupaF[idx][i];const el=document.querySelectorAll('.lupa-line')[i];if(el)el.classList.toggle('flagged',!!lupaF[idx][i]);const cnt=document.querySelector('.lupa-count span');if(cnt)cnt.textContent=Object.values(lupaF[idx]).filter(Boolean).length;ans['lupa_'+idx]=lupaF[idx];checkBtn();}
 function doCompT(idx,pi,v){if(!compT[idx])compT[idx]={};compT[idx][pi]=v;ans['ct_'+idx]=compT[idx];checkBtn();}
 function doVerdict(idx,pi,v){if(!compV[idx])compV[idx]={};compV[idx][pi]=v;ans['cv_'+idx]=compV[idx];const btns=document.querySelectorAll('.comp-verdict')[pi]?.querySelectorAll('.cvbtn');if(btns){btns.forEach(b=>b.classList.remove('ok','bad'));btns[v==='ok'?0:1]?.classList.add(v);}checkBtn();}
+function doVote(suspect){
+  voteSelected[suspect]=!voteSelected[suspect];
+  const s=MISSIONS[cMid]?.steps[cStep];
+  if(s?.act?.type==='vote') renderAct(s);
+  // Re-render just activity area
+  const actArea=document.querySelector('.act-area');
+  if(actArea){actArea.outerHTML=renderAct(MISSIONS[cMid].steps[cStep]);}
+  render(); checkBtn();
+}
+
+async function sendVote(){
+  if(voteSent) return;
+  const votes=Object.entries(voteSelected).filter(([,v])=>v).map(([k])=>k);
+  try{await fetch(`${FB}/votacion-final/equipo${tid}.json`,{method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({tid,coord,votes,ts:Date.now()})});}catch(e){}
+  voteSent=true;
+  ans['vote']=votes;
+  render(); checkBtn();
+}
+
 function doInforme(idx,fi,v){if(!informeF[idx])informeF[idx]={};informeF[idx][fi]=v;ans['inf_'+idx]=informeF[idx];checkBtn();}
 
 function doConnect(side,i,idx){
@@ -792,6 +881,7 @@ function canGo(s){
     case 'sliders_text':return!a.textq||(ans['t_'+idx]||'').length>10;
     case 'evidence_decision':return sdec[idx]!==undefined;
     case 'informe':return Object.values(informeF[idx]||{}).filter(v=>v.length>5).length>=4;
+    case 'vote':return voteSent||Object.values(voteSelected).some(Boolean);
     default:return true;
   }
 }
@@ -802,6 +892,12 @@ function jumpTo(i){if(i<=cStep){cStep=i;render();}}
 function prev(){if(cStep>0){cStep--;render();}}
 async function next(){
   const m=MISSIONS[cMid];
+  const s=m.steps[cStep];
+  // Send vote if on vote step
+  if(s?.act?.type==='vote'&&!voteSent){
+    await sendVote();
+    return;
+  }
   try{await fetch(`${FB}/misiones-progreso/equipo${tid}/${cMid}.json`,{method:'PUT',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({tid,coord,step:cStep,total:m.steps.length,ts:Date.now()})});}catch(e){}
