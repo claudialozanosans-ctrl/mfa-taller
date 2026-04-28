@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MFA · Expediente Lucentia</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0908;--bg2:#141210;--bg3:#1e1b18;--bg4:#252220;
+  --paper:#f5f0e8;--muted:#7a7570;
+  --b1:rgba(245,240,232,0.07);--b2:rgba(245,240,232,0.16);
+  --accent:#c8a96e;--red:#c05040;--teal:#2d7a5f;--gold:#8a6c1a;--blue:#1a3a6a;
+  --mono:'IBM Plex Mono',monospace;--serif:'IM Fell English',serif;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--paper);font-family:var(--mono);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.tl{font-family:var(--serif);font-size:14px}.ts{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+.tr{display:flex;align-items:center;gap:7px}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.badge{font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid var(--b2);color:var(--accent)}
+.pbar{height:2px;background:var(--b1);position:fixed;top:44px;left:0;right:0;z-index:201}
+.pfill{height:100%;background:var(--accent);transition:width .5s ease}
+.main{max-width:480px;margin:0 auto;padding:1rem 1rem 6rem}
+
+/* SETUP */
+.setup{background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:1.5rem}
+.setup-stamp{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);border:1px solid rgba(192,80,64,.35);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:.875rem}
+.setup-title{font-family:var(--serif);font-size:24px;margin-bottom:4px}
+.setup-sub{font-size:11px;color:var(--muted);margin-bottom:1.5rem;line-height:1.65}
+.slbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.875rem}
+.team-btn{background:var(--bg3);border:1px solid var(--b2);border-radius:5px;padding:12px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s;text-align:center}
+.team-btn:hover{border-color:var(--accent);color:var(--paper)}
+.team-btn.sel{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent);font-weight:500}
+.name-inp{width:100%;background:var(--bg3);border:1px solid var(--b2);border-radius:4px;padding:11px 12px;font-family:var(--mono);font-size:13px;color:var(--paper);outline:none;margin-bottom:1rem;-webkit-appearance:none}
+.name-inp:focus{border-color:var(--accent)}
+.enter-btn{width:100%;background:var(--accent);color:#0a0908;border:none;border-radius:4px;padding:13px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
+.enter-btn:hover{opacity:.88}
+.enter-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* WAITING */
+.wait{text-align:center;padding:3rem 1rem}
+.wait-seal{width:72px;height:72px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:28px;animation:sealpulse 3s ease infinite}
+@keyframes sealpulse{0%,100%{border-color:var(--accent);opacity:1}50%{border-color:var(--muted);opacity:.55}}
+.wait-title{font-family:var(--serif);font-size:20px;margin-bottom:.5rem}
+.wait-sub{font-size:11px;color:var(--muted);line-height:1.7}
+.wait-team{margin-top:1.5rem;font-size:11px;color:var(--muted)}
+.wait-team span{color:var(--accent)}
+
+/* EXP HEADER */
+.exp-hdr{background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:1rem 1.125rem;margin-bottom:.75rem;position:relative;overflow:hidden}
+.exp-hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--accent))}
+.exp-class{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:.3rem}
+.exp-title{font-family:var(--serif);font-size:18px;margin-bottom:2px;line-height:1.2}
+.exp-code{font-size:9px;color:var(--muted);letter-spacing:.05em}
+.exp-tags{display:flex;gap:5px;margin-top:.625rem;flex-wrap:wrap}
+.exp-tag{font-size:9px;letter-spacing:.05em;padding:2px 7px;border-radius:20px;border:1px solid var(--b2);color:var(--muted)}
+.exp-tag.on{border-color:var(--accent);color:var(--accent)}
+
+/* STEP NAV */
+.step-nav{display:flex;gap:5px;align-items:center;margin-bottom:.75rem;padding:.5rem .875rem;background:var(--bg2);border-radius:6px;border:1px solid var(--b1)}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--b2);transition:all .2s;flex-shrink:0;cursor:pointer}
+.sdot.done{background:var(--teal)}.sdot.active{background:var(--accent);transform:scale(1.3)}
+.slbl2{font-size:9px;color:var(--muted);margin-left:auto}
+
+/* STEP CARD */
+.scard{background:var(--bg2);border:1px solid var(--b1);border-radius:10px;overflow:hidden;margin-bottom:.75rem;animation:cardIn .3s ease}
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.stype{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);padding:.875rem 1.125rem .3rem;font-weight:500}
+.stitle{font-size:13px;font-weight:500;color:var(--paper);padding:0 1.125rem .5rem;line-height:1.35}
+.stext{font-size:11px;color:var(--muted);padding:0 1.125rem .75rem;line-height:1.7}
+.shint{font-size:10px;color:var(--muted);line-height:1.6;font-style:italic;margin:0 1.125rem .75rem;padding:.5rem .75rem;border-left:2px solid var(--b2)}
+
+/* PDF */
+.pdf-section{margin:.5rem 1.125rem .875rem}
+.pdf-sealed{background:var(--bg3);border:1px solid rgba(192,80,64,.3);border-radius:8px;padding:1.25rem;text-align:center}
+.pdf-stamp{font-size:10px;letter-spacing:.2em;color:var(--red);font-weight:500;margin-bottom:.375rem}
+.pdf-ref{font-size:9px;color:var(--muted);margin-bottom:.25rem}
+.pdf-name{font-size:11px;color:var(--paper);margin-bottom:.875rem;font-weight:500}
+.pdf-open-btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--bg4);border:1px solid rgba(192,80,64,.4);border-radius:5px;padding:.625rem 1.25rem;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);cursor:pointer;text-decoration:none;transition:all .2s}
+.pdf-open-btn:hover{border-color:var(--red);background:rgba(192,80,64,.08)}
+.pdf-note{font-size:10px;color:var(--muted);margin-top:.625rem}
+.pdf-opened{background:var(--bg3);border:1px solid rgba(45,122,95,.3);border-radius:8px;overflow:hidden}
+.pdf-opened-hdr{background:rgba(45,122,95,.1);padding:.625rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid rgba(45,122,95,.15)}
+.pdf-opened-icon{font-size:18px}
+.pdf-opened-info{flex:1}
+.pdf-opened-ref{font-size:9px;letter-spacing:.07em;color:#5dcaa5;margin-bottom:1px}
+.pdf-opened-name{font-size:11px;font-weight:500;color:var(--paper)}
+.pdf-reopen{font-size:9px;padding:3px 9px;border-radius:3px;border:1px solid rgba(45,122,95,.4);background:transparent;color:#5dcaa5;cursor:pointer;font-family:var(--mono);text-decoration:none;display:inline-block;white-space:nowrap}
+
+/* AUDIO */
+.audio-blk{margin:.5rem 1.125rem .875rem;background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.875rem 1rem}
+.audio-tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem}
+.audio-name{font-size:11px;font-weight:500;color:var(--paper);margin-bottom:.5rem}
+audio{width:100%;height:34px;border-radius:4px;outline:none}
+.dual-audio{margin:.5rem 1.125rem .875rem;display:flex;flex-direction:column;gap:.5rem}
+.daudio{background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.75rem 1rem}
+.daudio-who{font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;font-weight:500}
+.daudio-who.det{color:#5dcaa5}.daudio-who.sus{color:var(--accent)}
+.daudio-note{font-size:10px;color:var(--muted);margin-bottom:.5rem;font-style:italic}
+
+/* OSINT */
+.osint-btn{margin:.5rem 1.125rem .875rem;display:flex;align-items:center;gap:.875rem;background:rgba(26,58,106,.25);border:1px solid rgba(26,58,106,.5);border-radius:8px;padding:.875rem 1rem;text-decoration:none;transition:all .15s}
+.osint-btn:hover{border-color:rgba(100,150,255,.4)}
+.osint-ico{font-size:20px;flex-shrink:0}
+.osint-t{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:1px}
+.osint-s{font-size:10px;color:var(--muted)}
+.osint-arr{color:var(--accent);font-size:16px;margin-left:auto}
+
+/* ACTIVITY */
+.act-area{margin:.5rem 1.125rem;padding-top:.625rem;border-top:1px solid var(--b1)}
+.act-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;font-weight:500}
+.act-q{font-size:12px;color:var(--paper);margin-bottom:.75rem;line-height:1.5;font-weight:500}
+.act-sub{font-size:11px;color:var(--muted);margin-bottom:.625rem;line-height:1.6}
+
+/* QUIZ */
+.qopts{display:flex;flex-direction:column;gap:6px;margin-bottom:.625rem}
+.qopt{background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.75rem 1rem;font-size:11.5px;cursor:pointer;transition:all .15s;line-height:1.5;display:flex;gap:.75rem;align-items:flex-start}
+.qopt:hover{background:var(--bg4)}
+.ql{width:18px;height:18px;border-radius:50%;background:var(--bg4);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0;margin-top:1px}
+.qopt.correct{border-color:var(--teal);background:rgba(45,122,95,.1);pointer-events:none}
+.qopt.correct .ql{background:var(--teal);border-color:var(--teal);color:#fff}
+.qopt.wrong{border-color:var(--red);background:rgba(192,80,64,.08);pointer-events:none}
+.qopt.wrong .ql{background:var(--red);border-color:var(--red);color:#fff}
+.qopt.dim{pointer-events:none;opacity:.3}
+.fb{font-size:11px;padding:.625rem .875rem;border-radius:5px;line-height:1.65;margin-bottom:.625rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:rgba(45,122,95,.08);border:1px solid rgba(45,122,95,.2);color:#5dcaa5}
+.fb.bad{background:rgba(192,80,64,.06);border:1px solid rgba(192,80,64,.2);color:var(--paper)}
+
+/* LUPA */
+.lupa-instr{font-size:10px;color:var(--muted);margin-bottom:.5rem}
+.lupa-doc{font-size:11px;line-height:1.75;color:var(--paper);background:var(--bg4);border-radius:4px;padding:.75rem;margin-bottom:.5rem}
+.lupa-line{padding:3px 6px;border-radius:3px;cursor:pointer;transition:all .15s;border:1px solid transparent;margin:1px 0;display:block}
+.lupa-line:hover{background:rgba(200,169,110,.08)}
+.lupa-line.flagged{background:rgba(192,80,64,.12);border-color:rgba(192,80,64,.3)}
+.lupa-line.flagged::after{content:' ⚑';color:var(--red);font-size:10px}
+.lupa-count{font-size:10px;color:var(--muted);margin-bottom:.5rem}
+.lupa-count span{color:var(--accent)}
+
+/* CONNECT */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.625rem}
+.ccol-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;text-align:center}
+.citem{background:var(--bg3);border:1px solid var(--b2);border-radius:4px;padding:.5rem .625rem;font-size:10.5px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.4;margin-bottom:4px}
+.citem.sel{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
+.citem.matched{border-color:var(--teal);background:rgba(45,122,95,.1);color:#5dcaa5;cursor:default}
+.citem.wrong{border-color:var(--red);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}70%{transform:translateX(5px)}}
+
+/* BOARD */
+.board-legend{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.5rem}
+.bleg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.bleg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.board{position:relative;width:100%;height:300px;background:var(--bg4);border-radius:6px;border:1px solid var(--b2);overflow:hidden;touch-action:none;margin-bottom:.5rem}
+.bnode{position:absolute;background:var(--bg3);border:1px solid var(--b2);border-radius:6px;padding:.35rem .625rem;font-size:10px;cursor:pointer;transition:all .2s;user-select:none;z-index:10;text-align:center;line-height:1.3}
+.bnode.sel{border-color:var(--accent);background:rgba(200,169,110,.12);color:var(--accent)}
+.bnode.suspect{border-left:3px solid var(--red)}.bnode.company{border-left:3px solid var(--blue)}.bnode.person{border-left:3px solid var(--accent)}
+.bsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.bline{stroke:rgba(200,169,110,.35);stroke-width:1.5;stroke-dasharray:4 3}
+.bline.ok{stroke:rgba(45,122,95,.6);stroke-dasharray:none}
+.board-info{font-size:10px;color:var(--muted);margin-bottom:.5rem}
+.board-info span{color:var(--teal)}
+
+/* COMPARATOR */
+.comp-pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:4px}
+.comp-side{background:var(--bg4);border-radius:5px;padding:.5rem .625rem;font-size:10.5px;line-height:1.5;border-left:2px solid var(--b2)}
+.comp-side.decl{border-left-color:var(--accent)}.comp-side.fact{border-left-color:var(--teal)}
+.comp-lbl{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem}
+.comp-txt{color:var(--paper)}
+.comp-verdict{display:flex;gap:5px;margin-bottom:.625rem}
+.cvbtn{flex:1;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:5px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s}
+.cvbtn.ok{border-color:var(--teal);background:rgba(45,122,95,.15);color:#5dcaa5}
+.cvbtn.bad{border-color:var(--red);background:rgba(192,80,64,.12);color:var(--red)}
+
+/* SLIDERS */
+.sliders{display:flex;flex-direction:column;gap:.75rem;margin-bottom:.75rem}
+.srow{display:flex;align-items:center;gap:.75rem}
+.sn{font-size:11px;color:var(--muted);min-width:85px;flex-shrink:0}
+.si{flex:1;-webkit-appearance:none;height:4px;background:var(--b2);border-radius:2px;outline:none}
+.si::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+.sv{font-size:11px;color:var(--accent);min-width:34px;text-align:right}
+
+/* DECISION */
+.dopts{display:flex;flex-direction:column;gap:.625rem;margin-bottom:.625rem}
+.dopt{background:var(--bg3);border:1px solid var(--b2);border-radius:7px;padding:.875rem;cursor:pointer;transition:all .15s}
+.dopt:hover{background:var(--bg4)}.dopt.sel{border-color:var(--accent);background:rgba(200,169,110,.06)}
+.dt2{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:3px}
+.ds2{font-size:10px;color:var(--muted);line-height:1.5}
+
+/* EVIDENCE TAGS */
+.etags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+.etag{font-size:10px;padding:3px 9px;border-radius:20px;cursor:pointer;border:1px solid var(--b2);background:var(--bg3);color:var(--muted);transition:all .15s;line-height:1.4}
+.etag.on{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
+
+/* INFORME */
+.informe{background:var(--bg3);border:1px solid var(--b2);border-radius:6px;overflow:hidden;margin-bottom:.625rem}
+.inf-hdr{background:var(--bg);padding:.75rem 1rem;border-bottom:1px solid var(--b1)}
+.inf-hdr-t{font-family:var(--serif);font-size:14px;margin-bottom:2px}
+.inf-hdr-s{font-size:9px;color:var(--muted);letter-spacing:.06em}
+.inf-sec{padding:.625rem 1rem;border-bottom:.5px solid var(--b1)}
+.inf-sec:last-child{border-bottom:none}
+.inf-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem}
+.inf-field{width:100%;background:transparent;border:none;border-bottom:1px solid var(--b2);padding:.25rem 0;font-family:var(--mono);font-size:11px;color:var(--paper);outline:none;line-height:1.5;resize:none;min-height:38px}
+.inf-field:focus{border-bottom-color:var(--accent)}
+.inf-field::placeholder{color:var(--muted)}
+
+/* TEXTAREA */
+.txta{width:100%;background:var(--bg3);border:1px solid var(--b2);border-radius:4px;padding:.75rem .875rem;font-family:var(--mono);font-size:11px;color:var(--paper);outline:none;resize:vertical;min-height:70px;line-height:1.65;margin-bottom:.25rem}
+.txta:focus{border-color:var(--accent)}.txta::placeholder{color:var(--muted)}
+.cc{font-size:9px;color:var(--muted);text-align:right;margin-bottom:.5rem}
+
+/* VOTE */
+.vote-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.875rem}
+.vote-card{background:var(--bg3);border:2px solid var(--b2);border-radius:8px;padding:1rem;cursor:pointer;transition:all .2s;text-align:center;position:relative}
+.vote-card:hover{border-color:var(--b2);background:var(--bg4)}
+.vote-card.sel{border-color:var(--accent);background:rgba(200,169,110,.08)}
+.vote-card.sel::after{content:'✓';position:absolute;top:6px;right:8px;font-size:12px;color:var(--accent);font-weight:500}
+.vote-ico{font-size:28px;margin-bottom:.375rem}
+.vote-name{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:2px}
+.vote-role{font-size:10px;color:var(--muted);line-height:1.4}
+.vote-conspiracy{width:100%;background:var(--bg3);border:2px solid var(--b2);border-radius:8px;padding:.875rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.875rem;margin-bottom:.875rem}
+.vote-conspiracy:hover{background:var(--bg4)}
+.vote-conspiracy.sel{border-color:var(--red);background:rgba(192,80,64,.06)}
+.vc-ico{font-size:22px;flex-shrink:0}
+.vc-t{font-size:12px;font-weight:500;color:var(--paper);margin-bottom:2px}
+.vc-s{font-size:10px;color:var(--muted);line-height:1.4}
+.vote-note{font-size:10px;color:var(--muted);font-style:italic;margin-bottom:.625rem}
+.vote-done{background:rgba(45,122,95,.08);border:1px solid rgba(45,122,95,.2);border-radius:8px;padding:1.25rem;text-align:center}
+.vote-done-ico{font-size:30px;margin-bottom:.5rem}
+.vote-done-t{font-size:14px;font-weight:500;color:#5dcaa5;margin-bottom:.25rem}
+.vote-done-s{font-size:11px;color:var(--muted)}
+
+/* NAV */
+.sctrl{display:flex;gap:.625rem;padding:.875rem 1.125rem;border-top:1px solid var(--b1)}
+.nbtn{flex:1;padding:10px;border-radius:4px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--b2);background:transparent;color:var(--paper);transition:all .15s}
+.nbtn:hover{background:rgba(245,240,232,.04)}.nbtn.p{background:var(--accent);color:#0a0908;border-color:var(--accent)}.nbtn.p:hover{opacity:.85}.nbtn:disabled{opacity:.2;cursor:not-allowed}
+
+/* DONE */
+.done{background:rgba(45,122,95,.07);border:1px solid rgba(45,122,95,.22);border-radius:10px;padding:1.5rem;text-align:center;animation:cardIn .3s ease}
+.done-icon{font-size:32px;margin-bottom:.75rem}.done-title{font-family:var(--serif);font-size:19px;margin-bottom:.375rem}
+.done-sub{font-size:11px;color:var(--muted);line-height:1.65}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><div class="tl">MFA · Expediente Lucentia</div><div class="ts">Investigación privada · LC-001</div></div>
+  <div class="tr"><div class="ldot"></div><div class="badge" id="tbadge" style="display:none">—</div></div>
+</div>
+<div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+<div class="main">
+  <div id="setup-view">
+    <div class="setup">
+      <div class="setup-stamp">Acceso restringido · Clasificado</div>
+      <div class="setup-title">Expediente MFA-2026-LC-001</div>
+      <div class="setup-sub">Caso Lucentia Consulting S.L. — Filtración interna de información confidencial.</div>
+      <label class="slbl">Selecciona tu equipo</label>
+      <div class="team-grid">
+        <button class="team-btn" id="tb1" onclick="pickTeam(1)">Equipo 1</button>
+        <button class="team-btn" id="tb2" onclick="pickTeam(2)">Equipo 2</button>
+        <button class="team-btn" id="tb3" onclick="pickTeam(3)">Equipo 3</button>
+        <button class="team-btn" id="tb4" onclick="pickTeam(4)">Equipo 4</button>
+      </div>
+      <label class="slbl">Coordinador/a del equipo</label>
+      <input class="name-inp" type="text" id="cinp" placeholder="Nombre completo" autocomplete="off">
+      <button class="enter-btn" onclick="startApp()">Acceder al expediente →</button>
+    </div>
+  </div>
+  <div id="wait-view" style="display:none">
+    <div class="wait">
+      <div class="wait-seal">🔒</div>
+      <div class="wait-title">Expediente en preparación</div>
+      <div class="wait-sub">La detective activará la primera operación en breve.<br>Sin papel. Todo aquí.</div>
+      <div class="wait-team" id="wait-team"></div>
+    </div>
+  </div>
+  <div id="mission-view" style="display:none"></div>
+  <div id="done-view" style="display:none">
+    <div class="done">
+      <div class="done-icon">✓</div>
+      <div class="done-title">Operación completada</div>
+      <div class="done-sub">Respuestas enviadas al despacho.<br>Esperad la siguiente operación.</div>
+    </div>
+  </div>
+</div>
+<script>
+const FB='https://mfa-panel-default-rtdb.europe-west1.firebasedatabase.app';
+const BASE='https://claudialozanosans-ctrl.github.io/mfa-taller/';
+const OSINT=BASE+'osint-investigapro.html';
+const PDFS={
+  encargo:{file:'01-encargo-v3.pdf',ref:'DOC-00 · ENCARGO INICIAL',name:'Encargo de investigación — Lucentia Consulting S.L.'},
+  sobre1:{file:'02-sobre1-v3.pdf',ref:'SOBRE 1 · DOC-01/02/03/04',name:'Análisis documental — Proyecto Atenea'},
+  sobre2:{file:'03-sobre2-v3.pdf',ref:'SOBRE 2 · DOC-05/06/07/08',name:'Investigación por fuentes abiertas'},
+  sobre3:{file:'04-sobre3-v3.pdf',ref:'SOBRE 3 · DOC-ACTAS',name:'Actas de entrevistas voluntarias'},
+  informe:{file:'05-informe-v3.pdf',ref:'PLANTILLA OFICIAL',name:'Informe de investigación privada'},
+};
+
+const MISSIONS={
+M1:{phase:'Apertura · Encargo',title:'Operación Expediente',code:'MFA-OP-001',color:'#1a3a2a',tags:['Hipótesis inicial','Encargo','Marco legal','Plan de acción'],steps:[
+  {id:'m1p1',stype:'🧠 Antes del expediente',title:'Primero la intuición — luego los datos',text:'Sin leer nada todavía. En investigación privada, la hipótesis inicial es el ancla cognitiva. Formularla antes de ver los datos ayuda a detectar cuándo los datos la contradicen.',hint:'El 60% de las hipótesis iniciales en casos de filtración interna son incorrectas. Guardadla para comparar al final.',
+   act:{type:'decision',label:'Primera intuición del equipo',q:'¿Qué tipo de filtración es más probable en una consultora de alto nivel?',
+     opts:[{t:'Una persona que va a cambiar de trabajo',s:'Copia proyectos antes de marcharse para llevarlos a la competencia'},{t:'Dos personas coordinadas con roles distintos',s:'Una con acceso a los datos, otra con el contacto en la empresa rival'},{t:'Un error involuntario',s:'La filtración más habitual, aunque no siempre la más grave'},{t:'Alguien externo con acceso indebido',s:'Las auditorías internas no siempre detectan intrusiones sofisticadas'}],
+     noCorrect:true,fb:'Hipótesis inicial registrada. La revisaréis al final — sorpresa garantizada.'}},
+  {id:'m1p2',stype:'📋 Documento clasificado',title:'El expediente está sellado. Abrirlo es vuestro primer acto.',text:'El encargo oficial de Lucentia Consulting. Leedlo completo antes de continuar.',pdf:'encargo',
+   act:{type:'quiz',label:'Verificación de comprensión',q:'¿Qué descartó completamente la auditoría informática interna de Lucentia?',
+     opts:['Que hubiera más de un responsable interno','La intrusión externa — la filtración fue necesariamente interna','Que los documentos filtrados fueran de la versión 4','Que la empresa competidora fuera Nexum'],correct:1,
+     fb:{ok:'Correcto. La auditoría descartó intrusión externa. Solo cuatro personas en la lista.',bad:'Releed el encargo. La auditoría descartó intrusión externa — la filtración fue necesariamente interna.'}}},
+  {id:'m1p3',stype:'⚖️ Marco legal',title:'¿Sabéis exactamente qué podéis hacer?',text:'Un detective que investiga ilegalmente invalida toda la investigación.',
+   act:{type:'quiz',label:'Test legal — Ley 5/2014',q:'Paula Esteve rechaza la entrevista a través de su abogado. ¿Qué podéis hacer legalmente?',
+     opts:['Presentar el requerimiento como si fuera oficial','Documentar el rechazo en el informe y continuar por otras vías','Grabar sus conversaciones sin que ella lo sepa','Pedir a Lucentia que la presione'],correct:1,
+     fb:{ok:'Exacto. El detective no tiene poder coercitivo. El rechazo se documenta y se convierte en un dato más.',bad:'Incorrecto. El detective privado no puede obligar a declarar ni presionar. Solo documentar.'}}},
+  {id:'m1p4',stype:'🎯 Plan de acción',title:'¿Por dónde empezáis?',text:'Con el encargo claro y los límites legales definidos, decidid los tres primeros pasos concretos.',hint:'Tenéis 4 sospechosos, documentación interna pendiente y fuentes abiertas disponibles.',
+   act:{type:'text',label:'Plan de acción inicial',q:'¿Cuáles son los tres primeros pasos y por qué en ese orden?',ph:'Paso 1: ...\nPaso 2: ...\nPaso 3: ...\n\nElegimos este orden porque...'}}
+]},
+M2:{phase:'Fase 1 · Análisis documental',title:'Operación Archivo',code:'MFA-OP-002',color:'#2a1a0a',tags:['Preparación','Sobre 1','Lupa forense','Síntesis'],steps:[
+  {id:'m2p1',stype:'🔬 Antes del sobre',title:'¿Qué buscáis en un log de accesos?',text:'Antes de ver el log, identificad qué tipo de anomalías serían significativas.',hint:'Un acceso puede ser sospechoso por: (a) horario, (b) volumen de descarga, (c) IP de origen, (d) coherencia con el cargo.',
+   act:{type:'lupa',label:'Marcad qué consideráis una anomalía real',lines:['Un acceso a las 23h desde IP externa con descarga de 2 archivos','Un acceso a las 7h con descarga de 1 archivo del módulo propio','Una descarga de 3 archivos incluyendo perfil del cliente a las 23h con VPN','Un registro de acceso con datos corruptos — sin usuario identificado','Una impresión de 47 páginas del documento completo sin trituradora después','Un acceso sin descarga exactamente 3 días después del registro corrupto','Una descarga del perfil del cliente el mismo día en que llega propuesta a Nexum'],
+     minFlags:3,textq:'¿Cuál es la diferencia entre un acceso sospechoso y uno que prueba culpabilidad?',ph:'Un acceso sospechoso es... Para que sea prueba necesitaríamos...'}},
+  {id:'m2p2',stype:'📁 Sobre 1 · Análisis documental',title:'El sobre está sellado. Solo se abre una vez.',text:'Cuatro documentos: log del servidor, organigrama, registro de impresiones y análisis comparativo con Nexum. Leedlos todos.',hint:'Regla fundamental: nunca saquéis conclusiones de un solo documento. La clave está en cruzarlos.',pdf:'sobre1',
+   act:{type:'connect',label:'Cruce documental',q:'Conectad cada entrada del log con su implicación según el organigrama:',
+     left:['MORA: acceso desde IP externa 04/03 con 2 archivos','IBANEZ: 3 archivos el 15/03 incluyendo perfil del cliente','CASTELLVI: acceso sin descarga 3 días tras el registro corrupto','ESTEVE: descarga del perfil del cliente el 16/03'],
+     right:['Acceso completo — puede filtrar el perfil del cliente — fecha próxima al corrupto','Solo acceso parcial — NO puede filtrar el perfil del cliente','Acceso completo — descarga el archivo más sensible en fecha cercana a Nexum','Acceso completo — acceso desde IP externa en fecha temprana'],
+     pairs:[[0,3],[1,2],[2,1],[3,0]]}},
+  {id:'m2p3',stype:'🔬 Lupa forense',title:'El log bajo la lupa — cada línea cuenta',text:'Analizad el log con precisión. Marcad cada entrada anómala.',
+   act:{type:'lupa',label:'Lupa forense sobre el log del servidor',lines:['04/03 · 21:18h — MORA — 2 archivos — IP EXTERNA (fuera de red corporativa)','08/03 · 07:06h — CASTELLVI — 1 archivo módulo financiero — IP corporativa','12/03 · 22:40h — MORA — acceso sin descarga — VPN — 31 min de sesión','14/03 · 23:?? — SIN IDENTIFICAR — REGISTRO CORRUPTO — IP no registrada','15/03 · 23:14h — IBANEZ — 3 archivos: estrategia + financiero + PERFIL CLIENTE — VPN','16/03 · 08:22h — ESTEVE — 1 archivo resumen ejecutivo — IP corporativa','18/03 · 07:12h — CASTELLVI — acceso sin descarga — 3 min — 3 días tras el corrupto','21/03 · 21:03h — MORA — 1 archivo PERFIL CLIENTE — IP corporativa — fuera de horario','22/03 · 08:47h — ESTEVE — acceso sin descarga — IP corporativa'],
+     minFlags:4,textq:'El registro del 14/03 fue manipulado manualmente. ¿Qué implicaciones tiene?',ph:'La manipulación implica que... Solo alguien con... podría haberlo hecho porque...'}},
+  {id:'m2p4',stype:'📊 Síntesis · Fase 1',title:'¿Cómo está el caso tras el análisis documental?',text:'Solo con los documentos del cliente. El organigrama descarta automáticamente a una persona como filtrador del perfil del cliente.',hint:'Castellví solo tiene acceso al módulo financiero. ¿Podría ser cómplice de alguien con acceso completo?',
+   act:{type:'sliders_text',label:'Niveles de sospecha — solo con documentos del Sobre 1',suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve'],
+     textq:'¿Qué pregunta no podéis responder con estos documentos?',ph:'La pregunta sin respuesta es... Para responderla necesitamos...'}}
+]},
+M3:{phase:'Fase 2 · Fuentes abiertas',title:'Operación Huella Digital',code:'MFA-OP-003',color:'#0d2a4a',tags:['Test legal','InvestigaPro','Sobre 2','Conexiones'],steps:[
+  {id:'m3p1',stype:'⚖️ Antes de investigar',title:'Un test legal obligatorio',text:'Un indicio obtenido ilegalmente invalida toda la investigación.',
+   act:{type:'quiz',label:'Test legal OSINT',q:'Ibáñez publicó algo en LinkedIn el 17/03 y lo eliminó el mismo día. El despacho lo encontró en la caché de Google. ¿Podéis usarlo?',
+     opts:['No — lo eliminó, se convierte en información privada','Sí — estuvo disponible públicamente y fue indexada por Google','Solo si Ibáñez da su consentimiento','No — LinkedIn es una plataforma privada'],correct:1,
+     fb:{ok:'Correcto. Una publicación indexada por Google era pública cuando el detective la consultó. Se puede incluir citando fecha y fuente.',bad:'Incorrecto. La caché de Google preserva información pública. El detective puede documentarla. Legalmente válido en España.'}}},
+  {id:'m3p2',stype:'🔍 InvestigaPro activo',title:'Investigad en fuentes abiertas — hay conexiones que no son obvias',text:'Hay una persona en dos empresas a la vez. Hay un vínculo familiar no declarado. Hay publicaciones que alguien quiso borrar.',hint:'Buscad: Marcos Ibáñez · Sílvia Mora · Andrés Castellví · Paula Esteve · Nexum Strategy Partners · GC Talent Advisors.',osint:OSINT,
+   act:{type:'text',label:'Hallazgos OSINT',q:'Anotad los tres hallazgos más relevantes con su fuente:',ph:'Hallazgo 1: [qué] — [fuente] — [por qué es relevante]\n\nHallazgo 2:\n\nHallazgo 3:'}},
+  {id:'m3p3',stype:'📁 Sobre 2 · Fuentes abiertas',title:'El despacho os entrega los resultados OSINT',text:'Comparad lo que encontrasteis con lo que el despacho ha obtenido.',pdf:'sobre2',
+   act:{type:'board',label:'Tablero de conexiones',hint:'¿Quién tiene los archivos? ¿Quién tiene el contacto en Nexum? ¿Son la misma persona?',
+     nodes:[{id:'ibanez',label:'Ibáñez\n(archivos)',type:'suspect',x:8,y:12},{id:'mora',label:'Mora\n(IP externa)',type:'suspect',x:8,y:38},{id:'castellvi',label:'Castellví\n(financiero)',type:'suspect',x:8,y:64},{id:'esteve',label:'Esteve\n(Nexum)',type:'suspect',x:8,y:86},{id:'jordi',label:'Jordi Castellví\n(BDM · Nexum)',type:'person',x:55,y:35},{id:'gct',label:'GC Talent\nAdvisors',type:'company',x:80,y:12},{id:'nexum',label:'Nexum Strategy\nPartners',type:'company',x:80,y:60},{id:'cristina',label:'Cristina Lluch\n(GCT+Nexum)',type:'person',x:55,y:72}],
+     correctPairs:[['ibanez','castellvi'],['castellvi','jordi'],['jordi','nexum'],['gct','nexum'],['cristina','gct'],['cristina','nexum'],['esteve','nexum']],
+     textq:'Cadena más corta desde Lucentia hasta Nexum con conexiones documentadas:',ph:'La información pudo ir de ... a ... porque ...'}},
+  {id:'m3p4',stype:'🧩 La paradoja de Mora',title:'La más sospechosa en papel. Y sin embargo...',text:'Mora: 3 accesos nocturnos, archivos en cuenta personal, 47 páginas impresas. Pero cero vínculos con Nexum en fuentes abiertas.',hint:'La persona con más rastro visible no siempre es la culpable. A veces quien cuida más el rastro actúa con más premeditación.',
+   act:{type:'evidence_decision',label:'Indicios verificados + hipótesis provisional',
+     tags:['Ibáñez: descargó perfil del cliente 15/03 (DOC-01)','Ibáñez: publicación eliminada + likes Nexum (DOC-06)','Ibáñez: 3 nuevos contactos Nexum tras descarga (DOC-06)','Mora: acceso IP externa 04/03 (DOC-01)','Mora: 47 páginas impresas sin trituradora (DOC-03)','Mora: cero vínculos con Nexum (DOC-06)','Castellví: hermano BDM en Nexum sin declarar (DOC-06)','Castellví: acceso sin descarga 3 días tras corrupto (DOC-01)','Esteve: 3 visitas perfil CEO Nexum en marzo (DOC-06)','Esteve: coartada verificable 22/03 (DOC-07)','Registro corrupto 14/03 — autoría desconocida (DOC-01)'],
+     decision:{q:'¿Cuál es vuestra hipótesis provisional?',
+       opts:[{t:'Ibáñez actuó solo',s:'Tiene los archivos, la publicación eliminada y los contactos'},{t:'Mora es la culpable',s:'La más activa en el servidor aunque sin canal a Nexum'},{t:'Ibáñez + Castellví en conspiración',s:'Ibáñez accedió. Castellví tenía el canal hacia Nexum'},{t:'Esteve — conexión Nexum + rechazó hablar',s:'El silencio estratégico y las visitas al CEO'},{t:'No hay suficiente todavía',s:'Los indicios apuntan en demasiadas direcciones'}],
+       noCorrect:true,fb:'Hipótesis provisional registrada. Las entrevistas pueden confirmarlo o invertirlo todo.'}}}
+]},
+M4:{phase:'Fase 3 · Entrevistas',title:'Operación Contradicción',code:'MFA-OP-004',color:'#3a1a1a',tags:['Escucha activa','Comparador','Sobre 3','Hipótesis final'],steps:[
+  {id:'m4p1',stype:'🎧 Antes de escuchar',title:'¿Cómo detecta un detective si alguien miente?',text:'No buscando cara de mentiroso. Buscando incoherencias verificables: lo que dice vs. lo que los documentos acreditan.',
+   act:{type:'quiz',label:'Psicología del interrogatorio',q:'Ibáñez declara: "Trabajé en el documento de estrategia. Solo ese archivo." El DOC-01 muestra 3 descargas incluyendo el perfil del cliente. ¿Qué incluís en el informe?',
+     opts:['Ibáñez mintió sobre los archivos que descargó','Ibáñez declaró haber trabajado en el documento de estrategia sin mencionar el archivo Atenea_cliente_perfil.pdf, cuya descarga consta en el DOC-01','Ibáñez es culpable de la filtración','La discrepancia demuestra que tenía intención de ocultar'],correct:1,
+     fb:{ok:'Exacto. El informe describe el hecho verificable: qué declaró y qué acredita el DOC-01. "Mintió" es una conclusión judicial.',bad:'Cuidado. Solo podéis escribir lo que el log acredita y contrastarlo con la declaración.'}}},
+  {id:'m4p2',stype:'🎧 Entrevista 1 · Ibáñez',title:'Ibáñez acepta hablar. Tres momentos clave.',text:'Prestadid atención a las pausas y a lo que NO menciona sobre los archivos.',hint:'La pausa más larga ocurre cuando se menciona Nexum.',audio:{file:'entrevista-Ibañez.wav',label:'Entrevista voluntaria — Marcos Ibáñez Solano · S-01'},
+   act:{type:'comparator',label:'Declaración vs. hechos documentados',
+     pairs:[{decl:{lbl:'Ibáñez declara',txt:'"Trabajé en el documento de estrategia. Necesitaba revisar datos para una reunión."'},fact:{lbl:'DOC-01 acredita',txt:'15/03 · 23:14h — 3 archivos: estrategia + financiero + perfil cliente — 47 min'},ph:'La única conclusión válida para el informe es...',verdicts:true},{decl:{lbl:'Ibáñez declara',txt:'"Del sector se conoce todo el mundo. He coincidido con gente de Nexum en eventos."'},fact:{lbl:'DOC-06 acredita',txt:'3 contactos de Nexum añadidos en LinkedIn tras la descarga. Publicación eliminada con 3 likes de Nexum.'},ph:'En el informe esto se redacta como...',verdicts:true}]}},
+  {id:'m4p3',stype:'🎧 Entrevista 2 · Mora',title:'Mora acepta hablar. Hay un momento donde cambia su versión.',text:'Escuchad primero las preguntas, luego las respuestas. Buscad el momento donde contradice lo que declaró a Lucentia.',audioA:{file:'Entrevista Mora parte laura.mp3',label:'Detective — preguntas a Sílvia Mora',who:'detective'},audioB:{file:'Entrevista Mora parte mora.mp3',label:'Sílvia Mora — respuestas',who:'suspect'},
+   act:{type:'comparator',label:'Versión a Lucentia vs. versión a la detective',
+     pairs:[{decl:{lbl:'Mora declaró a Lucentia',txt:'"No envié ningún archivo a cuentas externas. Toda mi actividad fue dentro del sistema corporativo."'},fact:{lbl:'Mora declara a la detective',txt:'"Puede ser que sí. Tengo la costumbre de hacerme copias de seguridad. No lo recuerdo exactamente."'},ph:'En el informe esta contradicción se redacta como...',verdicts:true}],
+     textq:'¿Este cambio convierte a Mora en la principal sospechosa? Argumentad en ambos sentidos.',ph:'A favor de señalar a Mora: ...\nEn contra: ...\nConclusión: ...'}},
+  {id:'m4p4',stype:'🎧 Entrevista 3 · Castellví',title:'Castellví por videollamada. Nervioso desde el primer minuto.',text:'No puede negar el vínculo con su hermano. Pero sí lo minimiza.',audioA:{file:'Entrevsta castellvi parte laura.mp3',label:'Detective — preguntas a Castellví',who:'detective'},audioB:{file:'entrevista castellvi - parte castellvi.mp3',label:'Andrés Castellví — respuestas',who:'suspect'},
+   act:{type:'connect',label:'Declaraciones vs. hechos verificados',q:'Conectad cada declaración con el hecho documentado que la contradice:',
+     left:['Describe relación con hermano como "distante"','Dice que no hablan de trabajo','No declaró el vínculo en el formulario','Accedió el 18/03 sin descargar — justificó con reunión temprana'],
+     right:['14 conexiones comunes + interacción reciente en LinkedIn','Jordi es BDM en Nexum — canal directo hacia la competidora','El formulario incluía expresamente vínculos familiares con competidores','La agenda corporativa no muestra reuniones antes de las 10h ese día'],
+     pairs:[[0,0],[1,1],[2,2],[3,3]]}},
+  {id:'m4p5',stype:'📁 Sobre 3 · Actas completas',title:'Las actas escritas con observaciones de la detective.',text:'Leedlas antes de formular la hipótesis final.',pdf:'sobre3',
+   act:{type:'evidence_decision',label:'Hipótesis final',
+     tags:['Ibáñez: no mencionó tercer archivo (declaración + DOC-01)','Ibáñez: publicación eliminada + likes Nexum (DOC-06)','Mora: cambió versión sobre correo (declaración)','Mora: cero vínculos con Nexum (DOC-06)','Castellví: mintió sobre relación hermano (declaración + LinkedIn)','Castellví: hermano BDM en Nexum sin declarar (DOC-06)','Esteve: rechazó entrevista (acta)','Esteve: coartada verificable 22/03 (DOC-07)','Registro corrupto 14/03 — autoría desconocida (DOC-01)','Filtración incluye módulo financiero + perfil cliente (DOC-04)'],
+     decision:{q:'¿Cuál es vuestra hipótesis definitiva?',
+       opts:[{t:'Ibáñez actuó solo',s:'Tiene los archivos, la publicación eliminada y los contactos de Nexum'},{t:'Mora es la culpable',s:'Tiene el rastro más sospechoso aunque sin canal directo a Nexum'},{t:'Ibáñez + Castellví en conspiración',s:'Ibáñez descargó los archivos. Castellví pasó los datos a su hermano en Nexum'},{t:'Esteve — rechazó hablar y tiene conexión con Nexum',s:'El silencio estratégico y las visitas al CEO'},{t:'No tenemos suficiente',s:'Los indicios son fuertes pero no concluyentes'}],
+       noCorrect:true,fb:'Hipótesis definitiva registrada. En el Día 2 recibiréis un elemento que puede confirmarlo o complicarlo todo.'}}}
+]},
+M5:{phase:'Día 2 · Informe final',title:'Operación Veredicto',code:'MFA-OP-005',color:'#2a1a3a',tags:['Sobre anónimo','Informe','Veredicto','Votación'],steps:[
+  {id:'m5p1',stype:'📬 Elemento inesperado',title:'Un sobre en vuestra mesa esta mañana. Sin remitente.',text:'Una nota manuscrita. Sin firma. Sin fecha. Antes de decidir qué hacéis con ella, responded esta pregunta legal.',
+   act:{type:'quiz',label:'Dilema legal — fuente anónima',q:'La nota dice que alguien vio salir a una persona del edificio la noche del 15/03. Las cámaras fueron sobreescritas. ¿Cómo usáis la nota?',
+     opts:['No podemos usarla — fuentes anónimas son inadmisibles','Solo como indicio no verificado, identificando que la fuente es desconocida','Como prueba directa si coincide con otros indicios','No porque no hemos podido verificar la cámara'],correct:1,
+     fb:{ok:'Correcto. Una fuente anónima puede incluirse como indicio si se identifica como tal y se especifican sus limitaciones.',bad:'Incorrecto. Las fuentes anónimas no son pruebas pero pueden incluirse si se identifican correctamente.'}}},
+  {id:'m5p2',stype:'📝 Informe final',title:'La plantilla oficial. Sin atajos.',text:'Completad la plantilla del despacho con todo lo investigado.',hint:'Describís hechos, no imputáis. "El log acredita que..." correcto. "Ibáñez robó..." no. La culpabilidad la determina un juez.',pdf:'informe',
+   act:{type:'informe',label:'Rellenad el informe completo',
+     fields:[{lbl:'OBJETO DE LA INVESTIGACIÓN',ph:'Descripción del encargo en una frase precisa'},{lbl:'METODOLOGÍA APLICADA',ph:'Análisis documental · OSINT · Entrevistas voluntarias'},{lbl:'HECHOS VERIFICADOS CON FUENTE',ph:'Hecho 1 (DOC-01):\nHecho 2 (DOC-06):\nHecho 3 (declaración de ...):'},{lbl:'INDICIOS Y VALORACIÓN',ph:'Indicio 1 — relevancia alta — fuente:\nIndicio 2 — relevancia — fuente:'},{lbl:'HIPÓTESIS PRINCIPAL',ph:'Los indicios apuntan a ... como posible/s responsable/s en tanto que...'},{lbl:'RECOMENDACIONES AL CLIENTE',ph:'1. Acción legal:\n2. Medida interna:\n3. Nueva línea de investigación:'},{lbl:'FIRMADO POR EL EQUIPO',ph:'Coordinador/a: ... · TIP: ...'}]}},
+  {id:'m5p3',stype:'📊 Coherencia interna',title:'¿Cuánto convencidos estáis?',text:'Estos niveles deben ser coherentes con el informe.',hint:'¿Podría Ibáñez haber filtrado sin que Nexum tuviera contacto para recibir? ¿Podría Castellví pasar datos sin los archivos de Ibáñez?',
+   act:{type:'sliders_text',label:'Niveles de sospecha finales',suspects:['Marcos Ibáñez','Sílvia Mora','Andrés Castellví','Paula Esteve'],
+     textq:'¿Cambió vuestra hipótesis desde el Día 1? ¿Qué dato fue más determinante?',ph:'Del Día 1 al Día 2 cambió... El dato más determinante fue...'}},
+  {id:'m5p4',stype:'⚖️ Veredicto',title:'Lo presentaréis en voz alta ante todos los equipos.',text:'3 minutos. Quién filtró, cómo llegó a Nexum, tres indicios documentados.',hint:'"Los indicios apuntan a..." nunca "el culpable es..."',
+   act:{type:'text',label:'Veredicto para la rueda de prensa',q:'Redactad el veredicto que leeréis:',ph:'Señora Vidal, tras la investigación, este despacho concluye que...\n\nLos indicios son:\n1. ... (fuente: ...)\n2. ... (fuente: ...)\n3. ... (fuente: ...)\n\nFirmado: Equipo ...'}},
+  {id:'m5p5',stype:'🗳️ Votación final',title:'Después de escuchar a todos los equipos — ¿quién lo hizo?',text:'Podéis votar a una o varias personas. Si creéis que fue una conspiración, marcad a todos los implicados.',hint:'Votad según los indicios documentados, no según la intuición.',
+   act:{type:'vote',label:'Veredicto final del equipo'}}
+]}
+};
+
+// ═══ STATE ═══════════════════════════════════════════════════
+let tid=null,coord='',cMid=null,cStep=0;
+let ans={},cmatch={},svals={},stags={},sdec={},informeF={},lupaF={},boardC={},compV={},compT={},pdfOpened={};
+let csel=null,cside=null,bdSel=null;
+let voteSelected={},voteSent=false;
+
+// ═══ SETUP ═══════════════════════════════════════════════════
+function pickTeam(n){
+  document.querySelectorAll('.team-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('tb'+n).classList.add('sel');
+  tid=String(n);
+}
+
+function startApp(){
+  const c=document.getElementById('cinp').value.trim();
+  if(!tid){alert('Selecciona tu equipo primero');return;}
+  if(!c){alert('Escribe el nombre del coordinador/a');return;}
+  coord=c;
+  document.getElementById('tbadge').textContent='E'+tid;
+  document.getElementById('tbadge').style.display='block';
+  document.getElementById('setup-view').style.display='none';
+  document.getElementById('wait-view').style.display='block';
+  document.getElementById('wait-team').innerHTML='Equipo <span>'+tid+'</span> · '+coord;
+  regTeam();
+  poll();
+  setInterval(poll,4000);
+}
+
+async function regTeam(){
+  try{await fetch(`${FB}/misiones-equipos/equipo${tid}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tid,coord,ts:Date.now(),status:'online'})});}catch(e){}
+}
+
+async function poll(){
+  try{
+    const r=await fetch(`${FB}/mision-activa.json`,{cache:'no-store'});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d&&d.id&&d.id!==cMid){
+      cMid=d.id;cStep=0;
+      ans={};cmatch={};svals={};stags={};sdec={};informeF={};lupaF={};boardC={};compV={};compT={};pdfOpened={};
+      voteSelected={};voteSent=false;
+      document.getElementById('wait-view').style.display='none';
+      document.getElementById('done-view').style.display='none';
+      document.getElementById('mission-view').style.display='block';
+      render();
+    }else if((!d||!d.id)&&cMid){
+      cMid=null;
+      document.getElementById('mission-view').style.display='none';
+      document.getElementById('done-view').style.display='none';
+      document.getElementById('wait-view').style.display='block';
+    }
+  }catch(e){}
+}
+
+// ═══ RENDER ══════════════════════════════════════════════════
+function render(){
+  const m=MISSIONS[cMid];if(!m)return;
+  const s=m.steps[cStep],tot=m.steps.length,isLast=cStep===tot-1;
+  document.getElementById('pfill').style.width=Math.round((cStep/tot)*100)+'%';
+  const btnLabel=s.act?.type==='vote'&&!voteSent?'Enviar voto →':isLast?'Enviar informe →':'Siguiente →';
+  document.getElementById('mission-view').innerHTML=`
+  <div>
+    <div class="exp-hdr">
+      <div class="exp-class">Expediente · ${m.code}</div>
+      <div class="exp-title">${m.title}</div>
+      <div class="exp-code">${m.phase} · Equipo ${tid} · ${coord}</div>
+      <div class="exp-tags">${m.tags.map((t,i)=>`<span class="exp-tag ${i<=cStep?'on':''}">${t}</span>`).join('')}</div>
+    </div>
+    <div class="step-nav">
+      ${m.steps.map((_,i)=>`<div class="sdot ${i<cStep?'done':i===cStep?'active':''}" onclick="jumpTo(${i})"></div>`).join('')}
+      <div class="slbl2">${cStep+1}/${tot}</div>
+    </div>
+    <div class="scard">
+      <div class="stype">${s.stype||''}</div>
+      <div class="stitle">${s.title}</div>
+      <div class="stext">${s.text}</div>
+      ${s.hint?`<div class="shint">${s.hint}</div>`:''}
+      ${renderPdf(s)}${renderAudio(s)}${renderOsint(s)}${renderAct(s)}
+      <div class="sctrl">
+        ${cStep>0?`<button class="nbtn" onclick="prev()">← Atrás</button>`:''}
+        <button class="nbtn p" id="nbtn" onclick="next()" ${canGo(s)?'':'disabled'}>${btnLabel}</button>
+      </div>
+    </div>
+  </div>`;
+  postRender(s);
+}
+
+function renderPdf(s){
+  if(!s.pdf)return '';
+  const pdf=PDFS[s.pdf],idx=cStep,opened=pdfOpened[idx];
+  const url=BASE+encodeURIComponent(pdf.file);
+  if(!opened){
+    return `<div class="pdf-section"><div class="pdf-sealed">
+      <div class="pdf-stamp">📁 DOCUMENTO CLASIFICADO</div>
+      <div class="pdf-ref">${pdf.ref}</div>
+      <div class="pdf-name">${pdf.name}</div>
+      <a class="pdf-open-btn" href="${url}" target="_blank" onclick="markPdfOpen(${idx})">🔓 Abrir y leer →</a>
+      <div class="pdf-note">Debes abrirlo para continuar</div>
+    </div></div>`;
+  }
+  return `<div class="pdf-section"><div class="pdf-opened">
+    <div class="pdf-opened-hdr">
+      <div class="pdf-opened-icon">📂</div>
+      <div class="pdf-opened-info"><div class="pdf-opened-ref">✓ ${pdf.ref}</div><div class="pdf-opened-name">${pdf.name}</div></div>
+      <a class="pdf-reopen" href="${url}" target="_blank">Reabrir →</a>
+    </div>
+  </div></div>`;
+}
+
+function markPdfOpen(idx){
+  setTimeout(()=>{pdfOpened[idx]=true;ans['pdf_'+idx]=true;render();checkBtn();},800);
+}
+
+function renderAudio(s){
+  if(!s.audio&&!s.audioA)return '';
+  if(s.audio)return `<div class="audio-blk"><div class="audio-tag">🎧 Escucha activa</div><div class="audio-name">${s.audio.label}</div><audio controls controlsList="nodownload" preload="none" style="width:100%"><source src="${BASE}${encodeURIComponent(s.audio.file)}" type="audio/${s.audio.file.endsWith('.wav')?'wav':'mpeg'}"></audio></div>`;
+  return `<div class="dual-audio"><div class="daudio"><div class="daudio-who det">🎙️ ${s.audioA.label}</div><div class="daudio-note">Escuchad primero las preguntas</div><audio controls controlsList="nodownload" preload="none" style="width:100%"><source src="${BASE}${encodeURIComponent(s.audioA.file)}" type="audio/mpeg"></audio></div><div class="daudio"><div class="daudio-who sus">👤 ${s.audioB.label}</div><div class="daudio-note">Luego las respuestas</div><audio controls controlsList="nodownload" preload="none" style="width:100%"><source src="${BASE}${encodeURIComponent(s.audioB.file)}" type="audio/mpeg"></audio></div></div>`;
+}
+
+function renderOsint(s){
+  if(!s.osint)return '';
+  return `<a class="osint-btn" href="${s.osint}" target="_blank"><div class="osint-ico">🔍</div><div><div class="osint-t">Abrir InvestigaPro</div><div class="osint-s">Buscador de fuentes abiertas · Caso Lucentia</div></div><div class="osint-arr">→</div></a>`;
+}
+
+function renderAct(s){
+  const a=s.act;if(!a)return '';
+  const idx=cStep;
+  let h=`<div class="act-area"><div class="act-label">${a.label}</div>`;
+  if(a.q&&!['decision','evidence_decision','sliders_text','informe','lupa','board','comparator','vote'].includes(a.type))h+=`<div class="act-q">${a.q}</div>`;
+  switch(a.type){
+    case 'quiz':{
+      const qa=ans[idx];
+      h+=`<div class="qopts">${a.opts.map((o,i)=>`<div class="qopt ${qa!==undefined?i===a.correct?'correct':i===qa?'wrong':'dim':''}" onclick="doQuiz(${i},${idx},${a.correct})"><div class="ql">${'ABCD'[i]}</div><div>${o}</div></div>`).join('')}</div><div class="fb ${qa!==undefined?'show':''} ${qa===a.correct?'ok':'bad'}">${qa!==undefined?(qa===a.correct?a.fb.ok:a.fb.bad):''}</div>`;break;}
+    case 'decision':{
+      const sd=sdec[idx];
+      h+=`<div class="act-q">${a.q}</div><div class="dopts">${a.opts.map((o,i)=>`<div class="dopt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})"><div class="dt2">${o.t}</div><div class="ds2">${o.s}</div></div>`).join('')}</div>${sd!==undefined&&a.fb?`<div class="fb show ok">${a.fb}</div>`:''}`;break;}
+    case 'text':{
+      h+=`<div class="act-q">${a.q||''}</div><textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans[idx]||''}</textarea><div class="cc"><span id="cc-${idx}">${(ans[idx]||'').length}</span> car.</div>`;break;}
+    case 'lupa':{
+      const flags=lupaF[idx]||{};
+      h+=`<div class="lupa-instr">👆 Pulsa cada línea para marcarla como anómala</div><div class="lupa-doc">${a.lines.map((l,i)=>`<span class="lupa-line ${flags[i]?'flagged':''}" onclick="doLupa(${idx},${i})">${l}</span>`).join('')}</div><div class="lupa-count">Marcadas: <span>${Object.values(flags).filter(Boolean).length}</span></div>`;
+      if(a.textq)h+=`<div class="act-q" style="margin-top:.75rem">${a.textq}</div><textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans['t_'+idx]||''}</textarea><div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;break;}
+    case 'connect':{
+      const cm=cmatch[idx]||{};
+      if(a.q)h+=`<div class="act-q">${a.q}</div>`;
+      h+=`<div class="cgrid"><div><div class="ccol-lbl">Hecho / Declaración</div>${a.left.map((l,i)=>`<div class="citem ${cm[i]!==undefined?'matched':''}" data-side="left" data-i="${i}" onclick="doConnect('left',${i},${idx})">${l}</div>`).join('')}</div><div><div class="ccol-lbl">Implicación / Hecho</div>${a.right.map((r,i)=>`<div class="citem ${Object.values(cm).includes(i)?'matched':''}" data-side="right" data-i="${i}" onclick="doConnect('right',${i},${idx})">${r}</div>`).join('')}</div></div>`;break;}
+    case 'board':{
+      const conn=boardC[idx]||[];
+      h+=`<div class="board-legend"><div class="bleg"><div class="bleg-dot" style="background:var(--red)"></div>Sospechoso</div><div class="bleg"><div class="bleg-dot" style="background:var(--accent)"></div>Persona</div><div class="bleg"><div class="bleg-dot" style="background:var(--blue)"></div>Empresa</div></div><div class="board" id="board-${idx}"><svg class="bsvg" id="svg-${idx}"></svg>${a.nodes.map(n=>`<div class="bnode ${n.type}" style="left:${n.x}%;top:${n.y}%;transform:translate(-50%,-50%)" id="bn-${idx}-${n.id}" onclick="doBoard(${idx},'${n.id}')">${n.label}</div>`).join('')}</div><div class="board-info">Conexiones: <span id="bc-${idx}">${conn.length}</span> de ${a.correctPairs.length}</div>`;
+      if(a.textq)h+=`<div class="act-q" style="margin-top:.5rem">${a.textq}</div><textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans['t_'+idx]||''}</textarea><div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;break;}
+    case 'comparator':{
+      h+=`<div>${a.pairs.map((pair,pi)=>`<div class="comp-pair-grid"><div class="comp-side decl"><div class="comp-lbl">${pair.decl.lbl}</div><div class="comp-txt">${pair.decl.txt}</div></div><div class="comp-side fact"><div class="comp-lbl">${pair.fact.lbl}</div><div class="comp-txt">${pair.fact.txt}</div></div></div><textarea class="txta" placeholder="${pair.ph||''}" style="min-height:50px;margin-top:4px" oninput="doCompT(${idx},${pi},this.value)">${(compT[idx]||{})[pi]||''}</textarea>${pair.verdicts?`<div class="comp-verdict"><button class="cvbtn ${(compV[idx]||{})[pi]==='ok'?'ok':''}" onclick="doVerdict(${idx},${pi},'ok')">✓ Contradice el hecho</button><button class="cvbtn ${(compV[idx]||{})[pi]==='bad'?'bad':''}" onclick="doVerdict(${idx},${pi},'bad')">— No es concluyente</button></div>`:''}`).join('')}</div>`;
+      if(a.textq)h+=`<div class="act-q" style="margin-top:.625rem">${a.textq}</div><textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans[idx]||''}</textarea><div class="cc"><span id="cc-${idx}">${(ans[idx]||'').length}</span> car.</div>`;break;}
+    case 'sliders_text':{
+      const sv=svals[idx]||{};
+      h+=`<div class="sliders">${a.suspects.map((sus,i)=>`<div class="srow"><span class="sn">${sus}</span><input type="range" class="si" min="0" max="100" value="${sv[i]||0}" oninput="doSlider(${idx},${i},this.value);document.getElementById('sv${idx}${i}').textContent=this.value+'%'"><span class="sv" id="sv${idx}${i}">${sv[i]||0}%</span></div>`).join('')}</div>`;
+      if(a.textq)h+=`<div class="act-q">${a.textq}</div><textarea class="txta" id="txt-${idx}" placeholder="${a.ph||''}" oninput="doText(${idx},this.value)">${ans['t_'+idx]||''}</textarea><div class="cc"><span id="cc-${idx}">${(ans['t_'+idx]||'').length}</span> car.</div>`;break;}
+    case 'evidence_decision':{
+      const st=stags[idx]||{},sd=sdec[idx];
+      h+=`<div class="act-sub">Selecciona los indicios que podéis citar con fuente:</div><div class="etags">${a.tags.map((tag,i)=>`<div class="etag ${st[i]?'on':''}" onclick="doTag(${idx},${i})">${tag}</div>`).join('')}</div><div class="act-q">${a.decision.q}</div><div class="dopts">${a.decision.opts.map((o,i)=>`<div class="dopt ${sd===i?'sel':''}" onclick="doDecision(${idx},${i})"><div class="dt2">${o.t}</div><div class="ds2">${o.s}</div></div>`).join('')}</div>${sd!==undefined&&a.decision.fb?`<div class="fb show ok">${a.decision.fb}</div>`:''}`;break;}
+    case 'informe':{
+      h+=`<div class="informe"><div class="inf-hdr"><div class="inf-hdr-t">Informe de Investigación Privada</div><div class="inf-hdr-s">MFA-2026-LC-001 · Mulier Fortis Association · TIP 7293</div></div>${a.fields.map((f,fi)=>`<div class="inf-sec"><div class="inf-lbl">${f.lbl}</div><textarea class="inf-field" placeholder="${f.ph}" oninput="doInforme(${idx},${fi},this.value)">${(informeF[idx]||{})[fi]||''}</textarea></div>`).join('')}</div>`;break;}
+    case 'vote':{
+      if(voteSent){
+        h+=`<div class="vote-done"><div class="vote-done-ico">🗳️</div><div class="vote-done-t">Voto enviado</div><div class="vote-done-s">Vuestro veredicto ha llegado al despacho.<br>La detective revelará el resultado.</div></div>`;
+      }else{
+        h+=`<div class="vote-note">Podéis seleccionar uno o varios sospechosos</div>
+        <div class="vote-grid">
+          <div class="vote-card ${voteSelected.ibanez?'sel':''}" onclick="doVote('ibanez')"><div class="vote-ico">👔</div><div class="vote-name">Marcos Ibáñez</div><div class="vote-role">Senior Consultant<br>Acceso completo</div></div>
+          <div class="vote-card ${voteSelected.mora?'sel':''}" onclick="doVote('mora')"><div class="vote-ico">📋</div><div class="vote-name">Sílvia Mora</div><div class="vote-role">Project Manager<br>Acceso completo</div></div>
+          <div class="vote-card ${voteSelected.castellvi?'sel':''}" onclick="doVote('castellvi')"><div class="vote-ico">💰</div><div class="vote-name">Andrés Castellví</div><div class="vote-role">Financial Analyst<br>Acceso parcial</div></div>
+          <div class="vote-card ${voteSelected.esteve?'sel':''}" onclick="doVote('esteve')"><div class="vote-ico">🎯</div><div class="vote-name">Paula Esteve</div><div class="vote-role">Strategy Director<br>Acceso completo</div></div>
+        </div>
+        <div class="vote-conspiracy ${voteSelected.conspiracion?'sel':''}" onclick="doVote('conspiracion')">
+          <div class="vc-ico">🕵️</div><div><div class="vc-t">Conspiración entre dos o más personas</div><div class="vc-s">Actuaron de forma coordinada con roles distintos</div></div>
+        </div>`;
+      }
+      break;}
+  }
+  return h+'</div>';
+}
+
+function postRender(s){if(s.act?.type==='board')setTimeout(()=>drawBoard(cStep,s.act),50);}
+
+// ═══ HANDLERS ════════════════════════════════════════════════
+function doQuiz(i,idx,c){if(ans[idx]!==undefined)return;ans[idx]=i;render();checkBtn();}
+function doText(idx,v){ans[idx]=v;const cc=document.getElementById('cc-'+idx);if(cc)cc.textContent=v.length;checkBtn();}
+function doDecision(idx,i){sdec[idx]=i;ans['dec_'+idx]=i;render();checkBtn();}
+function doSlider(idx,si,v){if(!svals[idx])svals[idx]={};svals[idx][si]=parseInt(v);ans['s_'+idx]=svals[idx];}
+function doTag(idx,i){if(!stags[idx])stags[idx]={};stags[idx][i]=!stags[idx][i];const el=document.querySelectorAll('.etag')[i];if(el)el.classList.toggle('on',!!stags[idx][i]);ans['tags_'+idx]=stags[idx];}
+function doLupa(idx,i){if(!lupaF[idx])lupaF[idx]={};lupaF[idx][i]=!lupaF[idx][i];const el=document.querySelectorAll('.lupa-line')[i];if(el)el.classList.toggle('flagged',!!lupaF[idx][i]);const cnt=document.querySelector('.lupa-count span');if(cnt)cnt.textContent=Object.values(lupaF[idx]).filter(Boolean).length;ans['lupa_'+idx]=lupaF[idx];checkBtn();}
+function doCompT(idx,pi,v){if(!compT[idx])compT[idx]={};compT[idx][pi]=v;ans['ct_'+idx]=compT[idx];checkBtn();}
+function doVerdict(idx,pi,v){if(!compV[idx])compV[idx]={};compV[idx][pi]=v;ans['cv_'+idx]=compV[idx];const btns=document.querySelectorAll('.comp-verdict')[pi]?.querySelectorAll('.cvbtn');if(btns){btns.forEach(b=>b.classList.remove('ok','bad'));btns[v==='ok'?0:1]?.classList.add(v);}checkBtn();}
+function doInforme(idx,fi,v){if(!informeF[idx])informeF[idx]={};informeF[idx][fi]=v;ans['inf_'+idx]=informeF[idx];checkBtn();}
+function doVote(s){voteSelected[s]=!voteSelected[s];render();checkBtn();}
+
+function doConnect(side,i,idx){
+  const s=MISSIONS[cMid].steps[idx].act;
+  if(!cmatch[idx])cmatch[idx]={};const cm=cmatch[idx];
+  if(side==='left'&&cm[i]!==undefined)return;
+  if(side==='right'&&Object.values(cm).includes(i))return;
+  if(csel===null){csel=i;cside=side;document.querySelectorAll(`.citem[data-side="${side}"][data-i="${i}"]`).forEach(el=>el.classList.add('sel'));}
+  else{
+    if(cside===side){document.querySelectorAll('.citem.sel').forEach(el=>el.classList.remove('sel'));csel=i;cside=side;document.querySelectorAll(`.citem[data-side="${side}"][data-i="${i}"]`).forEach(el=>el.classList.add('sel'));return;}
+    const li=side==='right'?csel:i,ri=side==='right'?i:csel;
+    const ok=s.pairs.some(p=>p[0]===li&&p[1]===ri);
+    if(ok){cm[li]=ri;document.querySelectorAll('.citem.sel').forEach(el=>el.classList.remove('sel'));ans[idx]=cm;render();}
+    else{document.querySelectorAll('.citem.sel').forEach(el=>{el.classList.remove('sel');el.classList.add('wrong');setTimeout(()=>el.classList.remove('wrong'),400);});}
+    csel=null;cside=null;
+    if(Object.keys(cm).length===s.left.length)checkBtn();
+  }
+}
+
+function doBoard(idx,nid){
+  if(!boardC[idx])boardC[idx]=[];
+  const a=MISSIONS[cMid].steps[idx].act;
+  if(!bdSel){bdSel=nid;document.getElementById(`bn-${idx}-${nid}`)?.classList.add('sel');}
+  else{
+    if(bdSel===nid){document.getElementById(`bn-${idx}-${nid}`)?.classList.remove('sel');bdSel=null;return;}
+    const pair=[bdSel,nid].sort(),ps=pair.join('-');
+    if(boardC[idx].some(c=>c.join('-')===ps)){boardC[idx]=boardC[idx].filter(c=>c.join('-')!==ps);}
+    else{boardC[idx].push(pair);}
+    document.getElementById(`bn-${idx}-${bdSel}`)?.classList.remove('sel');
+    bdSel=null;ans['board_'+idx]=boardC[idx];
+    drawBoard(idx,a);
+    const bc=document.getElementById('bc-'+idx);if(bc)bc.textContent=boardC[idx].length;
+    checkBtn();
+  }
+}
+
+function drawBoard(idx,a){
+  const svg=document.getElementById(`svg-${idx}`);if(!svg)return;
+  const board=document.getElementById(`board-${idx}`);if(!board)return;
+  const conn=boardC[idx]||[],br=board.getBoundingClientRect();
+  const corrStrs=(a.correctPairs||[]).map(p=>[...p].sort().join('-'));
+  svg.innerHTML=conn.map(pair=>{
+    const n1=document.getElementById(`bn-${idx}-${pair[0]}`);
+    const n2=document.getElementById(`bn-${idx}-${pair[1]}`);
+    if(!n1||!n2)return '';
+    const r1=n1.getBoundingClientRect(),r2=n2.getBoundingClientRect();
+    return `<line x1="${r1.left+r1.width/2-br.left}" y1="${r1.top+r1.height/2-br.top}" x2="${r2.left+r2.width/2-br.left}" y2="${r2.top+r2.height/2-br.top}" class="bline ${corrStrs.includes([...pair].sort().join('-'))?'ok':''}"/>`;
+  }).join('');
+}
+
+// ═══ CAN PROCEED ═════════════════════════════════════════════
+function canGo(s){
+  const a=s.act,idx=cStep;
+  if(s.pdf&&!pdfOpened[idx])return false;
+  if(!a)return true;
+  switch(a.type){
+    case 'quiz':return ans[idx]!==undefined;
+    case 'decision':return sdec[idx]!==undefined;
+    case 'text':return(ans[idx]||'').length>20;
+    case 'lupa':return Object.values(lupaF[idx]||{}).filter(Boolean).length>=(a.minFlags||2);
+    case 'connect':return Object.keys(cmatch[idx]||{}).length===a.left.length;
+    case 'board':return(boardC[idx]||[]).length>=Math.ceil((a.correctPairs||[]).length*0.5);
+    case 'comparator':{const allV=a.pairs.every((_,pi)=>!_.verdicts||(compV[idx]||{})[pi]);const hasT=a.pairs.some((_,pi)=>(compT[idx]||{})[pi]?.length>10);return allV&&hasT&&(!a.textq||(ans[idx]||'').length>15);}
+    case 'sliders_text':return!a.textq||(ans['t_'+idx]||'').length>10;
+    case 'evidence_decision':return sdec[idx]!==undefined;
+    case 'informe':return Object.values(informeF[idx]||{}).filter(v=>v.length>5).length>=4;
+    case 'vote':return voteSent||Object.values(voteSelected).some(Boolean);
+    default:return true;
+  }
+}
+function checkBtn(){const b=document.getElementById('nbtn');if(b&&MISSIONS[cMid])b.disabled=!canGo(MISSIONS[cMid].steps[cStep]);}
+
+// ═══ NAVIGATION ══════════════════════════════════════════════
+function jumpTo(i){if(i<=cStep){cStep=i;render();}}
+function prev(){if(cStep>0){cStep--;render();}}
+
+async function next(){
+  const m=MISSIONS[cMid],s=m.steps[cStep];
+  // Handle vote
+  if(s.act?.type==='vote'&&!voteSent){
+    const votes=Object.entries(voteSelected).filter(([,v])=>v).map(([k])=>k);
+    try{await fetch(`${FB}/votacion-final/equipo${tid}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tid,coord,votes,ts:Date.now()})});}catch(e){}
+    voteSent=true;ans['vote']=votes;render();checkBtn();return;
+  }
+  // Progress to Firebase
+  try{await fetch(`${FB}/misiones-progreso/equipo${tid}/${cMid}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tid,coord,step:cStep,total:m.steps.length,ts:Date.now()})});}catch(e){}
+  if(cStep<m.steps.length-1){cStep++;render();}
+  else{await submit();}
+}
+
+async function submit(){
+  const m=MISSIONS[cMid];
+  try{await fetch(`${FB}/misiones-respuestas/equipo${tid}/${cMid}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tid,coord,missionId:cMid,missionTitle:m.title,phase:m.phase,answers:ans,lupaF,boardC,compV,compT,svals,stags,sdec,informeF,pdfOpened,ts:Date.now()})});}catch(e){}
+  document.getElementById('mission-view').style.display='none';
+  document.getElementById('done-view').style.display='block';
+  document.getElementById('pfill').style.width='100%';
+  try{await fetch(`${FB}/misiones-equipos/equipo${tid}.json`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({lastCompleted:cMid,ts:Date.now()})});}catch(e){}
+}
+</script>
+</body>
+</html>
